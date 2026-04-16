@@ -507,16 +507,21 @@ ${miniResults}`;
     let aiText = '';
 
     if (process.env.GEMINI_API_KEY) {
-      const { GoogleGenerativeAI } = require('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      aiText = response.text();
+      const { OpenAI } = require('openai');
+      const geminiClient = new OpenAI({ 
+        apiKey: process.env.GEMINI_API_KEY,
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+      });
+      const completion = await geminiClient.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'gemini-1.5-flash',
+        temperature: 0.5,
+      });
+      aiText = completion.choices[0].message.content;
     } else {
       const { OpenAI } = require('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const completion = await openai.chat.completions.create({
+      const openaiCli = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const completion = await openaiCli.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: 'gpt-3.5-turbo',
         temperature: 0.5,

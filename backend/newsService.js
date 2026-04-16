@@ -105,12 +105,17 @@ ${rawNewsTexts.join('\n')}`;
     let aiRes = '';
 
     if (process.env.GEMINI_API_KEY) {
-      const { GoogleGenerativeAI } = require('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      aiRes = response.text().trim();
+      const { OpenAI } = require('openai');
+      const geminiClient = new OpenAI({ 
+        apiKey: process.env.GEMINI_API_KEY,
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+      });
+      const chatCompletion = await geminiClient.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'gemini-1.5-flash',
+        temperature: 0.2,
+      });
+      aiRes = chatCompletion.choices[0].message.content.trim();
     } else {
       const { OpenAI } = require('openai');
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
