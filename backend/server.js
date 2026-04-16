@@ -389,7 +389,8 @@ function generateSchedule(from, to, date, sortBy = 'departure', network = 'mav')
 
   let results = times.map((time, i) => {
     const train   = vehicles[i % vehicles.length];
-    const depDate = new Date(`${targetDate}T${time}:00`);
+    // Rögzítjük a magyar zónát (+02:00 / CEST)
+    const depDate = new Date(`${targetDate}T${time}:00+02:00`);
     const delay   = delayStore[`${fromName}-${toName}-${time}`] ?? 
                      (rand() < (network === 'bkk' ? 0.1 : 0.22) ? Math.floor(rand() * (network === 'bkk' ? 10 : 28)) + 2 : 0);
     const arrDate = new Date(depDate.getTime() + train.durationMin * 60000);
@@ -408,6 +409,13 @@ function generateSchedule(from, to, date, sortBy = 'departure', network = 'mav')
       transfers: Math.floor(rand() * (network === 'bkk' ? 3 : 2))
     };
   });
+
+  // Ha a mai napon keresünk, kidobjuk azokat a járatokat, amik már elmentek (a valós időben)
+  const todayISO = new Date(new Date().getTime() + 2 * 3600 * 1000).toISOString().split('T')[0]; // Quick magyar (+2h) mai nap
+  if (targetDate === todayISO || targetDate === new Date().toISOString().split('T')[0]) {
+     const nowMs = new Date().getTime();
+     results = results.filter(r => new Date(r.departureTime).getTime() > nowMs - 15 * 60000); // 15 perc türelmi idő a múltba
+  }
 
   // Calculate AI Recommendations (Fastest, Direct)
   if (results.length > 0) {
