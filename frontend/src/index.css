@@ -268,6 +268,79 @@ body {
 .loading { display: flex; justify-content: center; padding: 2rem; color: var(--text-muted); gap: 8px; align-items: center; }
 .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 /* ─── Footer ─── */
-.footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 2rem 1.5rem;
+  text-align: center;
+  background: var(--bg-secondary);
+}
+.footer-disclaimer {
+  color: var(--text-muted); font-size: 0.78rem; margin-bottom: 1.5rem;
+}
+.footer-sponsors {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  margin-bottom: 1.25rem; flex-wrap: wrap;
+}
+.sponsor-card {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 28px;
+  text-decoration: none; color: var(--text-primary);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  min-width: 130px; min-height: 60px;
+}
+.sponsor-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 24px rgba(59,130,246,0.2);
+}
+.sponsor-logo {
+  height: 36px; width: auto; object-fit: contain;
+  filter: brightness(0) invert(1); opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.sponsor-card:hover .sponsor-logo { opacity: 1; }
+.sponsor-fallback {
+  display: none; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem; letter-spacing: 0.08em;
+}
+.mav-fallback { color: #d40000; }
+.bkk-fallback { color: #00a0e3; }
+.footer-copy { font-size: 0.75rem; color: var(--text-muted); margin-top: 0; }
+
+/* ─── Auth Pages ─── */
+.nav-user    { font-family: 'Inter', sans-serif; }
+.nav-register { text-decoration: none; margin-left: 4px; }
+
+.auth-page {
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem 1rem; min-height: 70vh;
+}
+.auth-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2.5rem 2rem;
+  width: 100%; max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease;
+}
+.auth-icon { font-size: 2.5rem; text-align: center; margin-bottom: 0.75rem; }
+.auth-card h2 { font-size: 1.4rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
+.auth-subtitle { text-align: center; color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.5rem; }
+.auth-links {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 1.25rem; font-size: 0.82rem; color: var(--text-muted);
+}
+.auth-links a { color: var(--accent); text-decoration: none; }
+.auth-links a:hover { text-decoration: underline; }
+.reset-token-demo {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  margin-top: 1rem; word-break: break-all;
+}
+

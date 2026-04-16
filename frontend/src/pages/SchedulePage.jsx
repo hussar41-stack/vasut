@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 import PurchaseModal from '../components/PurchaseModal';
 import DelayModal from '../components/DelayModal';
 
@@ -28,7 +29,9 @@ const TODAY = new Date().toISOString().split('T')[0];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SchedulePage() {
-  const [form, setForm]             = useState({ from: '', to: '', date: TODAY });
+  const { ws } = useAuth();
+
+  const [form, setForm]             = useState({ from: '', to: '', date: TODAY, sortBy: 'departure' });
   const [trips, setTrips]           = useState([]);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
@@ -36,14 +39,13 @@ export default function SchedulePage() {
   const [purchaseTrip, setPurchaseTrip] = useState(null);
   const [delayTrip, setDelayTrip]   = useState(null);
 
-  const handleSearch = useCallback(async (e) => {
-    e.preventDefault();
+  const fetchResults = useCallback(async (searchParams) => {
     setError(null);
     setLoading(true);
     setSearched(true);
 
     try {
-      const response = await api.search(form);
+      const response = await api.search(searchParams);
 
       if (!response || !Array.isArray(response.results)) {
         throw new Error('A szerver érvénytelen adatot küldött vissza.');
@@ -63,9 +65,40 @@ export default function SchedulePage() {
     } finally {
       setLoading(false);
     }
-  }, [form]);
+  }, []);
 
-  // Merge delay update into local trip state (keeps all other fields)
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchResults(form);
+  };
+  
+  // Refetch results when sortBy changes if already searched
+  useEffect(() => {
+     if(searched) fetchResults(form);
+  }, [form.sortBy]);
+
+  // WebSocket Listener
+  useEffect(() => {
+    if (!ws) return;
+
+    const handleMessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'delay_update') {
+          const { id, delayMinutes, status } = message.data;
+          setTrips(prev => prev.map(t => 
+             t.id === id ? { ...t, delayMinutes, delay: delayMinutes, status } : t
+          ));
+        }
+      } catch (err) {
+        console.error('WS MSG Parse Error', err);
+      }
+    };
+
+    ws.addEventListener('message', handleMessage);
+    return () => ws.removeEventListener('message', handleMessage);
+  }, [ws]);
+
   function handleDelayUpdated(updated) {
     setTrips(prev =>
       prev.map(t => t.id === updated.id ? { ...t, ...updated } : t)
@@ -83,35 +116,54 @@ export default function SchedulePage() {
               <label>Indulás</label>
               <input
                 id="search-from"
+                required
                 placeholder="pl. Budapest Keleti"
                 value={form.from}
                 onChange={e => setForm(f => ({ ...f, from: e.target.value }))}
               />
             </div>
-            <div className="field">
+            <div className="field" style={{ position: 'relative' }}>
               <label>Érkezés</label>
               <input
                 id="search-to"
+                required
                 placeholder="pl. Győr"
                 value={form.to}
                 onChange={e => setForm(f => ({ ...f, to: e.target.value }))}
               />
+              <button type="button" onClick={() => setForm(f => ({ ...f, from: f.to, to: f.from }))}
+                style={{
+                  position: 'absolute', top: 31, left: -22, zIndex: 5,
+                  background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                  borderRadius: '50%', width: 28, height: 28, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }} title="Felcserél">
+                ⇄
+              </button>
             </div>
             <div className="field">
               <label>Dátum</label>
               <input
                 id="search-date"
                 type="date"
+                required
                 value={form.date}
                 onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
               />
             </div>
-            <button className="btn btn-primary" id="search-submit" type="submit" disabled={loading}>
-              {loading
-                ? <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Keresés…</>
-                : '🔍 Keresés'}
-            </button>
+            <div className="field">
+              <label>Rendezés</label>
+              <select value={form.sortBy} onChange={e => setForm(f => ({ ...f, sortBy: e.target.value }))}
+                  style={{ height: '42px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-primary)', padding: '0 12px' }}>
+                  <option value="departure">Legkorábbi indulás</option>
+                  <option value="duration">Leggyorsabb út</option>
+                  <option value="price">Legolcsóbb ár</option>
+              </select>
+            </div>
           </div>
+          <button className="btn btn-primary" id="search-submit" type="submit" disabled={loading} style={{ width: '100%', marginTop: '16px' }}>
+            {loading ? 'Keresés...' : '🔍 Keresés indítása'}
+          </button>
         </form>
       </div>
 
@@ -122,16 +174,20 @@ export default function SchedulePage() {
         </div>
       )}
 
-      {/* ── Loading spinner ───────────────────────────────────────────────── */}
-      {loading && (
-        <div className="loading">
-          <span className="spinner" /> Járatok betöltése…
+      {/* ── Results / Skeleton ───────────────────────────────────────────── */}
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+           {[1, 2, 3].map(i => (
+               <div key={i} style={{
+                   height: 120, borderRadius: 16, border: '1px solid var(--border)',
+                   background: 'linear-gradient(90deg, var(--bg-card) 0%, var(--bg-secondary) 50%, var(--bg-card) 100%)',
+                   backgroundSize: '200% 100%',
+                   animation: 'skeletonPulse 1.5s infinite'
+               }}></div>
+           ))}
         </div>
-      )}
-
-      {/* ── Results ──────────────────────────────────────────────────────── */}
-      {!loading && searched && (
-        <div>
+      ) : searched ? (
+        <div style={{ marginTop: '2rem' }}>
           <div className="trips-header">
             <h2>Találatok</h2>
             <span className="result-count">{trips.length} járat</span>
@@ -149,8 +205,23 @@ export default function SchedulePage() {
                 <div
                   key={trip.id}
                   className={`trip-card ${trip.status === 'DELAYED' ? 'delayed' : 'on-time'}`}
+                  style={{ position: 'relative' }}
                 >
-                  <div className="trip-main">
+                  {/* AI Recommendation Badges */}
+                  <div style={{ position: 'absolute', top: -12, left: 16, display: 'flex', gap: 6 }}>
+                    {trip.isRecommendedFastest && (
+                        <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: 12, boxShadow: '0 2px 8px rgba(59,130,246,0.4)', textTransform: 'uppercase' }}>
+                            🚀 Leggyorsabb
+                        </span>
+                    )}
+                    {trip.isRecommendedDirect && (
+                        <span style={{ background: '#10b981', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: 12, boxShadow: '0 2px 8px rgba(16,185,129,0.4)', textTransform: 'uppercase' }}>
+                            🎯 Közvetlen
+                        </span>
+                    )}
+                  </div>
+                
+                  <div className="trip-main" style={{ paddingTop: (trip.isRecommendedFastest || trip.isRecommendedDirect) ? 4 : 0 }}>
                     <div className="trip-name">{trip.routeName}</div>
                     <div className="trip-times">
                       <span className="trip-time">{formatTime(trip.departureTime)}</span>
@@ -166,6 +237,7 @@ export default function SchedulePage() {
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       {formatDate(trip.departureTime)}
                       {trip.platform ? ` · ${trip.platform}. vágány` : ''}
+                      <span style={{ marginLeft: 8 }}>· {trip.transfers} átszállás</span>
                     </div>
                   </div>
 
@@ -200,7 +272,7 @@ export default function SchedulePage() {
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* ── Modals ───────────────────────────────────────────────────────── */}
       {purchaseTrip && (

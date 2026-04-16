@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Replace with your real Stripe public key
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_mock');
 
 export default function PurchaseModal({ trip, onClose, onSuccess }) {
+  const { user } = useAuth();
+  
   const [form, setForm] = useState({
-    passengerName:  '',
-    passengerEmail: '',
+    passengerName:  user?.name || '',
     seatClass:      'SECOND',
     quantity:       1,
   });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
-  const [ticket,  setTicket]  = useState(null);
 
   const priceMultiplier = form.seatClass === 'FIRST' ? 1.5 : 1;
   const total = Math.round(trip.basePrice * priceMultiplier * form.quantity);
@@ -24,17 +29,27 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!user) {
+       setError("Jegyvásárláshoz bejelentkezés szükséges!");
+       return;
+    }
+    
     setError(null);
     setLoading(true);
     try {
-      // Pass tripData so the server can create the ticket without a DB trip lookup
-      const result = await api.purchaseTicket({
+      const session = await api.createCheckoutSession({
         tripId:   trip.id,
         tripData: trip,
-        ...form,
+        passengerName: form.passengerName,
+        seatClass: form.seatClass,
+        quantity: form.quantity
       });
-      setTicket(result);
-      onSuccess && onSuccess(result);
+      
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error("Szerver hiba: Nincs érvényes Stripe átirányítási URL.");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,37 +57,11 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
     }
   }
 
-  if (ticket) {
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="confirmation">
-            <div className="check-icon">✅</div>
-            <h3>Sikeres jegyvásárlás!</h3>
-            <p>Foglalási kód:</p>
-            <div className="conf-code">{ticket.confirmationCode}</div>
-            <p>{ticket.from} → {ticket.to}</p>
-            <p>{formatDate(ticket.departureTime)} · {formatTime(ticket.departureTime)} – {formatTime(ticket.arrivalTime)}</p>
-            <p style={{ marginTop: '0.5rem' }}>
-              {ticket.quantity} db · {ticket.seatClass === 'FIRST' ? '1. oszt.' : '2. oszt.'}
-            </p>
-            <p style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent)', marginTop: '0.75rem' }}>
-              {ticket.totalPrice.toLocaleString('hu-HU')} Ft
-            </p>
-            <button className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={onClose}>
-              Bezárás
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>🎫 Jegyvásárlás</h2>
+          <h2>🎫 Jegyvásárlás (Stripe)</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
@@ -99,11 +88,12 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
           <div className="field">
             <label>E-mail cím</label>
             <input
-              type="email" required
-              placeholder="utas@example.hu"
-              value={form.passengerEmail}
-              onChange={e => setForm(f => ({ ...f, passengerEmail: e.target.value }))}
+              type="email"
+              disabled
+              value={user?.email || ''}
+              title="A jegyet az accountodhoz rendeljük"
             />
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)'}}>A fiókhoz rendelt email címet használjuk.</p>
           </div>
           <div className="form-row">
             <div className="field">
@@ -124,8 +114,8 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
             <span className="label">Fizetendő összeg</span>
             <span className="price">{total.toLocaleString('hu-HU')} Ft</span>
           </div>
-          <button className="btn btn-success" type="submit" disabled={loading} style={{ width: '100%' }}>
-            {loading ? '⏳ Feldolgozás...' : '💳 Fizetés & Foglalás'}
+          <button className="btn btn-success" type="submit" disabled={loading} style={{ width: '100%', background: '#635BFF', borderColor: '#635BFF' }}>
+            {loading ? '⏳ Átirányítás Stripe-ra...' : '💳 Fizetés Stripe-pal'}
           </button>
         </form>
       </div>
