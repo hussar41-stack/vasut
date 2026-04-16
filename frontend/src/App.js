@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 import SuccessPage from './pages/SuccessPage';
 import CancelPage from './pages/CancelPage';
 import PrivateRoute      from './components/PrivateRoute';
+import HeroSlider        from './components/HeroSlider';
 
 function AppInner() {
   const { user, isLoggedIn } = useAuth();
@@ -60,10 +61,7 @@ function AppInner() {
         <Route path="/" element={
           <>
             <div style={{ padding:'2rem 2rem 0', maxWidth:1200, margin:'0 auto', width:'100%' }}>
-              <div className="hero">
-                <h1>Utazzon velünk<br /><span>gyorsan és kényelmesen</span></h1>
-                <p>Valós idejű menetrend · Interaktív térkép · Azonnali jegyvásárlás · AI Útvonalak</p>
-              </div>
+              <HeroSlider />
             </div>
             <main className="main"><SchedulePage /></main>
           </>

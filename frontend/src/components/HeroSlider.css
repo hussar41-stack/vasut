@@ -1,0 +1,82 @@
+.hero-slider-container {
+  margin-top: 2rem;
+  background: rgba(30, 41, 59, 0.7); /* Sötét üveg hatás */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  height: 60px; /* Pontosan egy sornak megfelelő magasság */
+  overflow: hidden; /* Elrejti a többi elemet */
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+}
+
+.hero-slider-track {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); /* Sima, rugós fel-le váltás */
+}
+
+.hero-slider-item {
+  height: 60px; /* Szorosan illeszkedik a containerhez */
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.info-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.info-text {
+  font-size: 1rem;
+  color: #f8fafc;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Különböző típusú "badge" színek */
+.alert .info-badge {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.news .info-badge {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.info .info-badge {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Mobil nézet finomhangolása */
+@media (max-width: 768px) {
+  .hero-slider-item {
+    padding: 0 10px;
+    gap: 10px;
+  }
+  .info-text {
+    font-size: 0.85rem;
+  }
+  .info-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+}
