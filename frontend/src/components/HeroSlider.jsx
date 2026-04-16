@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './HeroSlider.css';
 
 const MOCK_INFOS = [
+  { type: 'logo', text: '' },
   { type: 'alert', text: '🚧 Vágányzár: Budapest-Keleti Pályaudvar felújítás miatt korlátozottan üzemel!' },
   { type: 'info', text: '🚆 Érdekesség: A leggyorsabb InterCity vonatunk eléri a 160 km/h sebességet!' },
   { type: 'news', text: '✨ Új funkció: Próbáld ki a valós idejű menetrendi térképünket!' },
@@ -54,10 +55,16 @@ export default function HeroSlider() {
         >
           {items.map((info, idx) => (
             <div key={idx} className={`hero-slider-item ${info.type}`}>
-              <span className="info-badge">
-                {info.type === 'alert' ? '🔴 FONTOS' : info.type === 'news' ? '🌟 ÚJDONSÁG' : 'ℹ️ INFÓ'}
-              </span>
-              <span className="info-text">{info.text}</span>
+              {info.type === 'logo' ? (
+                <img src="/logo.png" alt="TransportHU Logo" style={{ height: '40px', objectFit: 'contain' }} />
+              ) : (
+                <>
+                  <span className="info-badge">
+                    {info.type === 'alert' ? '🔴 FONTOS' : info.type === 'news' ? '🌟 ÚJDONSÁG' : 'ℹ️ INFÓ'}
+                  </span>
+                  <span className="info-text">{info.text}</span>
+                </>
+              )}
             </div>
           ))}
         </div>
