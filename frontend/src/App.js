@@ -5,6 +5,7 @@ import './index.css';
 import SchedulePage      from './pages/SchedulePage';
 import TicketsPage       from './pages/TicketsPage';
 import MapPage           from './pages/MapPage';
+import BKKMapPage        from './pages/BKKMapPage';
 import LoginPage         from './pages/LoginPage';
 import RegisterPage      from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -31,7 +32,11 @@ function AppInner() {
           </NavLink>
           <NavLink to="/map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🗺️ Élő Térkép
+            🚆 MÁV Térkép
+          </NavLink>
+          <NavLink to="/bkk-map"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            🚌 BKK Járatok
           </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"
@@ -69,6 +74,10 @@ function AppInner() {
 
         <Route path="/map" element={
           <main style={{ flex:1, padding:0 }}><MapPage /></main>
+        } />
+
+        <Route path="/bkk-map" element={
+          <main style={{ flex:1, padding:0 }}><BKKMapPage /></main>
         } />
 
         <Route path="/tickets" element={
