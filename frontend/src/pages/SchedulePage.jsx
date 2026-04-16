@@ -75,6 +75,7 @@ export default function SchedulePage() {
   // Refetch results when sortBy changes if already searched
   useEffect(() => {
      if(searched) fetchResults(form);
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.sortBy]);
 
   // WebSocket Listener

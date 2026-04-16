@@ -3,8 +3,8 @@ import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 
-// Replace with your real Stripe public key
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_mock');
+// We don't need stripePromise here anymore because we redirect directly to url
+// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_mock');
 
 export default function PurchaseModal({ trip, onClose, onSuccess }) {
   const { user } = useAuth();

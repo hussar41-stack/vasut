@@ -14,7 +14,7 @@ import CancelPage from './pages/CancelPage';
 import PrivateRoute      from './components/PrivateRoute';
 
 function AppInner() {
-  const { user, logout, isLoggedIn } = useAuth();
+  const { user, isLoggedIn } = useAuth();
 
   return (
     <div className="layout">
