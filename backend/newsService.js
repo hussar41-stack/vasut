@@ -80,7 +80,7 @@ async function getLatestNews() {
     };
 
     // Nincs egyik API kulcs sem -> Adjuk vissza a nyers RSS szövegeket AI átirat nélkül (formázva)
-    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
       console.log('Nincs API AI kulcs, nyers formázott RSS adatok visszaadása.');
       const fallbackNews = rawNewsTexts.map((text, idx) => ({
         type: text.toLowerCase().includes('késés') || text.toLowerCase().includes('pótló') || text.toLowerCase().includes('kimarad') ? 'alert' : 'info',
@@ -104,7 +104,19 @@ ${rawNewsTexts.join('\n')}`;
     console.log('AI Hír generálás elindítva az AI segítségével...');
     let aiRes = '';
 
-    if (process.env.GEMINI_API_KEY) {
+    if (process.env.GROQ_API_KEY) {
+      const { OpenAI } = require('openai');
+      const groqClient = new OpenAI({ 
+        apiKey: process.env.GROQ_API_KEY,
+        baseURL: "https://api.groq.com/openai/v1"
+      });
+      const chatCompletion = await groqClient.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'llama3-70b-8192',
+        temperature: 0.2,
+      });
+      aiRes = chatCompletion.choices[0].message.content.trim();
+    } else if (process.env.GEMINI_API_KEY) {
       const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
       const res = await fetch(gUrl, {
         method: 'POST',

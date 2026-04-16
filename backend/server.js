@@ -484,7 +484,7 @@ app.post('/api/ai-analyze', requireAuth, async (req, res) => {
   }
 
   // Ha nincs egyik API kulcs sem, adunk egy okos mock AI választ
-  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
     const fastest = results.find(r => r.isRecommendedFastest) || results[0];
     const netName = network === 'bkk' ? 'A BKK járatok' : 'A MÁV vonatok';
     return res.json({
@@ -506,7 +506,19 @@ ${miniResults}`;
 
     let aiText = '';
 
-    if (process.env.GEMINI_API_KEY) {
+    if (process.env.GROQ_API_KEY) {
+      const { OpenAI } = require('openai');
+      const groqClient = new OpenAI({ 
+        apiKey: process.env.GROQ_API_KEY,
+        baseURL: "https://api.groq.com/openai/v1"
+      });
+      const completion = await groqClient.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'llama3-70b-8192',
+        temperature: 0.5,
+      });
+      aiText = completion.choices[0].message.content;
+    } else if (process.env.GEMINI_API_KEY) {
       const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
       const res = await fetch(gUrl, {
         method: 'POST',
@@ -533,7 +545,7 @@ ${miniResults}`;
     res.json({ analysis: `💡 **AI Asszisztens:** ${aiText.replace(/\*/g, '').trim()}` });
   } catch (err) {
     console.error('AI Elemzés Hiba:', err);
-    res.json({ analysis: `Szerverhiba az AI generálás közben: ${err.message}. Kérjük ellenőrizze az API kulcsot!` });
+    res.json({ analysis: `Szerverhiba az AI generálás közben: ${err.message}. Szerezzen be egy INGYENES GROQ API kulcsot!` });
   }
 });
 
