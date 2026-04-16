@@ -353,39 +353,58 @@ const TRAINS = [
   { name: 'Személyvonat 3041', type: 'LOCAL',   basePrice: 890,  durationMin: 155 },
   { name: 'Személyvonat 3043', type: 'LOCAL',   basePrice: 890,  durationMin: 160 },
 ];
-const HOURS = ['05:15','06:00','07:30','08:00','09:00','10:30','11:15','12:00','13:15','14:30','15:45','17:00','18:30','19:45','21:00'];
 
-function seededRand(seed) {
-  let s = Math.abs(seed) || 12345;
+const BKK_VEHICLES = [
+  { name: 'M3 Metró', type: 'METRO', basePrice: 450, durationMin: 15 },
+  { name: 'M4 Metró', type: 'METRO', basePrice: 450, durationMin: 10 },
+  { name: 'M2 Metró', type: 'METRO', basePrice: 450, durationMin: 12 },
+  { name: '4-6 Villamos', type: 'TRAM', basePrice: 450, durationMin: 22 },
+  { name: '1-es Villamos', type: 'TRAM', basePrice: 450, durationMin: 30 },
+  { name: '47-es Villamos', type: 'TRAM', basePrice: 450, durationMin: 25 },
+  { name: '9-es Busz', type: 'BUS', basePrice: 450, durationMin: 35 },
+  { name: '7E Busz', type: 'BUS', basePrice: 450, durationMin: 18 },
+  { name: '5-ös Busz', type: 'BUS', basePrice: 450, durationMin: 40 },
+  { name: '133E Busz', type: 'BUS', basePrice: 450, durationMin: 20 },
+];
+
+const HOURS = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:15`)
+              .concat(Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:45`));
+
+function seededRand(s) {
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
 }
 function strSeed(str) { return str.split('').reduce((a, c, i) => a + c.charCodeAt(0) * (i + 1), 0); }
 
-function generateSchedule(from, to, date, sortBy = 'departure') {
-  const fromName = resolveStation(from), toName = resolveStation(to);
+function generateSchedule(from, to, date, sortBy = 'departure', network = 'mav') {
+  const fromName = network === 'mav' ? resolveStation(from) : from;
+  const toName = network === 'mav' ? resolveStation(to) : to;
   const targetDate = date || new Date().toISOString().split('T')[0];
-  const rand  = seededRand(strSeed(fromName + toName + targetDate));
-  const count = Math.floor(rand() * 5) + 5;
+  const rand  = seededRand(strSeed(fromName + toName + targetDate + network));
+  const maxCount = network === 'bkk' ? 12 : 5;
+  const count = Math.floor(rand() * maxCount) + maxCount;
   const times  = [...HOURS].sort(() => rand() - 0.5).slice(0, count).sort();
-  const trains = [...TRAINS].sort(() => rand() - 0.5);
+  
+  const vehicles = network === 'bkk' ? [...BKK_VEHICLES].sort(() => rand() - 0.5) : [...TRAINS].sort(() => rand() - 0.5);
+
   let results = times.map((time, i) => {
-    const train   = trains[i % trains.length];
+    const train   = vehicles[i % vehicles.length];
     const depDate = new Date(`${targetDate}T${time}:00`);
-    const delay   = delayStore[`${fromName}-${toName}-${time}`] ?? (rand() < 0.22 ? Math.floor(rand() * 28) + 2 : 0);
+    const delay   = delayStore[`${fromName}-${toName}-${time}`] ?? 
+                     (rand() < (network === 'bkk' ? 0.1 : 0.22) ? Math.floor(rand() * (network === 'bkk' ? 10 : 28)) + 2 : 0);
     const arrDate = new Date(depDate.getTime() + train.durationMin * 60000);
     const totalTravelTimeMinutes = Math.round((arrDate - depDate) / 60000) + delay;
     
     return {
-      id: `${fromName}-${toName}-${time}`, // Deterministic ID for real-time updates
-      routeName: train.name, type: train.type,
+      id: `${fromName}-${toName}-${time}-${network}`,
+      routeName: train.name, type: train.type, network,
       fromName, toName,
       departureTime: depDate.toISOString(), arrivalTime: arrDate.toISOString(),
       delay, delayMinutes: delay, status: delay > 0 ? 'DELAYED' : 'ON_TIME',
       price: train.basePrice, basePrice: train.basePrice,
-      availableSeats: Math.floor(rand() * 150) + 10,
-      platform: Math.floor(rand() * 10) + 1,
+      availableSeats: Math.floor(rand() * (network === 'bkk' ? 50 : 150)) + 10,
+      platform: network === 'bkk' ? Math.floor(rand() * 4) + 1 : Math.floor(rand() * 10) + 1,
       totalTravelTimeMinutes,
-      transfers: Math.floor(rand() * 2) // 0 or 1 transfer mock
+      transfers: Math.floor(rand() * (network === 'bkk' ? 3 : 2))
     };
   });
 
@@ -417,11 +436,12 @@ function generateSchedule(from, to, date, sortBy = 'departure') {
 // POST /api/search
 app.post(['/api/search', '//api/search'], (req, res) => {
   try {
-    const { from, to, date, sortBy } = req.body;
+    const { from, to, date, sortBy, network = 'mav' } = req.body;
     if (!from && !to) return res.status(400).json({ error: '"from" és "to" paraméter szükséges' });
-    const results = generateSchedule(from, to, date, sortBy);
+    const results = generateSchedule(from, to, date, sortBy, network);
     res.json({ source: 'local', count: results.length,
-      fromName: resolveStation(from), toName: resolveStation(to),
+      fromName: network === 'mav' ? resolveStation(from) : from, 
+      toName: network === 'mav' ? resolveStation(to) : to,
       date: date || new Date().toISOString().split('T')[0], results });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

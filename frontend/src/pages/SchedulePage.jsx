@@ -31,7 +31,7 @@ const TODAY = new Date().toISOString().split('T')[0];
 export default function SchedulePage() {
   const { ws } = useAuth();
 
-  const [form, setForm]             = useState({ from: '', to: '', date: TODAY, sortBy: 'departure' });
+  const [form, setForm]             = useState({ network: 'mav', from: '', to: '', date: TODAY, sortBy: 'departure' });
   const [trips, setTrips]           = useState([]);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
@@ -112,42 +112,59 @@ export default function SchedulePage() {
       <div className="search-card">
         <h2>🔍 Menetrend keresés</h2>
         <form onSubmit={handleSearch}>
-          <div className="search-grid">
-            <div className="field">
-              <label>Indulás</label>
-              <input
-                id="search-from"
-                required
-                placeholder="pl. Budapest Keleti"
-                value={form.from}
-                onChange={e => setForm(f => ({ ...f, from: e.target.value }))}
-              />
-            </div>
-            <div className="field" style={{ position: 'relative' }}>
-              <label>Érkezés</label>
-              <input
-                id="search-to"
-                required
-                placeholder="pl. Győr"
-                value={form.to}
-                onChange={e => setForm(f => ({ ...f, to: e.target.value }))}
-              />
-              <button type="button" onClick={() => setForm(f => ({ ...f, from: f.to, to: f.from }))}
-                style={{
-                  position: 'absolute', top: 31, left: -22, zIndex: 5,
-                  background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                  borderRadius: '50%', width: 28, height: 28, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }} title="Felcserél">
-                ⇄
+            <div className="network-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${form.network === 'mav' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setForm(f => ({ ...f, network: 'mav', from: '', to: '' }))}
+              >
+                🚆 MÁV (Helyközi)
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${form.network === 'bkk' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setForm(f => ({ ...f, network: 'bkk', from: '', to: '' }))}
+              >
+                🚌 BKK (Budapest)
               </button>
             </div>
-            <div className="field">
-              <label>Dátum</label>
-              <input
-                id="search-date"
-                type="date"
-                required
+            
+            <div className="search-grid">
+              <div className="field">
+                <label>Indulás</label>
+                <input
+                  id="search-from"
+                  required
+                  placeholder={form.network === 'mav' ? "pl. Budapest Keleti" : "pl. Széll Kálmán tér"}
+                  value={form.from}
+                  onChange={e => setForm(f => ({ ...f, from: e.target.value }))}
+                />
+              </div>
+              <div className="field" style={{ position: 'relative' }}>
+                <label>Érkezés</label>
+                <input
+                  id="search-to"
+                  required
+                  placeholder={form.network === 'mav' ? "pl. Győr" : "pl. Deák Ferenc tér"}
+                  value={form.to}
+                  onChange={e => setForm(f => ({ ...f, to: e.target.value }))}
+                />
+                <button type="button" onClick={() => setForm(f => ({ ...f, from: f.to, to: f.from }))}
+                  style={{
+                    position: 'absolute', top: 31, left: -22, zIndex: 5,
+                    background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                    borderRadius: '50%', width: 28, height: 28, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }} title="Felcserél">
+                  ⇄
+                </button>
+              </div>
+              <div className="field">
+                <label>Dátum</label>
+                <input
+                  id="search-date"
+                  type="date"
+                  required
                 value={form.date}
                 onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
               />
