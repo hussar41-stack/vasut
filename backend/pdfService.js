@@ -61,7 +61,7 @@ const generateInvoicePDF = async (ticket) => {
   // Szolgáltató
   doc.text('Szolgáltató:');
   doc.text('TransportHU Zrt.');
-  doc.text('1055 Budapest, Teszt utca 1.');
+  doc.text('8000 Székesfehérvár, Érsekujvári utca 17/A');
   doc.text('Adószám: 12345678-2-41');
   doc.moveDown();
 
