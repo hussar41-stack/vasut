@@ -48,12 +48,29 @@ async function getLatestNews() {
       throw new Error('Nem jött valós adat az RSS csatornákon keresztül.');
     }
 
-    // Nincs OpenAI kulcs -> Adjuk vissza a nyers RSS szövegeket AI átirat nélkül
+    // Egyszerű HTML és HTML entity dekódoló + szöveg rövidítő
+    const sanitize = (str) => {
+      if (!str) return '';
+      let clean = str.replace(/<[^>]*>?/gm, ''); // HTML tagek eltávolítása
+      clean = clean.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+                   .replace(/&aacute;/gi, 'á').replace(/&eacute;/gi, 'é')
+                   .replace(/&iacute;/gi, 'í').replace(/&oacute;/gi, 'ó')
+                   .replace(/&ouml;/gi, 'ö').replace(/&uacute;/gi, 'ú')
+                   .replace(/&uuml;/gi, 'ü').replace(/&quot;/g, '"')
+                   .replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ');
+      // Ha túl hosszú, vágjuk le hogy ne csússzon szét a slider
+      if (clean.length > 100) {
+        clean = clean.substring(0, 97) + '...';
+      }
+      return clean;
+    };
+
+    // Nincs OpenAI kulcs -> Adjuk vissza a nyers RSS szövegeket AI átirat nélkül (formázva)
     if (!process.env.OPENAI_API_KEY) {
-      console.log('Nincs OPENAI_API_KEY, nyers RSS adatok visszaadása.');
+      console.log('Nincs OPENAI_API_KEY, nyers formázott RSS adatok visszaadása.');
       const fallbackNews = rawNewsTexts.map((text, idx) => ({
-        type: text.includes('késés') || text.includes('pótló') ? 'alert' : 'info',
-        text: text
+        type: text.toLowerCase().includes('késés') || text.toLowerCase().includes('pótló') || text.toLowerCase().includes('kimarad') ? 'alert' : 'info',
+        text: sanitize(text)
       }));
       cachedNews = fallbackNews;
       lastFetchTime = now;
