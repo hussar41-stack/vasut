@@ -361,7 +361,7 @@ function generateSchedule(from, to, date, sortBy = 'departure') {
 }
 
 // POST /api/search
-app.post('/api/search', (req, res) => {
+app.post(['/api/search', '//api/search'], (req, res) => {
   try {
     const { from, to, date, sortBy } = req.body;
     if (!from && !to) return res.status(400).json({ error: '"from" és "to" paraméter szükséges' });
@@ -373,7 +373,7 @@ app.post('/api/search', (req, res) => {
 });
 
 // Fallback search route for aggressively cached mobile clients that still hit /search without /api
-app.post('/search', (req, res) => {
+app.post(['/search', '//search'], (req, res) => {
   try {
     const { from, to, date, sortBy } = req.body;
     if (!from && !to) return res.status(400).json({ error: '"from" és "to" paraméter szükséges' });
