@@ -16,10 +16,30 @@ const generateTicketPDF = async (ticket) => {
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const bufferPromise = buildPdfBuffer(doc);
 
-  // Fejléc
+  // Fejléc (sötét háttér)
   doc.rect(0, 0, doc.page.width, 100).fill('#1e293b');
-  doc.fillColor('#ffffff').fontSize(24).text('TransportHU', 50, 35);
-  doc.fontSize(12).text('Elektronikus Jegy / E-Ticket', 50, 65);
+  
+  // TransportHU Logo
+  try {
+    doc.image('./assets/logo_transporthu.png', 30, 20, { height: 60 });
+  } catch (err) {
+    doc.fillColor('#ffffff').fontSize(24).text('TransportHU', 50, 35);
+  }
+
+  // Network (BKK/MÁV) Logo
+  try {
+    if (ticket.network === 'bkk') {
+      doc.image('./assets/logo_bkk.png', doc.page.width - 250, 25, { height: 50 });
+    } else {
+      doc.image('./assets/logo_mav.png', doc.page.width - 250, 25, { height: 50 });
+    }
+  } catch (err) {
+    console.error('Logo draw error:', err);
+  }
+
+  // Title text
+  const ticketTitle = ticket.network === 'bkk' ? 'BKK Vonaljegy / Single Ticket' : 'MÁV Elektronikus Jegy / E-Ticket';
+  doc.fillColor('#94a3b8').fontSize(14).text(ticketTitle, 50, 110);
 
   // Generáljunk egy egyedi QR kódot az ellenőrnek (jegy kódja alapján)
   try {
@@ -31,18 +51,18 @@ const generateTicketPDF = async (ticket) => {
       color: { dark: '#000000', light: '#ffffff' }
     });
     // Jobb felső sarokba rakjuk
-    doc.image(qrBuffer, doc.page.width - 120, 10, { width: 80 });
+    doc.image(qrBuffer, doc.page.width - 120, 12, { width: 76 });
   } catch (err) {
     console.error('QR kód generálási hiba:', err);
   }
 
   // QR kód helyett egy stilizált azonosító blokk
   doc.fillColor('#000000');
-  doc.rect(50, 130, doc.page.width - 100, 80).stroke();
-  doc.fontSize(20).text(`JEGYAZONOSÍTÓ: ${ticket.confirmationCode}`, 70, 155, { align: 'center' });
+  doc.rect(50, 140, doc.page.width - 100, 80).stroke();
+  doc.fontSize(20).text(`JEGYAZONOSÍTÓ: ${ticket.confirmationCode}`, 70, 165, { align: 'center' });
 
   // Utazási adatok
-  doc.fontSize(16).text('Utazás Adatai', 50, 250, { underline: true });
+  doc.fontSize(16).text('Utazás Adatai', 50, 260, { underline: true });
   doc.fontSize(12).moveDown();
   doc.text(`Utas neve: ${ticket.passengerName}`);
   doc.moveDown(0.5);
@@ -50,9 +70,14 @@ const generateTicketPDF = async (ticket) => {
   doc.moveDown(0.5);
   doc.text(`Indulás ideje: ${new Date(ticket.departureTime).toLocaleString('hu-HU')}`);
   doc.moveDown(0.5);
-  doc.text(`Kocsiosztály: ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`);
-  doc.moveDown(0.5);
+  // BKK esetében nincs "Kocsiosztály"
+  if (ticket.network !== 'bkk') {
+    doc.text(`Kocsiosztály: ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`);
+    doc.moveDown(0.5);
+  }
   doc.text(`Személyek száma: ${ticket.quantity} fő`);
+  doc.moveDown(0.5);
+  doc.text(`Típus: ${ticket.network === 'bkk' ? 'BKK Vonaljegy' : 'MÁV ' + ticket.tripName}`);
 
   // Lábléc
   doc.fontSize(10).fillColor('gray');
