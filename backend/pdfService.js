@@ -56,31 +56,44 @@ const generateTicketPDF = async (ticket) => {
     console.error('QR kód generálási hiba:', err);
   }
 
-  // QR kód helyett egy stilizált azonosító blokk
-  doc.fillColor('#000000');
-  doc.rect(50, 140, doc.page.width - 100, 80).stroke();
-  doc.fontSize(20).text(`JEGYAZONOSÍTÓ: ${ticket.confirmationCode}`, 70, 165, { align: 'center' });
+  // Szaggatott vonal (perforáció illúzió)
+  doc.moveTo(50, 130).lineTo(doc.page.width - 50, 130).dash(5, { space: 10 }).strokeColor('#cbd5e1').stroke();
+  doc.undash();
 
-  // Utazási adatok
-  doc.fontSize(16).text('Utazás Adatai', 50, 260, { underline: true });
-  doc.fontSize(12).moveDown();
-  doc.text(`Utas neve: ${ticket.passengerName}`);
-  doc.moveDown(0.5);
-  doc.text(`Viszonylat: ${ticket.from} - ${ticket.to}`);
-  doc.moveDown(0.5);
-  doc.text(`Indulás ideje: ${new Date(ticket.departureTime).toLocaleString('hu-HU')}`);
-  doc.moveDown(0.5);
-  // BKK esetében nincs "Kocsiosztály"
-  if (ticket.network !== 'bkk') {
-    doc.text(`Kocsiosztály: ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`);
-    doc.moveDown(0.5);
-  }
-  doc.text(`Személyek száma: ${ticket.quantity} fő`);
-  doc.moveDown(0.5);
-  doc.text(`Típus: ${ticket.network === 'bkk' ? 'BKK Vonaljegy' : 'MÁV ' + ticket.tripName}`);
+  // QR kód helyett egy stilizált azonosító blokk (Jegyazonosító)
+  doc.rect(50, 150, doc.page.width - 100, 80).fillAndStroke('#f8fafc', '#e2e8f0');
+  
+  doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(11).text('JEGYAZONOSÍTÓ / TICKET ID', 50, 170, { align: 'center', characterSpacing: 1 });
+  doc.fillColor('#2563eb').fontSize(22).text(`${ticket.confirmationCode}`, 50, 190, { align: 'center', characterSpacing: 3 });
+
+  // Utazási adatok (Szürke blokk)
+  doc.rect(50, 250, doc.page.width - 100, 240).fill('#f1f5f9');
+  
+  doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(14).text('UTAZÁS ADATAI / JOURNEY DETAILS', 70, 270);
+  
+  // Térhálós elrendezés az adatoknak
+  let row = 310;
+  doc.font('Helvetica').fontSize(10).fillColor('#64748b').text('UTAS NEVE / PASSENGER', 70, row);
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0f172a').text(`${ticket.passengerName}`, 70, row + 15);
+
+  doc.font('Helvetica').fontSize(10).fillColor('#64748b').text('MENNYISÉG / PAX', 350, row);
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0f172a').text(`${ticket.quantity} fő`, 350, row + 15);
+
+  row += 55;
+  doc.font('Helvetica').fontSize(10).fillColor('#64748b').text('VISZONYLAT / ROUTE', 70, row);
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0f172a').text(`${ticket.from}   —   ${ticket.to}`, 70, row + 15);
+
+  row += 55;
+  doc.font('Helvetica').fontSize(10).fillColor('#64748b').text('INDULÁS / DEPARTURE', 70, row);
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0f172a').text(`${new Date(ticket.departureTime).toLocaleString('hu-HU')}`, 70, row + 15);
+
+  row += 55;
+  doc.font('Helvetica').fontSize(10).fillColor('#64748b').text('TÍPUS / TYPE', 70, row);
+  const classText = ticket.network === 'bkk' ? '' : ` | ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`;
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#0f172a').text(`${ticket.network === 'bkk' ? 'BKK Vonaljegy' : 'MÁV ' + ticket.tripName}${classText}`, 70, row + 15);
 
   // Lábléc
-  doc.fontSize(10).fillColor('gray');
+  doc.font('Helvetica').fontSize(10).fillColor('gray');
   doc.text('Kérjük, mutassa be ezt a dokumentumot az ellenőrnek nyomtatva vagy mobileszközön.', 50, 700, { align: 'center' });
   doc.text(`Generálva: ${new Date().toLocaleString('hu-HU')}`, { align: 'center' });
 
