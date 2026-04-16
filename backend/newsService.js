@@ -79,9 +79,9 @@ async function getLatestNews() {
       return clean;
     };
 
-    // Nincs OpenAI kulcs -> Adjuk vissza a nyers RSS szövegeket AI átirat nélkül (formázva)
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('Nincs OPENAI_API_KEY, nyers formázott RSS adatok visszaadása.');
+    // Nincs egyik API kulcs sem -> Adjuk vissza a nyers RSS szövegeket AI átirat nélkül (formázva)
+    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+      console.log('Nincs API AI kulcs, nyers formázott RSS adatok visszaadása.');
       const fallbackNews = rawNewsTexts.map((text, idx) => ({
         type: text.toLowerCase().includes('késés') || text.toLowerCase().includes('pótló') || text.toLowerCase().includes('kimarad') ? 'alert' : 'info',
         text: sanitize(text)
@@ -91,27 +91,37 @@ async function getLatestNews() {
       return cachedNews;
     }
 
-    // 3. Ha van API kulcs, összefoglaljuk a chatbottal JSON-be
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
     const prompt = `Az alábbi nyers közlekedési hírfolyamokból (MÁV, BKK) generálj egy JSON tömböt.
 Kérések:
 1. Foglald össze a híreket röviden, érthetően, professzionális stílusban, maximum 1 mondatban.
 2. Csak a legfontosabb 5 hírt tartsd meg!
-3. Formátum kötelezően egy JSON tömb, ami ilyen objektumokból áll: {"type": "alert" | "news" | "info", "text": "rövid szöveg"}
+3. Formátum kötelezően egy JSON tömb, ami ilyen objektumokból áll: [{"type": "alert" | "news" | "info", "text": "rövid szöveg"}]
 4. Sehol máshol ne legyen szöveg, a válaszod CSAK egy valid JSON tömb legyen [] között.
 
 Nyers Hírek:
-${rawNewsTexts.join('\\n')}`;
+${rawNewsTexts.join('\n')}`;
 
-    console.log('AI Hír generálás elindítva az OpenAI segítségével...');
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-3.5-turbo',
-      temperature: 0.2, // Ne hallucináljon
-    });
+    console.log('AI Hír generálás elindítva az AI segítségével...');
+    let aiRes = '';
 
-    const aiRes = chatCompletion.choices[0].message.content.trim();
+    if (process.env.GEMINI_API_KEY) {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      aiRes = response.text().trim();
+    } else {
+      const { OpenAI } = require('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const chatCompletion = await openai.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'gpt-3.5-turbo',
+        temperature: 0.2, // Ne hallucináljon
+      });
+      aiRes = chatCompletion.choices[0].message.content.trim();
+    }
+
     // Eltávolítjuk a markdown JSON kereteket ha a GPT betenné
     const cleanJson = aiRes.replace(/^```json/i, '').replace(/```$/i, '').trim();
     

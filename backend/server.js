@@ -483,8 +483,8 @@ app.post('/api/ai-analyze', requireAuth, async (req, res) => {
     return res.json({ analysis: "Nincs elegendő adat az AI elemzéshez." });
   }
 
-  // Ha nincs OpenAI kulcs, adunk egy okos mock AI választ
-  if (!process.env.OPENAI_API_KEY) {
+  // Ha nincs egyik API kulcs sem, adunk egy okos mock AI választ
+  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
     const fastest = results.find(r => r.isRecommendedFastest) || results[0];
     const netName = network === 'bkk' ? 'A BKK járatok' : 'A MÁV vonatok';
     return res.json({
@@ -493,9 +493,6 @@ app.post('/api/ai-analyze', requireAuth, async (req, res) => {
   }
 
   try {
-    const { OpenAI } = require('openai');
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
     // Szűkítjük az adatokat, hogy ne menjünk át a token limiten
     const miniResults = results.slice(0, 4).map(r => 
       `${r.routeName} - Indul: ${new Date(r.departureTime).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})} (Késés: ${r.delayMinutes} perc, Út: ${r.totalTravelTimeMinutes} perc, Átszállás: ${r.transfers})`
@@ -507,16 +504,30 @@ Ajánlj egyet az utazónak a menetidők vagy késések alapján (említsd meg ko
 Opciók:
 ${miniResults}`;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-3.5-turbo',
-      temperature: 0.5,
-    });
+    let aiText = '';
 
-    res.json({ analysis: `💡 **AI Asszisztens:** ${completion.choices[0].message.content.trim()}` });
+    if (process.env.GEMINI_API_KEY) {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      aiText = response.text();
+    } else {
+      const { OpenAI } = require('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'gpt-3.5-turbo',
+        temperature: 0.5,
+      });
+      aiText = completion.choices[0].message.content;
+    }
+
+    res.json({ analysis: `💡 **AI Asszisztens:** ${aiText.replace(/\*/g, '').trim()}` });
   } catch (err) {
     console.error('AI Elemzés Hiba:', err);
-    res.json({ analysis: `Szerverhiba az AI generálás közben: ${err.message}. Kérjük ellenőrizze az OpenAI API kulcsát vagy egyenlegét!` });
+    res.json({ analysis: `Szerverhiba az AI generálás közben: ${err.message}. Kérjük ellenőrizze az API kulcsot!` });
   }
 });
 
