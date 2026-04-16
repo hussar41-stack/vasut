@@ -247,17 +247,17 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     if (user) {
       resetTokens[token] = { email, expiresAt };
       
-      const resetLink = \`\${FRONTEND_URL}/reset-password?token=\${token}\`;
-      sendEmail(email, 'Jelszó visszaállítása - TransportHU', \`
-        <h2>Kedves \${user.name}!</h2>
+      const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
+      sendEmail(email, 'Jelszó visszaállítása - TransportHU', `
+        <h2>Kedves ${user.name}!</h2>
         <p>Jelszó helyreállítási kérelem érkezett a TransportHU fiókodhoz.</p>
         <p>Új jelszó beállításához kattints a lenti linkre (a link 15 percig érvényes):</p>
-        <a href="\${resetLink}" style="padding:10px 20px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:5px; display:inline-block; margin-top:10px;">Jelszó visszaállítása</a>
+        <a href="${resetLink}" style="padding:10px 20px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:5px; display:inline-block; margin-top:10px;">Jelszó visszaállítása</a>
         <br><br>
-        <p>Ha a gomb nem működik, másold be ezt a linket a böngésződbe: <br> \${resetLink}</p>
+        <p>Ha a gomb nem működik, másold be ezt a linket a böngésződbe: <br> ${resetLink}</p>
         <hr>
         <small>Ha nem te kérted a jelszavad visszaállítását, ezt az üzenetet hagyd figyelmen kívül.</small>
-      \`);
+      `);
     }
 
     res.json({
