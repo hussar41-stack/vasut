@@ -330,11 +330,9 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// BKK FUTÁR Live Vehicles Proxy
+// BKK FUTÁR Live Vehicles Proxy with Metadata Enrichment
 app.get('/api/bkk-vehicles', async (req, res) => {
   try {
-    // BKK FUTÁR public API - vehicle positions
-    // Using the public FUTÁR API endpoint (no key needed for basic vehicle list)
     const bkkApiKey = process.env.BKK_API_KEY || 'apaiary-test';
     const url = `https://futar.bkk.hu/api/query/v1/ws/otp/routers/bkk/vehicles?key=${bkkApiKey}&appVersion=1.0&version=4`;
     
@@ -342,32 +340,48 @@ app.get('/api/bkk-vehicles', async (req, res) => {
       headers: { 'User-Agent': 'TransportHU/1.0', 'Accept': 'application/json' }
     });
     
-    if (!response.ok) {
-      throw new Error(`FUTÁR API: HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`FUTÁR API: HTTP ${response.status}`);
     
-    const data = await response.json();
+    const json = await response.json();
+    const { list, references } = json.data || {};
     
-    // Map the vehicles to our simpler format
-    const vehicles = (data.data?.list || []).slice(0, 200).map(v => ({
-      id: v.vehicleId || v.id,
-      lat: v.lat,
-      lng: v.lon,
-      label: v.label || v.vehicleId,
-      routeId: v.routeId,
-      bearing: v.bearing || 0,
-      status: v.status,
-      tripId: v.tripId,
-      stopId: v.stopId,
-      type: v.model || 'bus'
-    })).filter(v => v.lat && v.lng);
+    if (!list) throw new Error('Nem érkezett járműlista a BKK-tól.');
+
+    // Segédtérképek a metaadatokhoz
+    const routesMap = references?.routes || {};
+    const tripsMap = references?.trips || {};
+
+    const vehicles = list.map(v => {
+      const trip = tripsMap[v.tripId] || {};
+      const route = routesMap[trip.routeId] || routesMap[v.routeId] || {};
+      
+      // BKK Route Types: 0: Tram, 1: Metro, 3: Bus, 109: Suburb/HEV, 11: Trolley
+      const bkkType = route.type;
+      let type = 'bus';
+      if (bkkType === 0) type = 'tram';
+      else if (bkkType === 1) type = 'metro';
+      else if (bkkType === 11) type = 'trolley';
+      else if (bkkType === 109) type = 'suburban';
+
+      return {
+        id: v.vehicleId || v.id,
+        lat: v.lat,
+        lng: v.lon,
+        label: route.shortName || v.label || v.vehicleId,
+        routeId: trip.routeId || v.routeId,
+        bearing: v.bearing || 0,
+        color: route.color ? `#${route.color}` : null,
+        textColor: route.textColor ? `#${route.textColor}` : '#ffffff',
+        type: type,
+        status: v.status,
+      };
+    }).filter(v => v.lat && v.lng).slice(0, 300); // Csak az első 300-at hogy ne terheljük a térképet
     
     res.json({ count: vehicles.length, vehicles, timestamp: new Date().toISOString() });
   } catch (err) {
     console.warn('BKK FUTÁR vehicle proxy hiba:', err.message);
-    // Ha nem sikerül a valós API, visszaadunk szimulált adatokat demóhoz
     const mockVehicles = generateMockBKKVehicles();
-    res.json({ count: mockVehicles.length, vehicles: mockVehicles, mock: true, timestamp: new Date().toISOString() });
+    res.json({ count: mockVehicles.length, vehicles: mockVehicles, mock: true, error: err.message, timestamp: new Date().toISOString() });
   }
 });
 

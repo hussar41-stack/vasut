@@ -27,21 +27,28 @@ const MOCK_FALLBACK = [
   { id:'b9-1', lat:47.5030, lng:19.0800, label:'9 Busz',       routeId:'9',   bearing:180, color:'#c0392b', type:'bus'   },
 ];
 
-function vehicleIcon(type, color, bearing) {
-  const emoji = type === 'metro' ? '🚇' : type === 'tram' ? '🚋' : '🚌';
+function vehicleIcon(type, color, textColor, label) {
+  const emoji = type === 'metro' ? '🚇' : type === 'tram' ? '🚋' : type === 'trolley' ? '🚎' : '🚌';
   const bg = color || (type === 'metro' ? '#e74c3c' : type === 'tram' ? '#f39c12' : '#3498db');
+  const txt = textColor || '#ffffff';
+  
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:${bg}; color:#fff; font-size:13px; font-weight:800;
-      border-radius:50%; width:30px; height:30px;
+      background:${bg}; color:${txt}; font-size:10px; font-weight:900;
+      border-radius:50%; width:32px; height:32px;
       display:flex; align-items:center; justify-content:center;
-      border:2px solid rgba(255,255,255,0.85);
-      box-shadow:0 0 10px ${bg}99, 0 2px 8px rgba(0,0,0,0.5);
+      border:2.5px solid rgba(255,255,255,0.9);
+      box-shadow:0 0 12px ${bg}aa, 0 3px 10px rgba(0,0,0,0.6);
       cursor:pointer;
-    ">${emoji}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
+      transition: transform 0.3s ease;
+      position: relative;
+    ">
+      <div style="position:absolute; top:-2px; right:-2px; font-size:12px;">${emoji}</div>
+      <span style="margin-top:2px;">${label.substring(0, 3)}</span>
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 }
 
@@ -98,6 +105,7 @@ export default function BKKMapPage() {
   const counts = {
     metro: vehicles.filter(v => v.type === 'metro').length,
     tram:  vehicles.filter(v => v.type === 'tram').length,
+    trolley: vehicles.filter(v => v.type === 'trolley').length,
     bus:   vehicles.filter(v => v.type === 'bus').length,
   };
 
@@ -137,6 +145,7 @@ export default function BKKMapPage() {
           <>
             <StatPill icon="🚇" label="Metró"    count={counts.metro} color="#e74c3c" />
             <StatPill icon="🚋" label="Villamos" count={counts.tram}  color="#f39c12" />
+            <StatPill icon="🚎" label="Troli"    count={counts.trolley} color="#e53e3e" />
             <StatPill icon="🚌" label="Busz"     count={counts.bus}   color="#3498db" />
           </>
         )}
@@ -144,10 +153,11 @@ export default function BKKMapPage() {
         {/* Filter */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           {[
-            { key: 'all',   label: 'Összes', color: '#64748b' },
-            { key: 'metro', label: '🚇 Metró',    color: '#e74c3c' },
-            { key: 'tram',  label: '🚋 Villamos', color: '#f39c12' },
-            { key: 'bus',   label: '🚌 Busz',     color: '#3498db' },
+            { key: 'all',     label: 'Összes',    color: '#64748b' },
+            { key: 'metro',   label: '🚇 Metró',  color: '#e74c3c' },
+            { key: 'tram',    label: '🚋 Villamos',color: '#f39c12' },
+            { key: 'trolley', label: '🚎 Troli',   color: '#e53e3e' },
+            { key: 'bus',     label: '🚌 Busz',    color: '#3498db' },
           ].map(f => (
             <button key={f.key} onClick={() => setFilter(f.key)} style={{
               background: filter === f.key ? `${f.color}22` : 'rgba(255,255,255,0.04)',
@@ -198,21 +208,20 @@ export default function BKKMapPage() {
             <Marker
               key={v.id}
               position={[v.lat, v.lng]}
-              icon={vehicleIcon(v.type, v.color, v.bearing)}
+              icon={vehicleIcon(v.type, v.color, v.textColor, v.label)}
             >
               <Popup>
                 <div style={{ minWidth: 170, fontFamily: 'Inter, sans-serif' }}>
                   <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: 6 }}>
-                    {v.type === 'metro' ? '🚇' : v.type === 'tram' ? '🚋' : '🚌'} {v.label}
+                    {v.type === 'metro' ? '🚇' : v.type === 'tram' ? '🚋' : v.type === 'trolley' ? '🚎' : '🚌'} {v.label}
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                     <tbody>
-                      <tr><td style={{ color: '#64748b', paddingRight: 8 }}>Viszonylat</td><td style={{ fontWeight: 700 }}>{v.routeId}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>Típus</td><td style={{ fontWeight: 700 }}>{v.type === 'metro' ? 'Metró' : v.type === 'tram' ? 'Villamos' : 'Autóbusz'}</td></tr>
-                      <tr><td style={{ color: '#64748b' }}>Irányjelzés</td><td style={{ fontWeight: 700 }}>{v.bearing}°</td></tr>
+                      <tr><td style={{ color: '#64748b', paddingRight: 8 }}>Vonal</td><td style={{ fontWeight: 700 }}>{v.routeId?.replace('BKK_', '') || 'N/A'}</td></tr>
+                      <tr><td style={{ color: '#64748b' }}>Típus</td><td style={{ fontWeight: 700 }}>{v.type.toUpperCase()}</td></tr>
                     </tbody>
                   </table>
-                  {isMock && <div style={{ marginTop: 8, color: '#f59e0b', fontSize: '0.72rem' }}>⚠️ Demo adat – BKK API kulcs nélkül</div>}
+                  {isMock && <div style={{ marginTop: 8, color: '#f59e0b', fontSize: '0.72rem' }}>⚠️ Demo adat – Nincs élő kapcsolat</div>}
                 </div>
               </Popup>
             </Marker>
