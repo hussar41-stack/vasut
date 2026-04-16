@@ -16,11 +16,16 @@ async function request(path, options = {}) {
   let res;
   try {
     res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
-  } catch {
-    throw new Error('Nem sikerült csatlakozni a szerverhez. Ellenőrizd, hogy a backend fut-e (port 5000).');
+  } catch (e) {
+    throw new Error(`Szerver hiba (fetch failed). Cél: ${BASE_URL}${path}. Részletek: ${e.message}`);
   }
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || `API hiba (${res.status})`);
+  let data;
+  try {
+    data = await res.json();
+  } catch(e) {
+    throw new Error(`Érvénytelen válasz a szervertől (nem JSON). Cél: ${BASE_URL}${path}`);
+  }
+  if (!res.ok) throw new Error(`${data.error || 'Ismeretlen hiba'} (URL: ${BASE_URL}${path})`);
   return data;
 }
 
