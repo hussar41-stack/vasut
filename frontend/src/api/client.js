@@ -1,4 +1,8 @@
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+let envUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Normalize url so if user forgot /api in Vercel, we add it back safely
+if (envUrl.endsWith('/')) envUrl = envUrl.slice(0, -1);
+if (!envUrl.endsWith('/api')) envUrl += '/api';
+const BASE_URL = envUrl;
 
 function getToken() { return localStorage.getItem('token'); }
 
