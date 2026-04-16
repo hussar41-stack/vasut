@@ -94,9 +94,20 @@ async function getAIPredictedTrains(news) {
     });
 
     const aiPrompt = `
-      Generálj 15 vonatot (IC, RAILJET, EC, LOCAL) MÁV fővonalakon.
-      Bearing (haladási irány) KÖTELEZŐ!
-      JSON tömb: [{"id": "t1", "lat": 47.xxx, "lng": 18.xxx, "label": "IC 922", "type": "IC", "route": "InterCity", "stopName": "Győr", "bearing": 270, "color": "#a78bfa"}]
+      Feladat: MÁV-START vasúti diszpécser szimuláció.
+      Hírek: ${JSON.stringify(news)}
+      
+      Generálj 25 db vonatot MÁV fővonalakon.
+      Minden vonathoz adj meg egy VALÓS JÁRMŰ MODELLT (model) a MÁV flottából! 
+      Példák: 
+       - MÁV 815 KISS (emeletes motorvonat)
+       - MÁV 415 FLIRT (kék-fehér motorvonat)
+       - MÁV 480 TRAXX (villanymozdony)
+       - MÁV V43 Szili (retro mozdony)
+       - ÖBB Railjet (piros vonat)
+       - MÁV 416 Uzsgyi (dízel motorvonat)
+      
+      JSON tömb: [{"id": "t1", "lat": 47.xxx, "lng": 18.xxx, "label": "IC 922", "type": "IC", "route": "InterCity", "model": "MÁV 480 TRAXX", "stopName": "Győr", "bearing": 270, "color": "#a78bfa"}]
     `;
 
     const completion = await groq.chat.completions.create({

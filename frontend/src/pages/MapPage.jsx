@@ -209,8 +209,11 @@ export default function MapPage() {
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: t.color || '#3b82f6', marginBottom: 4 }}>
                     {t.label}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: 6 }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: 2 }}>
                     Vonal: <strong>{t.route || 'MÁV Vonat'}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: 8, fontStyle: 'italic' }}>
+                    Jármű: {t.model || 'Ismeretlen'}
                   </div>
                   <div style={{ fontSize: '0.82rem', padding: '6px 0', borderTop: '1px solid #f1f5f9' }}>
                     Következő: <strong style={{ color: '#1e293b' }}>{t.stopName || 'Úton...'}</strong>
