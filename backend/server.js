@@ -519,8 +519,8 @@ app.post('/api/create-checkout-session', requireAuth, async (req, res) => {
           price_data: {
             currency: 'huf',
             product_data: {
-              name: `Vonatjegy: ${tripData?.fromName || ''} → ${tripData?.toName || ''}`,
-              description: `${tripData?.routeName} | ${seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`,
+              name: 'TransportHU Zrt. - Jegyvásárlás',
+              description: `${tripData?.network === 'bkk' ? 'BKK Vonaljegy' : 'MÁV Jegy'}: ${tripData?.fromName || ''} → ${tripData?.toName || ''} | ${tripData?.routeName} | ${seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}`,
             },
             unit_amount: unitPrice * 100, // Stripe expects lowest denomination (fillér/cents)
           },
