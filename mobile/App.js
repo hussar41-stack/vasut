@@ -14,6 +14,12 @@ const COLORS = {
 };
 
 function HomeScreen() {
+  const [news, setNews] = React.useState([
+    { id: '1', type: 'alert', text: '🔴 M3 metró felújítás miatt pótlóbusz közlekedik.' },
+    { id: '2', type: 'news', text: '🌟 Új Stadler KISS vonatok álltak forgalomba.' },
+    { id: '3', type: 'info', text: 'ℹ️ Kellemes utazást kíván a TransportHU!' }
+  ]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -26,23 +32,37 @@ function HomeScreen() {
           />
         </View>
 
-        {/* Search Suggestion Card */}
+        {/* Search Card */}
         <View style={styles.searchCard}>
-          <Text style={styles.cardTitle}>HOVA UTAZOL?</Text>
-          <TouchableOpacity style={styles.searchInput}>
-            <Search size={20} color={COLORS.secondary} />
-            <Text style={styles.placeholder}>Indulási állomás...</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { marginTop: 12 }]}>
-            <Text style={styles.btnText}>Keresés indítása</Text>
+          <Text style={styles.cardTitle}>MENETREND KERESÉS</Text>
+          <View style={styles.inputGroup}>
+            <Search size={18} color={COLORS.secondary} style={styles.inputIcon} />
+            <Text style={styles.inputText}>Honnan: Budapest-Keleti</Text>
+          </View>
+          <View style={[styles.inputGroup, { marginTop: 8 }]}>
+            <Map size={18} color={COLORS.secondary} style={styles.inputIcon} />
+            <Text style={styles.inputText}>Hova: Győr</Text>
+          </View>
+          <TouchableOpacity style={[styles.btn, { marginTop: 16 }]}>
+            <Text style={styles.btnText}>Járatok keresése</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Featured Sections */}
+        {/* Live News Section */}
+        <View style={styles.newsSection}>
+          <Text style={styles.sectionTitle}>ÉLŐ HÍREK & INFÓK</Text>
+          {news.map(item => (
+            <View key={item.id} style={styles.newsItem}>
+              <Text style={styles.newsText}>{item.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Quick Map Access */}
         <View style={styles.quickActions}>
           <TouchableOpacity style={styles.qcBox}>
             <Train size={32} color={COLORS.accent} />
-            <Text style={styles.qcText}>MÁV Élő</Text>
+            <Text style={styles.qcText}>MÁV Térkép</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.qcBox}>
             <Bus size={32} color="#facc15" />
@@ -106,20 +126,47 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     fontSize: 12,
     fontWeight: '800',
-    marginBottom: 12,
+    marginBottom: 16,
     letterSpacing: 1,
   },
-  searchInput: {
+  inputGroup: {
     backgroundColor: COLORS.bg,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  placeholder: {
-    color: COLORS.secondary,
+  inputIcon: {
+    marginRight: 12,
+  },
+  inputText: {
+    color: '#cbd5e1',
     fontSize: 15,
+  },
+  newsSection: {
+    marginTop: 24,
+  },
+  sectionTitle: {
+    color: COLORS.secondary,
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 12,
+    letterSpacing: 1.2,
+  },
+  newsItem: {
+    backgroundColor: 'rgba(30, 41, 59, 0.4)',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.accent,
+  },
+  newsText: {
+    color: COLORS.text,
+    fontSize: 13,
+    lineHeight: 18,
   },
   btn: {
     backgroundColor: COLORS.accent,
