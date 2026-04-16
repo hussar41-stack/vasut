@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const QRCode = require('qrcode');
 
 // Helper funkció a PDF Bufferré alakításához (hogy memóriából küldhessük el emailenként, fájlmentés nélkül)
 const buildPdfBuffer = (doc) => {
@@ -19,6 +20,21 @@ const generateTicketPDF = async (ticket) => {
   doc.rect(0, 0, doc.page.width, 100).fill('#1e293b');
   doc.fillColor('#ffffff').fontSize(24).text('TransportHU', 50, 35);
   doc.fontSize(12).text('Elektronikus Jegy / E-Ticket', 50, 65);
+
+  // Generáljunk egy egyedi QR kódot az ellenőrnek (jegy kódja alapján)
+  try {
+    const qrData = `JEGY-${ticket.confirmationCode} NEV:${ticket.passengerName}`;
+    const qrBuffer = await QRCode.toBuffer(qrData, { 
+      type: 'png', 
+      margin: 1, 
+      width: 80,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
+    // Jobb felső sarokba rakjuk
+    doc.image(qrBuffer, doc.page.width - 120, 10, { width: 80 });
+  } catch (err) {
+    console.error('QR kód generálási hiba:', err);
+  }
 
   // QR kód helyett egy stilizált azonosító blokk
   doc.fillColor('#000000');
