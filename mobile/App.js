@@ -1,64 +1,96 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Map, Train, Bus, CreditCard, Search } from 'lucide-react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { api } from './src/api';
 
-const COLORS = {
-  bg: '#0a0e1a',
-  card: '#111827',
-  accent: '#3b82f6',
-  text: '#f1f5f9',
-  secondary: '#94a3b8'
-};
+const Stack = createStackNavigator();
 
-function HomeScreen() {
-  const [news, setNews] = React.useState([
-    { id: '1', type: 'alert', text: '🔴 M3 metró felújítás miatt pótlóbusz közlekedik.' },
-    { id: '2', type: 'news', text: '🌟 Új Stadler KISS vonatok álltak forgalomba.' },
-    { id: '3', type: 'info', text: 'ℹ️ Kellemes utazást kíván a TransportHU!' }
-  ]);
+function ResultsScreen({ route }) {
+  const { trips } = route.params;
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.resultsHeader}>
+        <Text style={styles.resultsTitle}>AJÁNLATOK ({trips.length})</Text>
+      </View>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {trips.map(trip => (
+          <View key={trip.id} style={styles.tripCard}>
+            <View style={styles.tripRow}>
+              <Text style={styles.tripTime}>{trip.departureTime}</Text>
+              <View style={styles.tripLine} />
+              <Text style={styles.tripTime}>{trip.arrivalTime}</Text>
+            </View>
+            <View style={styles.tripMeta}>
+              <Text style={styles.tripTrain}>{trip.trainName}</Text>
+              {trip.type && <Text style={[styles.badge, (styles[`badge_${trip.type}`] || {})]}>{trip.type}</Text>}
+            </View>
+            <View style={styles.tripFooter}>
+              <Text style={styles.tripPrice}>{trip.price} Ft-tól <span>/ fő</span></Text>
+            </View>
+          </View>
+        ))}
+        {trips.length === 0 && <Text style={styles.emptyText}>Nincsenek találatok.</Text>}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function MainHomeScreen({ navigation }) {
+  const [from, setFrom] = React.useState('Budapest-Keleti');
+  const [to, setTo] = React.useState('Győr');
+  const [loading, setLoading] = React.useState(false);
+  const [news, setNews] = React.useState([]);
+
+  React.useEffect(() => {
+    api.getNews().then(setNews).catch(err => console.log('News hiba', err));
+  }, []);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const results = await api.search({ from, to });
+      navigation.navigate('Results', { trips: results.trips || [] });
+    } catch (err) {
+      alert('Keresési hiba: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header with Logo */}
         <View style={styles.header}>
-          <Image 
-            source={require('./assets/icon.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require('./assets/icon.png')} style={styles.logo} resizeMode="contain" />
         </View>
 
-        {/* Search Card */}
         <View style={styles.searchCard}>
           <Text style={styles.cardTitle}>MENETREND KERESÉS</Text>
           <View style={styles.inputGroup}>
             <Search size={18} color={COLORS.secondary} style={styles.inputIcon} />
-            <Text style={styles.inputText}>Honnan: Budapest-Keleti</Text>
+            <Text style={styles.inputText}>Honnan: {from}</Text>
           </View>
           <View style={[styles.inputGroup, { marginTop: 8 }]}>
             <Map size={18} color={COLORS.secondary} style={styles.inputIcon} />
-            <Text style={styles.inputText}>Hova: Győr</Text>
+            <Text style={styles.inputText}>Hova: {to}</Text>
           </View>
-          <TouchableOpacity style={[styles.btn, { marginTop: 16 }]}>
-            <Text style={styles.btnText}>Járatok keresése</Text>
+          <TouchableOpacity 
+            style={[styles.btn, { marginTop: 16, opacity: loading ? 0.6 : 1 }]} 
+            onPress={handleSearch}
+            disabled={loading}
+          >
+            <Text style={styles.btnText}>{loading ? 'Keresés...' : 'Járatok keresése'}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Live News Section */}
         <View style={styles.newsSection}>
           <Text style={styles.sectionTitle}>ÉLŐ HÍREK & INFÓK</Text>
-          {news.map(item => (
-            <View key={item.id} style={styles.newsItem}>
+          {news.length > 0 ? news.map((item, i) => (
+            <View key={i} style={styles.newsItem}>
               <Text style={styles.newsText}>{item.text}</Text>
             </View>
-          ))}
+          )) : <Text style={styles.emptyText}>Nincsenek aktív hírek.</Text>}
         </View>
 
-        {/* Quick Map Access */}
         <View style={styles.quickActions}>
           <TouchableOpacity style={styles.qcBox}>
             <Train size={32} color={COLORS.accent} />
@@ -74,6 +106,19 @@ function HomeScreen() {
   );
 }
 
+function MenetrendStack() {
+  return (
+    <Stack.Navigator screenOptions={{ 
+      headerStyle: { backgroundColor: COLORS.card, borderBottomColor: 'rgba(255,255,255,0.05)' },
+      headerTintColor: COLORS.text,
+      headerTitleStyle: { fontWeight: '800', fontSize: 13, letterSpacing: 0.5 }
+    }}>
+      <Stack.Screen name="TransportHU" component={MainHomeScreen} />
+      <Stack.Screen name="Results" component={ResultsScreen} options={{ title: 'TALÁLATOK' }} />
+    </Stack.Navigator>
+  );
+}
+
 const Tab = createBottomTabNavigator();
 
 export default function App() {
@@ -85,10 +130,10 @@ export default function App() {
           tabBarActiveTintColor: COLORS.accent,
           tabBarInactiveTintColor: COLORS.secondary
         }}>
-        <Tab.Screen name="Menetrend" component={HomeScreen} options={{ tabBarIcon: ({ color, size }) => <Search size={size} color={color} /> }} />
-        <Tab.Screen name="MÁV" component={HomeScreen} options={{ tabBarIcon: ({ color, size }) => <Train size={size} color={color} /> }} />
-        <Tab.Screen name="BKK" component={HomeScreen} options={{ tabBarIcon: ({ color, size }) => <Bus size={size} color={color} /> }} />
-        <Tab.Screen name="Jegyeim" component={HomeScreen} options={{ tabBarIcon: ({ color, size }) => <CreditCard size={size} color={color} /> }} />
+        <Tab.Screen name="Menetrend" component={MenetrendStack} options={{ tabBarIcon: ({ color, size }) => <Search size={size} color={color} /> }} />
+        <Tab.Screen name="MÁV" component={MainHomeScreen} options={{ tabBarIcon: ({ color, size }) => <Train size={size} color={color} /> }} />
+        <Tab.Screen name="BKK" component={MainHomeScreen} options={{ tabBarIcon: ({ color, size }) => <Bus size={size} color={color} /> }} />
+        <Tab.Screen name="Jegyeim" component={MainHomeScreen} options={{ tabBarIcon: ({ color, size }) => <CreditCard size={size} color={color} /> }} />
       </Tab.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
@@ -167,6 +212,80 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 13,
     lineHeight: 18,
+  },
+  emptyText: {
+    color: COLORS.secondary,
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 14,
+  },
+  // Results Styles
+  resultsHeader: {
+    padding: 16,
+    backgroundColor: COLORS.card,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  resultsTitle: {
+    color: COLORS.secondary,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  tripCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  tripRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 14,
+  },
+  tripTime: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  tripLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  tripMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  tripTrain: {
+    color: COLORS.secondary,
+    fontSize: 14,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#fff',
+    backgroundColor: '#475569',
+  },
+  badge_IC: { backgroundColor: '#ef4444' },
+  badge_FAST: { backgroundColor: '#3b82f6' },
+  tripFooter: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+    paddingTop: 12,
+  },
+  tripPrice: {
+    color: COLORS.accent,
+    fontSize: 18,
+    fontWeight: '800',
   },
   btn: {
     backgroundColor: COLORS.accent,
