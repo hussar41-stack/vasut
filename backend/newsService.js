@@ -112,7 +112,7 @@ ${rawNewsTexts.join('\n')}`;
       });
       const chatCompletion = await groqClient.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'llama3-70b-8192',
+        model: 'llama-3.3-70b-versatile',
         temperature: 0.2,
       });
       aiRes = chatCompletion.choices[0].message.content.trim();
