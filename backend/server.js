@@ -507,17 +507,18 @@ ${miniResults}`;
     let aiText = '';
 
     if (process.env.GEMINI_API_KEY) {
-      const { OpenAI } = require('openai');
-      const geminiClient = new OpenAI({ 
-        apiKey: process.env.GEMINI_API_KEY,
-        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+      const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      const res = await fetch(gUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.5 }
+        })
       });
-      const completion = await geminiClient.chat.completions.create({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'gemini-1.5-flash',
-        temperature: 0.5,
-      });
-      aiText = completion.choices[0].message.content;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+      aiText = data.candidates[0].content.parts[0].text;
     } else {
       const { OpenAI } = require('openai');
       const openaiCli = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
