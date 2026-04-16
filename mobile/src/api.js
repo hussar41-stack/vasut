@@ -28,4 +28,5 @@ async function request(path, options = {}) {
 export const api = {
   getNews: () => request('/news'),
   search: (params) => request('/search', { method: 'POST', body: JSON.stringify(params) }),
+  createCheckoutSession: (params) => request('/create-checkout-session', { method: 'POST', body: JSON.stringify(params) }),
 };

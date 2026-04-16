@@ -1,10 +1,94 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as WebBrowser from 'expo-web-browser';
 import { api } from './src/api';
+import { TextInput, Alert } from 'react-native';
 
 const Stack = createStackNavigator();
 
-function ResultsScreen({ route }) {
+function PurchaseScreen({ route, navigation }) {
+  const { trip } = route.params;
+  const [passengerName, setPassengerName] = React.useState('');
+  const [seatClass, setSeatClass] = React.useState('Másodosztály');
+  const [loading, setLoading] = React.useState(false);
+
+  const handlePurchase = async () => {
+    if (!passengerName.trim()) return Alert.alert('Hiba', 'Kérlek add meg az utas nevét!');
+    
+    setLoading(true);
+    try {
+      const response = await api.createCheckoutSession({
+        tripId: trip.id,
+        tripData: trip,
+        passengerName,
+        seatClass,
+        quantity: 1
+      });
+      
+      if (response.url) {
+        await WebBrowser.openBrowserAsync(response.url);
+        navigation.navigate('TransportHU'); // Vissza a főoldalra a fizetés után
+      }
+    } catch (err) {
+      Alert.alert('Hiba', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.purchaseSummary}>
+          <Text style={styles.summaryRoute}>{trip.from} ➔ {trip.to}</Text>
+          <Text style={styles.summaryTime}>{trip.departureTime} - {trip.arrivalTime}</Text>
+          <Text style={styles.summaryTrain}>{trip.trainName}</Text>
+        </View>
+
+        <View style={styles.formCard}>
+          <Text style={styles.cardTitle}>UTAS ADATAI</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Utas teljes neve"
+            placeholderTextColor={COLORS.secondary}
+            value={passengerName}
+            onChangeText={setPassengerName}
+          />
+
+          <Text style={[styles.cardTitle, { marginTop: 20 }]}>KOCSISZTÁLY</Text>
+          <View style={styles.classPicker}>
+            <TouchableOpacity 
+              style={[styles.classBtn, seatClass === 'Másodosztály' && styles.classBtnActive]}
+              onPress={() => setSeatClass('Másodosztály')}
+            >
+              <Text style={[styles.classBtnText, seatClass === 'Másodosztály' && styles.classBtnTextActive]}>2. OSZTÁLY</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.classBtn, seatClass === 'Elsőosztály' && styles.classBtnActive]}
+              onPress={() => setSeatClass('Elsőosztály')}
+            >
+              <Text style={[styles.classBtnText, seatClass === 'Elsőosztály' && styles.classBtnTextActive]}>1. OSZTÁLY</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.priceSummary}>
+          <Text style={styles.priceLabel}>Összesen fizetendő:</Text>
+          <Text style={styles.priceValue}>{trip.price} Ft</Text>
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.btn, styles.buyBtn, loading && { opacity: 0.6 }]} 
+          onPress={handlePurchase}
+          disabled={loading}
+        >
+          <Text style={styles.btnText}>{loading ? 'Feldolgozás...' : 'JEGYVÁSÁRLÁS'}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function ResultsScreen({ route, navigation }) {
   const { trips } = route.params;
   return (
     <SafeAreaView style={styles.container}>
@@ -13,7 +97,7 @@ function ResultsScreen({ route }) {
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
         {trips.map(trip => (
-          <View key={trip.id} style={styles.tripCard}>
+          <TouchableOpacity key={trip.id} style={styles.tripCard} onPress={() => navigation.navigate('Purchase', { trip })}>
             <View style={styles.tripRow}>
               <Text style={styles.tripTime}>{trip.departureTime}</Text>
               <View style={styles.tripLine} />
@@ -24,9 +108,10 @@ function ResultsScreen({ route }) {
               {trip.type && <Text style={[styles.badge, (styles[`badge_${trip.type}`] || {})]}>{trip.type}</Text>}
             </View>
             <View style={styles.tripFooter}>
-              <Text style={styles.tripPrice}>{trip.price} Ft-tól <span>/ fő</span></Text>
+              <Text style={styles.tripPrice}>{trip.price} Ft-tól <Text style={{ fontSize: 12, color: COLORS.secondary }}>/ fő</Text></Text>
+              <Text style={styles.buyHint}>Vásárlás ➔</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
         {trips.length === 0 && <Text style={styles.emptyText}>Nincsenek találatok.</Text>}
       </ScrollView>
@@ -115,6 +200,7 @@ function MenetrendStack() {
     }}>
       <Stack.Screen name="TransportHU" component={MainHomeScreen} />
       <Stack.Screen name="Results" component={ResultsScreen} options={{ title: 'TALÁLATOK' }} />
+      <Stack.Screen name="Purchase" component={PurchaseScreen} options={{ title: 'JEGYVÁSÁRLÁS' }} />
     </Stack.Navigator>
   );
 }
@@ -281,11 +367,107 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
     paddingTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   tripPrice: {
     color: COLORS.accent,
     fontSize: 18,
     fontWeight: '800',
+  },
+  buyHint: {
+    color: COLORS.accent,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  // Purchase Styles
+  purchaseSummary: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+  },
+  summaryRoute: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  summaryTime: {
+    color: COLORS.accent,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  summaryTrain: {
+    color: COLORS.secondary,
+    fontSize: 13,
+  },
+  formCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: COLORS.bg,
+    borderRadius: 12,
+    padding: 14,
+    color: '#fff',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  classPicker: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  classBtn: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  classBtnActive: {
+    borderColor: COLORS.accent,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  },
+  classBtnText: {
+    color: COLORS.secondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  classBtnTextActive: {
+    color: COLORS.accent,
+  },
+  priceSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  priceLabel: {
+    color: COLORS.secondary,
+    fontSize: 14,
+  },
+  priceValue: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  buyBtn: {
+    backgroundColor: '#10b981', // Green for purchase
+    padding: 18,
   },
   btn: {
     backgroundColor: COLORS.accent,
