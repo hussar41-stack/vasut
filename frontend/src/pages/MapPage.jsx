@@ -10,6 +10,20 @@ import { api } from '../api/client';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
+// Client-side fallback vehicles when backend is unreachable
+const MOCK_FALLBACK = [
+  { id:'m2-1', lat:47.5099, lng:19.0555, label:'M2 Metró',    routeId:'M2', bearing:90,  color:'#e74c3c', type:'metro' },
+  { id:'m3-1', lat:47.4872, lng:19.0783, label:'M3 Metró',    routeId:'M3', bearing:180, color:'#3498db', type:'metro' },
+  { id:'m4-1', lat:47.4720, lng:19.0620, label:'M4 Metró',    routeId:'M4', bearing:45,  color:'#27ae60', type:'metro' },
+  { id:'t4-1', lat:47.5010, lng:19.0450, label:'4-6 Villamos',routeId:'4',  bearing:270, color:'#f39c12', type:'tram'  },
+  { id:'t6-1', lat:47.5080, lng:19.0510, label:'4-6 Villamos',routeId:'6',  bearing:90,  color:'#f39c12', type:'tram'  },
+  { id:'t2-1', lat:47.4960, lng:19.0700, label:'2 Villamos',  routeId:'2',  bearing:0,   color:'#e74c3c', type:'tram'  },
+  { id:'b7-1', lat:47.4880, lng:19.0600, label:'7 Busz',      routeId:'7',  bearing:135, color:'#2980b9', type:'bus'   },
+  { id:'b100-1',lat:47.4990,lng:19.0300, label:'100E Airport',routeId:'100E',bearing:225,color:'#2ecc71', type:'bus'   },
+  { id:'b15-1', lat:47.5020,lng:19.0650, label:'15 Busz',     routeId:'15', bearing:315, color:'#9b59b6', type:'bus'   },
+  { id:'b6a-1', lat:47.4940,lng:19.0550, label:'6A Busz',     routeId:'6A', bearing:60,  color:'#1abc9c', type:'bus'   },
+];
+
 // ─── MÁV Stations ────────────────────────────────────────────────────────────
 const MAV_STATIONS = [
   { name: 'Budapest Keleti',  lat: 47.5002, lng: 19.0836 },
@@ -100,7 +114,11 @@ export default function MapPage() {
 
   const fetchVehicles = useCallback(async () => {
     try {
-      const resp = await fetch(`${(process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace(/\/$/, '').replace(/\/api$/, '')}/api/bkk-vehicles`);
+      // Use the same base URL pattern as the rest of the app
+      const baseUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').trim().replace(/\/$/, '');
+      const apiBase = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+      const resp = await fetch(`${apiBase}/bkk-vehicles`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       setVehicles(data.vehicles || []);
       setIsMock(data.mock === true);
@@ -111,6 +129,10 @@ export default function MapPage() {
       setStats({ bus, tram, metro });
     } catch(e) {
       console.warn('Vehicles fetch error:', e);
+      // Local fallback mock
+      setVehicles(MOCK_FALLBACK);
+      setIsMock(true);
+      setLastUpdate(new Date().toLocaleTimeString('hu-HU'));
     } finally {
       setLoading(false);
     }
