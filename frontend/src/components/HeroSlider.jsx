@@ -26,7 +26,7 @@ export default function HeroSlider() {
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex(prev => prev + 1);
-    }, 2000); // 2 másodperc
+    }, 3500); // 3.5 másodperc
     return () => clearInterval(timer);
   }, []);
 
