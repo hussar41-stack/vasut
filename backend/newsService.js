@@ -63,12 +63,13 @@ async function getLatestNews() {
                    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec));
                    
       const entities = { 
-        '&amp;':'&', '&lt;':'<', '&gt;':'>', '&quot;':'"', '&apos;':"'", '&nbsp;':' ',
+        '&amp;':'&', '&lt;':'<', '&gt;':'-', '&quot;':'"', '&apos;':"'", '&nbsp;':' ',
         '&aacute;':'á', '&eacute;':'é', '&iacute;':'í', '&oacute;':'ó', '&ouml;':'ö', '&uacute;':'ú', '&uuml;':'ü',
         '&bdquo;':'„', '&rdquo;':'”', '&ndash;':'-', '&mdash;':'—'
       };
       
       clean = clean.replace(/&[a-z]+;/gi, match => entities[match.toLowerCase()] || ' ');
+      clean = clean.replace(/>/g, '-'); // MÁV reláció jelek lecserélése kötőjelre (pl. Ózd>Miskolc -> Ózd-Miskolc)
       clean = clean.replace(/\s+/g, ' '); // Dupla szóközök eltávolítása
 
       // Ha túl hosszú, vágjuk le hogy ne csússzon szét a slider
