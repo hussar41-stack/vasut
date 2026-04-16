@@ -14,7 +14,7 @@ const MOCK_INFOS = [
 let cachedNews = null;
 let lastFetchTime = 0;
 
-const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 perc
+const CACHE_DURATION_MS = 1 * 60 * 1000; // 1 perc fejlesztés miatt
 
 async function getLatestNews() {
   const now = Date.now();
@@ -60,15 +60,16 @@ async function getLatestNews() {
                      
       // HTML entitások feldolgozása (decimális, hexadecimális és gyakoriak)
       clean = clean.replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-                   .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
-                   .replace(/&aacute;/gi, 'á').replace(/&eacute;/gi, 'é')
-                   .replace(/&iacute;/gi, 'í').replace(/&oacute;/gi, 'ó')
-                   .replace(/&ouml;/gi, 'ö').replace(/&uacute;/gi, 'ú')
-                   .replace(/&uuml;/gi, 'ü').replace(/&quot;/g, '"')
-                   .replace(/&apos;/g, "'").replace(/&lt;/g, '<')
-                   .replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-                   .replace(/&nbsp;/g, ' ')
-                   .replace(/\s+/g, ' '); // Dupla szóközök eltávolítása
+                   .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec));
+                   
+      const entities = { 
+        '&amp;':'&', '&lt;':'<', '&gt;':'>', '&quot;':'"', '&apos;':"'", '&nbsp;':' ',
+        '&aacute;':'á', '&eacute;':'é', '&iacute;':'í', '&oacute;':'ó', '&ouml;':'ö', '&uacute;':'ú', '&uuml;':'ü',
+        '&bdquo;':'„', '&rdquo;':'”', '&ndash;':'-', '&mdash;':'—'
+      };
+      
+      clean = clean.replace(/&[a-z]+;/gi, match => entities[match.toLowerCase()] || ' ');
+      clean = clean.replace(/\s+/g, ' '); // Dupla szóközök eltávolítása
 
       // Ha túl hosszú, vágjuk le hogy ne csússzon szét a slider
       if (clean.length > 90) {
