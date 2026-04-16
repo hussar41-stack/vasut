@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'transporthu-secret-2025';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_mock'); // Setup Stripe
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vasut-seven.vercel.app';
 const { sendEmail } = require('./emailService');
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
