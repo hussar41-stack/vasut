@@ -194,13 +194,13 @@ app.post('/api/auth/register', async (req, res) => {
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
     console.log(`  → Új felhasználó: ${email}`);
 
-    sendEmail(email, 'Sikeres regisztráció - TransportHU', `
+    const emailStatus = await sendEmail(email, 'Sikeres regisztráció - TransportHU', `
       <h2>Üdvözlünk a rendszerben, ${name}!</h2>
       <p>Köszönjük, hogy regisztráltál a TransportHU felületén.</p>
       <p>Innentől kezdve jegyvásárlásaidat kényelmesen nyomon követheted a fiókodban.</p>
     `);
 
-    res.status(201).json({ user: { id: user.id, name, email }, token });
+    res.status(201).json({ user: { id: user.id, name, email }, token, emailStatus });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

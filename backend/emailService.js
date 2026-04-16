@@ -44,10 +44,10 @@ const sendEmail = async (to, subject, html) => {
     if (!process.env.SMTP_USER) {
       console.log(`Példa email megtekintése: ${nodemailer.getTestMessageUrl(info)}`);
     }
-    return true;
+    return { success: true };
   } catch (error) {
     console.error('Hiba az email küldésekor:', error);
-    return false;
+    return { success: false, error: error.message };
   }
 };
 
