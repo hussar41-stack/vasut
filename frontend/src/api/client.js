@@ -44,8 +44,8 @@ export const api = {
     request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 
   // Schedule search
-  search: ({ from, to, date }) =>
-    request('/search', { method: 'POST', body: JSON.stringify({ from, to, date }) }),
+  search: (params) =>
+    request('/search', { method: 'POST', body: JSON.stringify(params) }),
 
   // Delay update
   updateDelay: (tripId, delayMinutes) =>
