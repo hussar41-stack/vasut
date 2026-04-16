@@ -1,34 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import './HeroSlider.css';
-
-const MOCK_INFOS = [
-  { type: 'logo', text: '' },
-  { type: 'alert', text: '🚧 Vágányzár: Budapest-Keleti Pályaudvar felújítás miatt korlátozottan üzemel!' },
-  { type: 'info', text: '🚆 Érdekesség: A leggyorsabb InterCity vonatunk eléri a 160 km/h sebességet!' },
-  { type: 'news', text: '✨ Új funkció: Próbáld ki a valós idejű menetrendi térképünket!' },
-  { type: 'alert', text: '⚠️ FIGYELEM: Viharjelzés a Balaton északi partja mentén közlekedő járatoknál.' },
-  { type: 'info', text: '💡 Tudtad? A MÁV mobilalkalmazásával 10% kedvezményt kaphatsz!' },
-  { type: 'news', text: '🌟 Hírek: Új prémium fülkék az IC+ kocsikban a maximális kényelemért.' },
-  { type: 'info', text: '📅 Emlékeztető: A hónap első vasárnapján ingyenes az utazás a kutyáknak!' },
-  { type: 'alert', text: '🔴 Infó: Késések várhatóak a záhonyi vonalon felsővezeték-szakadás miatt.' },
-  { type: 'news', text: '🎁 Akció: Vegyél retúrjegyet és nyerj egy belföldi hétvégét!' },
-  { type: 'info', text: '🌍 Környezet: A vasúti közlekedéssel 70%-kal csökkented a CO2 lábnyomodat!' }
-];
+import { api } from '../api/client';
 
 export default function HeroSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
-
-  // Az illúzióhoz hozzáfűzzük a legelső elemet a lista végére
-  const items = [...MOCK_INFOS, MOCK_INFOS[0]];
+  const [newsData, setNewsData] = useState([]);
 
   useEffect(() => {
+    // 1. Kezdeti hírek letöltése az AI/Backend-től
+    api.getNews()
+      .then(data => {
+        // Bebiztosítjuk hogy a TransportHU lógó legyen a legelső "hír" kocka
+        const finalItems = [{ type: 'logo', text: '' }, ...data];
+        setNewsData(finalItems);
+      })
+      .catch(err => {
+        console.error('Hiba a hírek letöltésekor, fallback logó használata:', err);
+        setNewsData([{ type: 'logo', text: '' }, { type: 'info', text: 'Nem sikerült betölteni az élő híreket.' }]);
+      });
+  }, []);
+
+  // Az illúzióhoz hozzáfűzzük a legelső elemet a lista végére
+  // Csak akkor, ha már van adatunk
+  const items = newsData.length > 0 ? [...newsData, newsData[0]] : [];
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex(prev => prev + 1);
     }, 3500); // 3.5 másodperc
     return () => clearInterval(timer);
-  }, []);
+  }, [items.length]);
 
   const handleTransitionEnd = () => {
     // Ha elértük a klónozott extra utolsó elemet (ami vizuálisan az első)

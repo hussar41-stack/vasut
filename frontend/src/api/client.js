@@ -31,6 +31,7 @@ async function request(path, options = {}) {
 
 export const api = {
   health: () => request('/health'),
+  getNews: () => request('/news'),
 
   // Auth
   register: ({ name, email, password }) =>
