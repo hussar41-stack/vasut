@@ -31,7 +31,7 @@ const getTransporter = async () => {
   });
 };
 
-const sendEmail = async (to, subject, html) => {
+const sendEmail = async (to, subject, html, attachments = []) => {
   try {
     const transporter = await getTransporter();
     const info = await transporter.sendMail({
@@ -39,6 +39,7 @@ const sendEmail = async (to, subject, html) => {
       to,
       subject,
       html,
+      attachments,
     });
     console.log(`📩 Email sikeresen elküldve: [${subject}] -> ${to}`);
     if (!process.env.SMTP_USER) {

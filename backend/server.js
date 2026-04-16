@@ -79,12 +79,30 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     tickets.push(ticket);
     console.log(`  → Jegy sikeresen kifizetve (Stripe Webhook): ${ticket.confirmationCode} (${passengerEmail})`);
 
+    // PDF generálás
+    const { generateTicketPDF, generateInvoicePDF } = require('./pdfService');
+    const ticketPdfBuffer = await generateTicketPDF(ticket);
+    const invoicePdfBuffer = await generateInvoicePDF(ticket);
+
+    const attachments = [
+      {
+        filename: `TransportHU_Uti_Jegy_${ticket.confirmationCode}.pdf`,
+        content: ticketPdfBuffer,
+        contentType: 'application/pdf'
+      },
+      {
+        filename: `TransportHU_Szamla_Bizonylat_${ticket.confirmationCode}.pdf`,
+        content: invoicePdfBuffer,
+        contentType: 'application/pdf'
+      }
+    ];
+
     // Send Ticket purchase email
-    sendEmail(passengerEmail, 'Sikeres jegyvásárlás - TransportHU', `
+    await sendEmail(passengerEmail, 'Sikeres jegyvásárlás - TransportHU PDF', `
       <h2>Kedves ${passengerName}!</h2>
       <p>Köszönjük, hogy jegyet vásároltál a TransportHU rendszerben!</p>
       <div style="padding:20px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:8px; margin:20px 0;">
-        <h3 style="margin-top:0; color:#111827;">MÁV / BKK E-Ticket</h3>
+        <h3 style="margin-top:0; color:#111827;">MÁV / BKK E-Ticket (Csatolva!)</h3>
         <p style="font-family:monospace; font-size:1.4rem; font-weight:bold; color:#3b82f6; letter-spacing:2px; margin: 10px 0;">${ticket.confirmationCode}</p>
         <hr style="border:none; border-top:1px dashed #ccc; margin:15px 0;">
         <p><b>Utas neve:</b> ${passengerName}</p>
@@ -94,9 +112,10 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         <p><b>Végösszeg:</b> ${ticket.totalPrice} Ft</p>
         <p><b>Kocsiosztály:</b> ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}</p>
       </div>
-      <p>Kérjük, ezt az visszaigazolást, vagy az applikációban található elektronikus jegyet mutasd be az ellenőrnek.</p>
+      <p>Kérjük, nyisd meg a csatolt <b>PDF nyomtatható jegyet</b> és mutasd be az ellenőrnek.</p>
+      <p>Szintén csatoltuk számodra a hivatalos fizetési bizonylatot is.</p>
       <p>Jó utazást kívánunk!</p>
-    `);
+    `, attachments);
   }
 
   res.json({ received: true });
