@@ -31,7 +31,7 @@ function AppInner() {
           </NavLink>
           <NavLink to="/map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🗺️ Térkép
+            🗺️ Élő Térkép
           </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"

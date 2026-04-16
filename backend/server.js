@@ -330,6 +330,88 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// BKK FUTÁR Live Vehicles Proxy
+app.get('/api/bkk-vehicles', async (req, res) => {
+  try {
+    // BKK FUTÁR public API - vehicle positions
+    // Using the public FUTÁR API endpoint (no key needed for basic vehicle list)
+    const bkkApiKey = process.env.BKK_API_KEY || 'apaiary-test';
+    const url = `https://futar.bkk.hu/api/query/v1/ws/otp/routers/bkk/vehicles?key=${bkkApiKey}&appVersion=1.0&version=4`;
+    
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'TransportHU/1.0', 'Accept': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`FUTÁR API: HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Map the vehicles to our simpler format
+    const vehicles = (data.data?.list || []).slice(0, 200).map(v => ({
+      id: v.vehicleId || v.id,
+      lat: v.lat,
+      lng: v.lon,
+      label: v.label || v.vehicleId,
+      routeId: v.routeId,
+      bearing: v.bearing || 0,
+      status: v.status,
+      tripId: v.tripId,
+      stopId: v.stopId,
+      type: v.model || 'bus'
+    })).filter(v => v.lat && v.lng);
+    
+    res.json({ count: vehicles.length, vehicles, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.warn('BKK FUTÁR vehicle proxy hiba:', err.message);
+    // Ha nem sikerül a valós API, visszaadunk szimulált adatokat demóhoz
+    const mockVehicles = generateMockBKKVehicles();
+    res.json({ count: mockVehicles.length, vehicles: mockVehicles, mock: true, timestamp: new Date().toISOString() });
+  }
+});
+
+function generateMockBKKVehicles() {
+  const routes = [
+    { id: '7', label: '7 Buss', color: '#e74c3c' },
+    { id: '4', label: '4-6 Villamos', color: '#f39c12' },
+    { id: '6', label: '4-6 Villamos', color: '#f39c12' },
+    { id: '2', label: '2 Villamos', color: '#e74c3c' },
+    { id: 'M2', label: 'M2 Metró', color: '#e74c3c' },
+    { id: 'M3', label: 'M3 Metró', color: '#3498db' },
+    { id: '100E', label: '100E Airport', color: '#2ecc71' },
+    { id: '15', label: '15 Busz', color: '#9b59b6' },
+    { id: '56', label: '56 Villamos', color: '#1abc9c' },
+    { id: 'M4', label: 'M4 Metró', color: '#27ae60' },
+  ];
+  
+  // Budapest center area bounding box
+  const center = { lat: 47.4979, lng: 19.0402 };
+  const vehicles = [];
+  
+  routes.forEach((route, ri) => {
+    const count = 3 + Math.floor(Math.random() * 5);
+    for (let i = 0; i < count; i++) {
+      const angle = (ri * 36 + i * 25) * (Math.PI / 180);
+      const radius = 0.02 + Math.random() * 0.04;
+      vehicles.push({
+        id: `${route.id}-${i}`,
+        lat: center.lat + Math.cos(angle) * radius,
+        lng: center.lng + Math.sin(angle) * radius * 1.5,
+        label: route.label,
+        routeId: route.id,
+        bearing: Math.floor(Math.random() * 360),
+        color: route.color,
+        mock: true,
+        type: route.id.startsWith('M') ? 'metro' : route.label.includes('Villamos') ? 'tram' : 'bus'
+      });
+    }
+  });
+  
+  return vehicles;
+}
+
+
 // ─── Station resolver + Schedule generator ────────────────────────────────────
 const STATIONS = {
   'budapest keleti': 'Budapest Keleti', 'budapest nyugati': 'Budapest Nyugati',
