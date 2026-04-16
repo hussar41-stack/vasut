@@ -44,16 +44,6 @@ async function getLatestNews() {
       console.warn('Elérhetetlen MÁV RSS:', e.message);
     }
 
-    // 3. Országos Hírek (Telex RSS)
-    try {
-      const newsFeed = await parser.parseURL('https://telex.hu/rss');
-      // Csak 2 legfontosabb országos hírt veszünk be, hogy ne nyomja el a közlekedést
-      const newsItems = newsFeed.items.slice(0, 2).map(i => `BELFÖLD: ${i.title}`);
-      rawNewsTexts.push(...newsItems);
-    } catch (e) {
-      console.warn('Elérhetetlen Országos RSS:', e.message);
-    }
-
     if (rawNewsTexts.length === 0) {
       throw new Error('Nem jött valós adat az RSS csatornákon keresztül.');
     }

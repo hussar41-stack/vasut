@@ -6,19 +6,30 @@ export default function HeroSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [newsData, setNewsData] = useState([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
+    // Óra frissítése másodpercenként
+    const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
+    
     // 1. Kezdeti hírek letöltése az AI/Backend-től
     api.getNews()
       .then(data => {
-        // Bebiztosítjuk hogy a TransportHU lógó legyen a legelső "hír" kocka
-        const finalItems = [{ type: 'logo', text: '' }, ...data];
+        // Bebiztosítjuk hogy a TransportHU lógó, pontos idő és időjárás is ott legyen
+        const finalItems = [
+          { type: 'logo', text: '' },
+          { type: 'clock', text: '' },
+          { type: 'weather', text: 'Budapest: 18°C, Derült idő, minimális légmozgás' },
+          ...data
+        ];
         setNewsData(finalItems);
       })
       .catch(err => {
         console.error('Hiba a hírek letöltésekor, fallback logó használata:', err);
         setNewsData([{ type: 'logo', text: '' }, { type: 'info', text: 'Nem sikerült betölteni az élő híreket.' }]);
       });
+      
+    return () => clearInterval(clockTimer);
   }, []);
 
   // Az illúzióhoz hozzáfűzzük a legelső elemet a lista végére
@@ -58,20 +69,40 @@ export default function HeroSlider() {
           }}
           onTransitionEnd={handleTransitionEnd}
         >
-          {items.map((info, idx) => (
-            <div key={idx} className={`hero-slider-item ${info.type}`}>
-              {info.type === 'logo' ? (
-                <img src="/logo.png" alt="TransportHU Logo" style={{ height: '60px', objectFit: 'contain' }} />
-              ) : (
-                <>
-                  <span className="info-badge">
-                    {info.type === 'alert' ? '🔴 FONTOS' : info.type === 'news' ? '🌟 ÚJDONSÁG' : 'ℹ️ INFÓ'}
-                  </span>
+          {items.map((info, idx) => {
+            if (info.type === 'logo') {
+              return (
+                <div key={idx} className="hero-slider-item logo">
+                  <img src="/logo.png" alt="TransportHU Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                </div>
+              );
+            }
+            if (info.type === 'clock') {
+              return (
+                <div key={idx} className="hero-slider-item info">
+                  <span className="info-badge" style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', borderColor: 'rgba(59, 130, 246, 0.3)' }}>🕒 PONTOS IDŐ</span>
+                  <span className="info-text">{currentTime.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                </div>
+              );
+            }
+            if (info.type === 'weather') {
+              return (
+                <div key={idx} className="hero-slider-item info">
+                  <span className="info-badge" style={{ backgroundColor: 'rgba(234, 179, 8, 0.2)', color: '#fde047', borderColor: '#ca8a04' }}>🌤️ IDŐJÁRÁS</span>
                   <span className="info-text">{info.text}</span>
-                </>
-              )}
-            </div>
-          ))}
+                </div>
+              );
+            }
+
+            return (
+              <div key={idx} className={`hero-slider-item ${info.type}`}>
+                <span className="info-badge">
+                  {info.type === 'alert' ? '🔴 FONTOS' : info.type === 'news' ? '🌟 ÚJDONSÁG' : 'ℹ️ INFÓ'}
+                </span>
+                <span className="info-text">{info.text}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
