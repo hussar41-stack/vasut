@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './HeroSlider.css';
 import { api } from '../api/client';
 
+// Vercel Force Redeploy Trigger v2
 export default function HeroSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
