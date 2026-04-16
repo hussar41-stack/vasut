@@ -330,9 +330,33 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-const { getAIPredictedVehicles } = require('./aiTrafficService');
+const { getAIPredictedVehicles, getAIPredictedTrains } = require('./aiTrafficService');
 
-// BKK FUTÁR Live Vehicles Proxy + AI Predictive Fallback
+// MÁV Live Trains - AI-Assisted Position Prediction
+app.get('/api/mav-trains', async (req, res) => {
+  try {
+    const mavNews = await getLatestNews();
+    const trains = await getAIPredictedTrains(mavNews);
+    
+    if (trains && trains.length > 0) {
+      return res.json({ 
+        count: trains.length, 
+        trains: trains.map(t => ({ ...t, isAI: true })), 
+        mode: 'ai_simulated', 
+        timestamp: new Date().toISOString() 
+      });
+    }
+
+    // Fallback ha nincs AI válasz
+    const mockTrains = [
+      { id:'t1', lat:47.5002, lng:19.0836, label:'Személy', type:'LOCAL', stopName:'Buda Keleti', color:'#86efac' },
+      { id:'t2', lat:47.4636, lng:19.0118, label:'Személy', type:'LOCAL', stopName:'Kelenföld', color:'#86efac' }
+    ];
+    res.json({ count: mockTrains.length, trains: mockTrains, mode: 'mock' });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 app.get('/api/bkk-vehicles', async (req, res) => {
   try {
     const bkkApiKey = process.env.BKK_API_KEY || 'apaiary-test';

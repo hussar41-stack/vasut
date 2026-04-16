@@ -49,6 +49,29 @@ function coordsFor(route) {
   return route.map(n => STATIONS.find(s => s.name === n)).filter(Boolean).map(s => [s.lat, s.lng]);
 }
 
+function trainIcon(type, color, label) {
+  const emoji = type === 'IC' || type === 'RAILJET' || type === 'EC' ? '🚅' : '🚆';
+  const bg = color || '#3b82f6';
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:${bg}; color:#fff; font-size:9px; font-weight:900;
+      border-radius:6px; width:34px; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      border:2px solid rgba(255,255,255,0.9);
+      box-shadow:0 0 10px ${bg}aa, 0 3px 8px rgba(0,0,0,0.5);
+      cursor:pointer;
+      transition: all 5s linear;
+      position: relative;
+    ">
+      <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:12px;">${emoji}</div>
+      <span>${label.substring(0, 5)}</span>
+    </div>`,
+    iconSize: [34, 24],
+    iconAnchor: [17, 12],
+  });
+}
+
 function stationDot(selected) {
   const size = selected ? 18 : 12;
   return L.divIcon({
@@ -69,6 +92,30 @@ function stationDot(selected) {
 export default function MapPage() {
   const [selected, setSelected] = useState(null);
   const [lineFilter, setLineFilter] = useState('all');
+  const [trains, setTrains] = useState([]);
+  const [mapMode, setMapMode] = useState('loading');
+  const intervalRef = useRef(null);
+
+  const fetchTrains = useCallback(async () => {
+    try {
+      const base = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').trim().replace(/\/$/, '');
+      const apiBase = base.endsWith('/api') ? base : `${base}/api`;
+      const resp = await fetch(`${apiBase}/mav-trains`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      setTrains(data.trains || []);
+      setMapMode(data.mode || 'real');
+    } catch (e) {
+      console.warn('MÁV fetch hiba:', e.message);
+      setMapMode('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrains();
+    intervalRef.current = setInterval(fetchTrains, 5000);
+    return () => clearInterval(intervalRef.current);
+  }, [fetchTrains]);
 
   const lineTypes = ['IC', 'EC', 'RAILJET', 'FAST', 'LOCAL'];
   const filteredStations = lineFilter === 'all'
@@ -86,12 +133,21 @@ export default function MapPage() {
         display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
         backdropFilter: 'blur(12px)'
       }}>
-        {/* Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: '1.1rem' }}>🚆</span>
           <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#e2e8f0' }}>MÁV Hálózati Térkép</span>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            · {filteredStations.length} állomás · {RAIL_LINES.length} fővonal
+          {mapMode === 'ai_simulated' && (
+            <span style={{
+              fontSize: '0.68rem', background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
+              border: '1px solid rgba(139,92,246,0.3)', borderRadius: 20, padding: '1px 8px',
+              display: 'flex', alignItems: 'center', gap: 4
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#a78bfa', display: 'inline-block', animation: 'pulse 1.8s infinite' }}></span>
+              AI SZIMULÁCIÓ
+            </span>
+          )}
+          <span style={{ fontSize: '0.75rem', color: '#475569' }}>
+            · {filteredStations.length} állomás · {trains.length} vonat
           </span>
         </div>
 
@@ -140,6 +196,34 @@ export default function MapPage() {
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
           />
+
+          {/* Trains */}
+          {trains.map(t => (
+            <Marker
+              key={t.id}
+              position={[t.lat, t.lng]}
+              icon={trainIcon(t.type, t.color, t.label)}
+            >
+              <Popup>
+                <div style={{ minWidth: 160, fontFamily: 'Inter, sans-serif' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: t.color || '#3b82f6', marginBottom: 4 }}>
+                    {t.label}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: 6 }}>
+                    Vonal: <strong>{t.route || 'MÁV Vonat'}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', padding: '6px 0', borderTop: '1px solid #f1f5f9' }}>
+                    Következő: <strong style={{ color: '#1e293b' }}>{t.stopName || 'Úton...'}</strong>
+                  </div>
+                  {t.isAI && (
+                    <div style={{ marginTop: 4, fontSize: '0.68rem', color: '#a78bfa', fontWeight: 600 }}>
+                      🧠 AI-becsült pozíció
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
           {/* Rail lines */}
           {RAIL_LINES.map((line, i) => (
@@ -194,7 +278,18 @@ export default function MapPage() {
             {type === 'IC' ? 'InterCity' : type === 'EC' ? 'EuroCity' : type === 'RAILJET' ? 'RailJet' : type === 'FAST' ? 'Gyors' : 'Személyi'}
           </div>
         ))}
+        <div style={{ marginTop: 8, fontSize: '0.68rem', color: '#475569', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 6 }}>
+          🔄 Valós idejű frissítés: 5 mp ⚡
+        </div>
+        {mapMode === 'ai_simulated' && (
+          <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#a78bfa', fontWeight: 600 }}>
+             🧠 AI-val becsült élőkép
+          </div>
+        )}
       </div>
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+      `}</style>
     </div>
   );
 }
