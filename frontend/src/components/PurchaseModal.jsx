@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
-import { loadStripe } from '@stripe/stripe-js';
+
 
 // We don't need stripePromise here anymore because we redirect directly to url
 // const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_mock');
