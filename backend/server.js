@@ -315,9 +315,19 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
-// ─── Health ───────────────────────────────────────────────────────────────────
+// ─── Health & News ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), port: PORT });
+});
+
+const { getLatestNews } = require('./newsService');
+app.get('/api/news', async (req, res) => {
+  try {
+    const news = await getLatestNews();
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ─── Station resolver + Schedule generator ────────────────────────────────────
