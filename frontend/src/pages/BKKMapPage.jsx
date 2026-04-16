@@ -41,7 +41,7 @@ function vehicleIcon(type, color, textColor, label) {
       border:2.5px solid rgba(255,255,255,0.9);
       box-shadow:0 0 12px ${bg}aa, 0 3px 10px rgba(0,0,0,0.6);
       cursor:pointer;
-      transition: transform 0.3s ease;
+      transition: all 5s linear; /* Sima siklás az új koordinátákra */
       position: relative;
     ">
       <div style="position:absolute; top:-2px; right:-2px; font-size:12px;">${emoji}</div>
@@ -97,7 +97,7 @@ export default function BKKMapPage() {
 
   useEffect(() => {
     fetchVehicles();
-    intervalRef.current = setInterval(fetchVehicles, 15000);
+    intervalRef.current = setInterval(fetchVehicles, 5000); // 5 másodperces frissítés (Valós idő)
     return () => clearInterval(intervalRef.current);
   }, [fetchVehicles]);
 
@@ -269,7 +269,7 @@ export default function BKKMapPage() {
             </div>
           ))}
           <div style={{ marginTop: 8, fontSize: '0.68rem', color: '#475569', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6 }}>
-            🔄 Frissítés: 15 másodperc
+            🔄 Valós idejű frissítés: 5 mp ⚡
           </div>
           {mapMode === 'ai_simulated' && (
             <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#a78bfa', fontWeight: 600 }}>
