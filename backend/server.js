@@ -14,6 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'transporthu-secret-2025';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_mock'); // Setup Stripe
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+const { sendEmail } = require('./emailService');
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
@@ -75,9 +76,27 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       confirmationCode: `HU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
       stripeSessionId: session.id
     };
-
     tickets.push(ticket);
     console.log(`  → Jegy sikeresen kifizetve (Stripe Webhook): ${ticket.confirmationCode} (${passengerEmail})`);
+
+    // Send Ticket purchase email
+    sendEmail(passengerEmail, 'Sikeres jegyvásárlás - TransportHU', `
+      <h2>Kedves ${passengerName}!</h2>
+      <p>Köszönjük, hogy jegyet vásároltál a TransportHU rendszerben!</p>
+      <div style="padding:20px; border:1px solid #e5e7eb; background:#f9fafb; border-radius:8px; margin:20px 0;">
+        <h3 style="margin-top:0; color:#111827;">MÁV / BKK E-Ticket</h3>
+        <p style="font-family:monospace; font-size:1.4rem; font-weight:bold; color:#3b82f6; letter-spacing:2px; margin: 10px 0;">${ticket.confirmationCode}</p>
+        <hr style="border:none; border-top:1px dashed #ccc; margin:15px 0;">
+        <p><b>Utas neve:</b> ${passengerName}</p>
+        <p><b>Útvonal:</b> ${ticket.from} ➔ ${ticket.to}</p>
+        <p><b>Dátum / Indulás:</b> ${new Date(ticket.departureTime).toLocaleString('hu-HU')}</p>
+        <p><b>Mennyiség:</b> ${ticket.quantity} db</p>
+        <p><b>Végösszeg:</b> ${ticket.totalPrice} Ft</p>
+        <p><b>Kocsiosztály:</b> ${ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}</p>
+      </div>
+      <p>Kérjük, ezt az visszaigazolást, vagy az applikációban található elektronikus jegyet mutasd be az ellenőrnek.</p>
+      <p>Jó utazást kívánunk!</p>
+    `);
   }
 
   res.json({ received: true });
@@ -174,6 +193,13 @@ app.post('/api/auth/register', async (req, res) => {
 
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
     console.log(`  → Új felhasználó: ${email}`);
+
+    sendEmail(email, 'Sikeres regisztráció - TransportHU', `
+      <h2>Üdvözlünk a rendszerben, ${name}!</h2>
+      <p>Köszönjük, hogy regisztráltál a TransportHU felületén.</p>
+      <p>Innentől kezdve jegyvásárlásaidat kényelmesen nyomon követheted a fiókodban.</p>
+    `);
+
     res.status(201).json({ user: { id: user.id, name, email }, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -220,9 +246,18 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
     if (user) {
       resetTokens[token] = { email, expiresAt };
-      console.log(`\n  📧 MOCK EMAIL → ${email}`);
-      console.log(`  Reset token: ${token}`);
-      console.log(`  Lejár: ${expiresAt}\n`);
+      
+      const resetLink = \`\${FRONTEND_URL}/reset-password?token=\${token}\`;
+      sendEmail(email, 'Jelszó visszaállítása - TransportHU', \`
+        <h2>Kedves \${user.name}!</h2>
+        <p>Jelszó helyreállítási kérelem érkezett a TransportHU fiókodhoz.</p>
+        <p>Új jelszó beállításához kattints a lenti linkre (a link 15 percig érvényes):</p>
+        <a href="\${resetLink}" style="padding:10px 20px; background:#3b82f6; color:#fff; text-decoration:none; border-radius:5px; display:inline-block; margin-top:10px;">Jelszó visszaállítása</a>
+        <br><br>
+        <p>Ha a gomb nem működik, másold be ezt a linket a böngésződbe: <br> \${resetLink}</p>
+        <hr>
+        <small>Ha nem te kérted a jelszavad visszaállítását, ezt az üzenetet hagyd figyelmen kívül.</small>
+      \`);
     }
 
     res.json({
