@@ -4,7 +4,7 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  height: 60px; /* Pontosan egy sornak megfelelő magasság */
+  height: 80px; /* Pontosan egy sornak megfelelő magasság */
   overflow: hidden; /* Elrejti a többi elemet */
   position: relative;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -20,7 +20,7 @@
 }
 
 .hero-slider-item {
-  height: 60px; /* Szorosan illeszkedik a containerhez */
+  height: 80px; /* Szorosan illeszkedik a containerhez */
   display: flex;
   align-items: center;
   padding: 0 20px;

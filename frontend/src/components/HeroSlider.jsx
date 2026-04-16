@@ -48,7 +48,7 @@ export default function HeroSlider() {
         <div 
           className="hero-slider-track" 
           style={{ 
-             transform: `translateY(-${currentIndex * 60}px)`, // 60px magasság elementként
+             transform: `translateY(-${currentIndex * 80}px)`, // 80px magasság elementként
              transition: isTransitioning ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none'
           }}
           onTransitionEnd={handleTransitionEnd}
@@ -56,7 +56,7 @@ export default function HeroSlider() {
           {items.map((info, idx) => (
             <div key={idx} className={`hero-slider-item ${info.type}`}>
               {info.type === 'logo' ? (
-                <img src="/logo.png" alt="TransportHU Logo" style={{ height: '40px', objectFit: 'contain' }} />
+                <img src="/logo.png" alt="TransportHU Logo" style={{ height: '60px', objectFit: 'contain' }} />
               ) : (
                 <>
                   <span className="info-badge">
