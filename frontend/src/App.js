@@ -138,7 +138,7 @@ function AppInner() {
           </a>
         </div>
 
-        <p className="footer-copy">© 2025 TransportHU</p>
+        <p className="footer-copy">© 2026 TransportHU</p>
       </footer>
     </div>
   );
