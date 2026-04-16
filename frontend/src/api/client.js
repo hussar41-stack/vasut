@@ -44,9 +44,11 @@ export const api = {
   resetPassword: (token, newPassword) =>
     request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 
-  // Schedule search
+  // Schedule search & logic
   search: (params) =>
     request('/search', { method: 'POST', body: JSON.stringify(params) }),
+  aiAnalyze: (params) =>
+    request('/ai-analyze', { method: 'POST', body: JSON.stringify(params) }),
 
   // Delay update
   updateDelay: (tripId, delayMinutes) =>

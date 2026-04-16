@@ -38,11 +38,14 @@ export default function SchedulePage() {
   const [searched, setSearched]     = useState(false);
   const [purchaseTrip, setPurchaseTrip] = useState(null);
   const [delayTrip, setDelayTrip]   = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading]   = useState(false);
 
   const fetchResults = useCallback(async (searchParams) => {
     setError(null);
     setLoading(true);
     setSearched(true);
+    setAiAnalysis(null);
 
     try {
       const response = await api.search(searchParams);
@@ -52,6 +55,19 @@ export default function SchedulePage() {
       }
 
       setTrips(response.results);
+      
+      // Kérjük be az AI Utazástervező elemzését a találatokra, ha vannak!
+      if (response.results.length > 0) {
+        setAiLoading(true);
+        api.aiAnalyze({ from: searchParams.from, to: searchParams.to, network: searchParams.network, results: response.results })
+          .then(res => setAiAnalysis(res.analysis))
+          .catch(err => {
+             console.error('AI hiba:', err);
+             setAiAnalysis('💡 Hiba történt az AI asszisztens elérésekor.');
+          })
+          .finally(() => setAiLoading(false));
+      }
+
     } catch (err) {
       console.error('[SchedulePage] search hiba:', err);
 
@@ -219,6 +235,29 @@ export default function SchedulePage() {
             </div>
           ) : (
             <div className="trips-list">
+              
+              {/* ── AI Utazástervező Doboz ───────────────────────────────── */}
+              {(aiLoading || aiAnalysis) && (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '12px', padding: '16px 20px', marginBottom: '20px',
+                  display: 'flex', alignItems: 'center', gap: '15px'
+                }}>
+                  <div style={{ fontSize: '24px', animation: aiLoading ? 'pulse 1.5s infinite' : 'none' }}>
+                    {aiLoading ? '✨' : '🤖'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#a78bfa', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      TransportHU AI Utazástervező
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                      {aiLoading ? 'A mesterséges intelligencia elemzi a járatokat és a késéseket...' : aiAnalysis}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {trips.map(trip => (
                 <div
                   key={trip.id}

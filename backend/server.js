@@ -477,6 +477,49 @@ app.post(['/search', '//search'], (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.post('/api/ai-analyze', requireAuth, async (req, res) => {
+  const { from, to, network, results } = req.body;
+  if (!results || results.length === 0) {
+    return res.json({ analysis: "Nincs elegendő adat az AI elemzéshez." });
+  }
+
+  // Ha nincs OpenAI kulcs, adunk egy okos mock AI választ
+  if (!process.env.OPENAI_API_KEY) {
+    const fastest = results.find(r => r.isRecommendedFastest) || results[0];
+    const netName = network === 'bkk' ? 'A BKK járatok' : 'A MÁV vonatok';
+    return res.json({
+      analysis: `💡 **AI Útvonal Elemzés (Minta):** A jelenlegi lekérdezés alapján a legoptimálisabb választás a(z) **${fastest.routeName}** a(z) ${from} ➡️ ${to} útvonalon, mivel a menetideje mindössze ${fastest.totalTravelTimeMinutes} perc. ${netName} esetében a pontosság jelenleg megfelelő.`
+    });
+  }
+
+  try {
+    const { OpenAI } = require('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    
+    // Szűkítjük az adatokat, hogy ne menjünk át a token limiten
+    const miniResults = results.slice(0, 4).map(r => 
+      `${r.routeName} - Indul: ${new Date(r.departureTime).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})} (Késés: ${r.delayMinutes} perc, Út: ${r.totalTravelTimeMinutes} perc, Átszállás: ${r.transfers})`
+    ).join('\n');
+
+    const prompt = `Utazási szakértő AI vagy a TransportHU platformon. 
+Elemezd röviden, barátságos, segítőkész hangvételben (1 maximum 2 rövid mondat) a következő útvonal opciókat: ${from} -> ${to} (${network.toUpperCase()} hálózat).
+Ajánlj egyet az utazónak a menetidők vagy késések alapján (említsd meg konkrét járatot)!
+Opciók:
+${miniResults}`;
+
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'gpt-3.5-turbo',
+      temperature: 0.5,
+    });
+
+    res.json({ analysis: `💡 **AI Asszisztens:** ${completion.choices[0].message.content.trim()}` });
+  } catch (err) {
+    console.error('AI Elemzés Hiba:', err);
+    res.json({ analysis: "Szerverhiba az AI generálás közben. Kérjük próbálja később." });
+  }
+});
+
 // GET /api/tickets
 app.get('/api/tickets', requireAuth, (req, res) => {
   try {
