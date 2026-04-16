@@ -516,7 +516,7 @@ ${miniResults}`;
     res.json({ analysis: `💡 **AI Asszisztens:** ${completion.choices[0].message.content.trim()}` });
   } catch (err) {
     console.error('AI Elemzés Hiba:', err);
-    res.json({ analysis: "Szerverhiba az AI generálás közben. Kérjük próbálja később." });
+    res.json({ analysis: `Szerverhiba az AI generálás közben: ${err.message}. Kérjük ellenőrizze az OpenAI API kulcsát vagy egyenlegét!` });
   }
 });
 
