@@ -69,10 +69,10 @@ function StatPill({ icon, label, count, color }) {
 
 export default function BKKMapPage() {
   const [vehicles, setVehicles]     = useState([]);
-  const [isMock, setIsMock]         = useState(false);
+  const [mapMode, setMapMode]       = useState('loading'); // 'real' | 'ai_simulated' | 'mock'
   const [loading, setLoading]       = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [filter, setFilter]         = useState('all'); // 'all' | 'metro' | 'tram' | 'bus'
+  const [filter, setFilter]         = useState('all'); 
   const intervalRef = useRef(null);
 
   const fetchVehicles = useCallback(async () => {
@@ -83,12 +83,12 @@ export default function BKKMapPage() {
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       setVehicles(data.vehicles || []);
-      setIsMock(data.mock === true);
+      setMapMode(data.mode || 'real');
       setLastUpdate(new Date().toLocaleTimeString('hu-HU'));
     } catch (e) {
       console.warn('BKK fetch hiba:', e.message);
       setVehicles(MOCK_FALLBACK);
-      setIsMock(true);
+      setMapMode('mock');
       setLastUpdate(new Date().toLocaleTimeString('hu-HU'));
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ export default function BKKMapPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: '1.1rem' }}>🚌</span>
           <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#e2e8f0' }}>BKK Élő Járatok</span>
-          {!loading && (
+          {mapMode === 'real' && (
             <span style={{
               fontSize: '0.68rem', background: 'rgba(34,197,94,0.15)', color: '#22c55e',
               border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20, padding: '1px 8px',
@@ -133,6 +133,24 @@ export default function BKKMapPage() {
             }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulse 1.5s infinite' }}></span>
               ÉLŐBEN
+            </span>
+          )}
+          {mapMode === 'ai_simulated' && (
+            <span style={{
+              fontSize: '0.68rem', background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
+              border: '1px solid rgba(139,92,246,0.3)', borderRadius: 20, padding: '1px 8px',
+              display: 'flex', alignItems: 'center', gap: 4
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#a78bfa', display: 'inline-block', animation: 'pulse 1.8s infinite' }}></span>
+              AI SZIMULÁCIÓ
+            </span>
+          )}
+          {mapMode === 'mock' && (
+            <span style={{
+              fontSize: '0.68rem', background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+              border: '1px solid rgba(245,158,11,0.3)', borderRadius: 20, padding: '1px 8px'
+            }}>
+              DEMÓ MÓD
             </span>
           )}
         </div>
@@ -221,7 +239,8 @@ export default function BKKMapPage() {
                       <tr><td style={{ color: '#64748b' }}>Típus</td><td style={{ fontWeight: 700 }}>{v.type.toUpperCase()}</td></tr>
                     </tbody>
                   </table>
-                  {isMock && <div style={{ marginTop: 8, color: '#f59e0b', fontSize: '0.72rem' }}>⚠️ Demo adat – Nincs élő kapcsolat</div>}
+                  {mapMode === 'ai_simulated' && <div style={{ marginTop: 8, color: '#a78bfa', fontSize: '0.72rem', fontWeight:600 }}>🧠 AI-becsült pozíció</div>}
+                  {mapMode === 'mock' && <div style={{ marginTop: 8, color: '#f59e0b', fontSize: '0.72rem' }}>⚠️ Demo adat (Szerver offline)</div>}
                 </div>
               </Popup>
             </Marker>
@@ -251,9 +270,14 @@ export default function BKKMapPage() {
           <div style={{ marginTop: 8, fontSize: '0.68rem', color: '#475569', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6 }}>
             🔄 Frissítés: 15 másodperc
           </div>
-          {isMock && (
+          {mapMode === 'ai_simulated' && (
+            <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#a78bfa', fontWeight: 600 }}>
+              🧠 AI-val becsült élőkép
+            </div>
+          )}
+          {mapMode === 'mock' && (
             <div style={{ marginTop: 4, fontSize: '0.65rem', color: '#f59e0b' }}>
-              ⚠️ Demo / szimulált adatok
+              ⚠️ Szimulált demo adatok
             </div>
           )}
         </div>
