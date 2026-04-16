@@ -7,15 +7,18 @@
 }
 
 .main-logo {
-  height: 240px;
+  height: 220px;
   object-fit: contain;
-  /* Kivettük a szűrőt, hogy az eredeti színek érvényesüljenek */
+  padding: 20px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 60%, transparent 100%);
+  border-radius: 50%; /* Próbáljuk meg elmosni a széleit egy kör alakú ragyogással */
+  filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4));
   animation: logoGlow 4s ease-in-out infinite alternate;
 }
 
 @keyframes logoGlow {
-  from { filter: drop-shadow(0 0 25px rgba(0, 40, 85, 0.4)); transform: scale(1); }
-  to { filter: drop-shadow(0 0 45px rgba(0, 40, 85, 0.6)); transform: scale(1.02); }
+  from { filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.35)); transform: scale(1); }
+  to { filter: drop-shadow(0 0 60px rgba(59, 130, 246, 0.5)); transform: scale(1.02); }
 }
 
 .hero-slider-container {
