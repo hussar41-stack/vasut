@@ -51,16 +51,28 @@ async function getLatestNews() {
     // Egyszerű HTML és HTML entity dekódoló + szöveg rövidítő
     const sanitize = (str) => {
       if (!str) return '';
-      let clean = str.replace(/<[^>]*>?/gm, ''); // HTML tagek eltávolítása
-      clean = clean.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+      // HTML, CDATA és egyebek eltávolítása
+      let clean = str.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1')
+                     .replace(/<[^>]*>?/gm, '')
+                     .replace(/\r?\n|\r/g, ' ')
+                     .replace(/\t/g, ' ')
+                     .trim();
+                     
+      // HTML entitások feldolgozása (decimális, hexadecimális és gyakoriak)
+      clean = clean.replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+                   .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
                    .replace(/&aacute;/gi, 'á').replace(/&eacute;/gi, 'é')
                    .replace(/&iacute;/gi, 'í').replace(/&oacute;/gi, 'ó')
                    .replace(/&ouml;/gi, 'ö').replace(/&uacute;/gi, 'ú')
                    .replace(/&uuml;/gi, 'ü').replace(/&quot;/g, '"')
-                   .replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ');
+                   .replace(/&apos;/g, "'").replace(/&lt;/g, '<')
+                   .replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+                   .replace(/&nbsp;/g, ' ')
+                   .replace(/\s+/g, ' '); // Dupla szóközök eltávolítása
+
       // Ha túl hosszú, vágjuk le hogy ne csússzon szét a slider
-      if (clean.length > 100) {
-        clean = clean.substring(0, 97) + '...';
+      if (clean.length > 90) {
+        clean = clean.substring(0, 87) + '...';
       }
       return clean;
     };
