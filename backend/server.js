@@ -372,6 +372,18 @@ app.post('/api/search', (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Fallback search route for aggressively cached mobile clients that still hit /search without /api
+app.post('/search', (req, res) => {
+  try {
+    const { from, to, date, sortBy } = req.body;
+    if (!from && !to) return res.status(400).json({ error: '"from" és "to" paraméter szükséges' });
+    const results = generateSchedule(from, to, date, sortBy);
+    res.json({ source: 'local', count: results.length,
+      fromName: resolveStation(from), toName: resolveStation(to),
+      date: date || new Date().toISOString().split('T')[0], results });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // GET /api/tickets
 app.get('/api/tickets', requireAuth, (req, res) => {
   try {
