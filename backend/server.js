@@ -488,7 +488,7 @@ app.post('/api/ai-analyze', requireAuth, async (req, res) => {
     const fastest = results.find(r => r.isRecommendedFastest) || results[0];
     const netName = network === 'bkk' ? 'A BKK járatok' : 'A MÁV vonatok';
     return res.json({
-      analysis: `💡 **AI Útvonal Elemzés (Minta):** A jelenlegi lekérdezés alapján a legoptimálisabb választás a(z) **${fastest.routeName}** a(z) ${from} ➡️ ${to} útvonalon, mivel a menetideje mindössze ${fastest.totalTravelTimeMinutes} perc. ${netName} esetében a pontosság jelenleg megfelelő.`
+      analysis: `💡 **AI Asszisztens:** A jelenlegi lekérdezés alapján a legoptimálisabb választás a(z) **${fastest.routeName}** a(z) ${from} ➡️ ${to} útvonalon, mivel a menetideje mindössze ${fastest.totalTravelTimeMinutes} perc. ${netName} esetében a menetrend jelenleg megbízható.`
     });
   }
 
