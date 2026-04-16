@@ -351,10 +351,13 @@ app.get('/api/bkk-vehicles', async (req, res) => {
       if (list && list.length > 0) {
         const routesMap = references?.routes || {};
         const tripsMap = references?.trips || {};
+        const stopsMap = references?.stops || {};
 
         const vehicles = list.map(v => {
           const trip = tripsMap[v.tripId] || {};
           const route = routesMap[trip.routeId] || routesMap[v.routeId] || {};
+          const stop = stopsMap[v.stopId] || {};
+          
           const bkkType = route.type;
           let type = 'bus';
           if (bkkType === 0) type = 'tram';
@@ -372,6 +375,7 @@ app.get('/api/bkk-vehicles', async (req, res) => {
             color: route.color ? `#${route.color}` : null,
             textColor: route.textColor ? `#${route.textColor}` : '#ffffff',
             type: type,
+            stopName: stop.name || 'Úton...',
             isAI: false
           };
         }).filter(v => v.lat && v.lng).slice(0, 300);

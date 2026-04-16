@@ -16,12 +16,12 @@ async function getAIPredictedVehicles(news, prompt) {
       Feladat: Budapest közlekedési diszpécser szimuláció.
       Aktuális hírek: ${JSON.stringify(news)}
       
-      Kérlek generálj 30 db Budapesten jelenleg (éjjel/nappal arányosan) közlekedő járatot (M2, M3, M4, 4-6 villamos, 7-es buszcsalád, 100E).
-      A járművek koordinátái legyenek VALÓS budapesti útvonalakon (pl. 4-6 a körúton, M3 a Váci út alatt).
-      Vedd figyelembe a híreket (ha valahol vágányzár van, oda ne tegyél járművet).
+      Kérlek generálj 30 db Budapesten jelenleg közlekedő járatot.
+      Minden járműhöz adj meg egy KÖVETKEZŐ MEGÁLLÓ nevet (stopName), ami valós budapesti megálló az adott vonalon (pl. M3: Göncz Árpád városközpont, 4-6: Széll Kálmán tér, 7: Blaha Lujza tér).
+      A járművek koordinátái legyenek VALÓS budapesti útvonalakon.
       
       Válaszolj KIZÁRÓLAG egy JSON tömbbel ebben a formátumban:
-      [{"id": "v1", "lat": 47.xxx, "lng": 19.xxx, "label": "4-6", "type": "tram", "routeId": "4", "bearing": 90, "color": "#f39c12"}]
+      [{"id": "v1", "lat": 47.xxx, "lng": 19.xxx, "label": "4-6", "type": "tram", "routeId": "4", "stopName": "Blaha Lujza tér", "bearing": 90, "color": "#f39c12"}]
     `;
 
     const completion = await groq.chat.completions.create({

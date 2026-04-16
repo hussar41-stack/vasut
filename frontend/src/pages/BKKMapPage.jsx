@@ -237,6 +237,7 @@ export default function BKKMapPage() {
                     <tbody>
                       <tr><td style={{ color: '#64748b', paddingRight: 8 }}>Vonal</td><td style={{ fontWeight: 700 }}>{v.routeId?.replace('BKK_', '') || 'N/A'}</td></tr>
                       <tr><td style={{ color: '#64748b' }}>Típus</td><td style={{ fontWeight: 700 }}>{v.type.toUpperCase()}</td></tr>
+                      <tr><td style={{ color: '#64748b' }}>Megálló</td><td style={{ fontWeight: 700, color: '#3b82f6' }}>{v.stopName || 'Úton...'}</td></tr>
                     </tbody>
                   </table>
                   {mapMode === 'ai_simulated' && <div style={{ marginTop: 8, color: '#a78bfa', fontSize: '0.72rem', fontWeight:600 }}>🧠 AI-becsült pozíció</div>}
