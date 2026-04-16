@@ -1,32 +1,49 @@
 .hero-slider-container {
   margin-top: 2rem;
-  background: rgba(30, 41, 59, 0.7); /* Sötét üveg hatás */
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  height: 80px; /* Pontosan egy sornak megfelelő magasság */
-  overflow: hidden; /* Elrejti a többi elemet */
+  height: 320px; /* Megnövelt magasság a nagy lógóhoz */
+  overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .hero-slider-track {
   display: flex;
   flex-direction: column;
   width: 100%;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); /* Sima, rugós fel-le váltás */
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hero-slider-item {
-  height: 80px; /* Szorosan illeszkedik a containerhez */
+  height: 320px; /* Illeszkedik a megnövelt magassághoz */
   display: flex;
   align-items: center;
+  justify-content: center; /* Logó középre igazítása */
   padding: 0 20px;
   gap: 15px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.hero-slider-item.logo img {
+  height: 260px; /* Nagy lógó a minta szerint */
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.23));
+  transition: transform 0.3s ease;
+  animation: logoGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  from { filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.35)); transform: scale(1); }
+  to { filter: drop-shadow(0 0 45px rgba(255, 255, 255, 0.55)); transform: scale(1.02); }
+}
+
+.hero-slider-item.info {
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
 }
 
 .info-badge {

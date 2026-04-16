@@ -56,15 +56,12 @@ export default function HeroSlider() {
 
   return (
     <div className="hero">
-      <h1>Utazzon velünk<br /><span>gyorsan és kényelmesen</span></h1>
-      <p>Valós idejű menetrend · Interaktív térkép · Azonnali jegyvásárlás · AI Útvonalak</p>
-
       {/* Dinamikus csúszka / Információs tábla */}
       <div className="hero-slider-container">
         <div 
           className="hero-slider-track" 
           style={{ 
-             transform: `translateY(-${currentIndex * 80}px)`, // 80px magasság elementként
+             transform: `translateY(-${currentIndex * 320}px)`, // 320px magasság elementként
              transition: isTransitioning ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none'
           }}
           onTransitionEnd={handleTransitionEnd}
@@ -73,7 +70,7 @@ export default function HeroSlider() {
             if (info.type === 'logo') {
               return (
                 <div key={idx} className="hero-slider-item logo">
-                  <img src="/logo.png" alt="TransportHU Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                  <img src="/logo.png" alt="TransportHU Logo" />
                 </div>
               );
             }
