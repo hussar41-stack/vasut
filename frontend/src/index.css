@@ -58,7 +58,7 @@ body {
   text-decoration: none;
 }
 .navbar-brand .logo-icon { font-size: 1.5rem; }
-.navbar-brand span { background: linear-gradient(135deg, #3b82f6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.navbar-brand span { color: #1e3a8a; font-weight: 900; } /* Sötétkék brand név */
 .nav-links { display: flex; gap: 4px; }
 .nav-link {
   padding: 6px 14px; border-radius: var(--radius-sm);
@@ -86,7 +86,7 @@ body {
 .hero::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.2) 0%, transparent 60%);
+  background: radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.45) 0%, transparent 70%);
   pointer-events: none;
 }
 .hero h1, .hero p { display: none; } /* Elrejtjük a szöveget, mert a logó lesz a fűszerepes */
