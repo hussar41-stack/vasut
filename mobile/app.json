@@ -3,6 +3,10 @@
     "name": "TransportHU",
     "slug": "transporthu-mobile",
     "version": "1.0.0",
+    "sdkVersion": "52.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,6 +31,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7d720bdb-a023-42d6-a0ca-9146e1e86489"
+      }
+    },
+    "owner": "hussar20",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7d720bdb-a023-42d6-a0ca-9146e1e86489"
     }
   }
 }

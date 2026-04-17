@@ -171,7 +171,10 @@ function MainHomeScreen({ navigation }) {
           <Text style={styles.sectionTitle}>ÉLŐ HÍREK & INFÓK</Text>
           {news.length > 0 ? news.map((item, i) => (
             <View key={i} style={styles.newsItem}>
-              <Text style={styles.newsText}>{item.text}</Text>
+              <Text style={styles.newsText}>
+                {item.text}
+                {item.time && <Text style={styles.newsTime}>  🕒 {item.time}</Text>}
+              </Text>
             </View>
           )) : <Text style={styles.emptyText}>Nincsenek aktív hírek.</Text>}
         </View>
@@ -298,6 +301,11 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 13,
     lineHeight: 18,
+  },
+  newsTime: {
+    color: COLORS.secondary,
+    fontSize: 11,
+    fontWeight: '300',
   },
   emptyText: {
     color: COLORS.secondary,

@@ -6,6 +6,7 @@ const stopsRouter      = require('./routes/stops');
 const tripsRouter      = require('./routes/trips');
 const ticketsRouter    = require('./routes/tickets');
 const realSearchRouter = require('./routes/realSearch');
+const newsRouter       = require('./routes/news');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -29,6 +30,7 @@ app.use('/api/stops',       stopsRouter);
 app.use('/api/trips',       tripsRouter);
 app.use('/api/tickets',     ticketsRouter);
 app.use('/api/real-search', realSearchRouter);
+app.use('/api/news',        newsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

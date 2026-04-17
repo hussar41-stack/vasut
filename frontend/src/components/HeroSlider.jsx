@@ -13,22 +13,32 @@ export default function HeroSlider() {
     // Óra frissítése másodpercenként
     const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
     
-    // 1. Kezdeti hírek letöltése az AI/Backend-től
-    api.getNews()
-      .then(data => {
-        // Bebiztosítjuk hogy a pontos idő és időjárás is ott legyen (A lógó már statikus)
-        const finalItems = [
-          { type: 'clock', text: '' },
-          { type: 'weather', text: 'Budapest: 18°C, Derült idő, minimális légmozgás' },
-          ...data
-        ];
-        setNewsData(finalItems);
-      })
-      .catch(err => {
-        setNewsData([{ type: 'clock', text: '' }, { type: 'info', text: 'Nem sikerült betölteni az élő híreket.' }]);
-      });
+    // Hírek letöltése a backendtől
+    const fetchNews = () => {
+      api.getNews()
+        .then(data => {
+          const finalItems = [
+            { type: 'clock', text: '' },
+            { type: 'weather', text: 'Budapest: 18°C, Derült idő, minimális légmozgás' },
+            ...data
+          ];
+          setNewsData(finalItems);
+        })
+        .catch(err => {
+          console.error("Hírek betöltési hiba:", err);
+          if (newsData.length === 0) {
+            setNewsData([{ type: 'clock', text: '' }, { type: 'info', text: 'Nem sikerült betölteni az élő híreket.' }]);
+          }
+        });
+    };
+
+    fetchNews();
+    const newsTimer = setInterval(fetchNews, 3 * 60 * 1000); // 3 percenkénti frissítés
       
-    return () => clearInterval(clockTimer);
+    return () => {
+      clearInterval(clockTimer);
+      clearInterval(newsTimer);
+    };
   }, []);
 
   const items = newsData.length > 0 ? [...newsData, newsData[0]] : [];
@@ -88,7 +98,10 @@ export default function HeroSlider() {
                 <span className="info-badge">
                   {info.type === 'alert' ? '🔴 FONTOS' : info.type === 'news' ? '🌟 ÚJDONSÁG' : 'ℹ️ INFÓ'}
                 </span>
-                <span className="info-text">{info.text}</span>
+                <span className="info-text">
+                  {info.text}
+                  {info.time && <span className="news-time"> • 🕒 {info.time}</span>}
+                </span>
               </div>
             );
           })}
