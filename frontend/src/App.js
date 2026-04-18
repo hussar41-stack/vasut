@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { api } from './api/client';
 import './index.css';
 import SchedulePage      from './pages/SchedulePage';
 import TicketsPage       from './pages/TicketsPage';
@@ -17,6 +18,14 @@ import HeroSlider        from './components/HeroSlider';
 
 function AppInner() {
   const { user, isLoggedIn } = useAuth();
+  const [showContact, setShowContact] = useState(false);
+  const [siteInfo, setSiteInfo] = useState(null);
+
+  useEffect(() => {
+    api.getSiteInfo()
+      .then(data => setSiteInfo(data))
+      .catch(err => console.error('Site info load error:', err));
+  }, []);
 
   return (
     <div className="layout">
@@ -111,43 +120,78 @@ function AppInner() {
       </Routes>
 
       <footer className="footer">
-        <p className="footer-disclaimer">Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép</p>
+        <div className="footer-content">
+          <div className="footer-top">
+            <p className="footer-disclaimer">
+              {siteInfo?.disclaimer || 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'}
+            </p>
+            <button 
+              className={`footer-link-btn ${showContact ? 'active' : ''}`} 
+              onClick={() => setShowContact(!showContact)}
+            >
+              📇 Kapcsolat
+            </button>
+          </div>
 
-        <div className="footer-sponsors">
-          <a
-            href="https://www.mavcsoport.hu/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sponsor-card"
-            title="MÁV Csoport – Magyar Államvasutak"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAV_log%C3%B3.svg/180px-MAV_log%C3%B3.svg.png"
-              alt="MÁV logó"
-              className="sponsor-logo"
-              onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
-            />
-            <span className="sponsor-fallback mav-fallback">MÁV</span>
-          </a>
+          {showContact && (
+            <div className="footer-contact-info">
+              <div className="contact-grid">
+                <div className="contact-item">
+                  <span className="contact-label">{siteInfo?.editor?.role || 'Felelős szerkesztő'}</span>
+                  <span className="contact-value">{siteInfo?.editor?.name || 'Huszár Barnabás'}</span>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-label">Email</span>
+                  <span className="contact-value">{siteInfo?.editor?.email || 'huszarbarnabas@example.hu'}</span>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-label">Telefonszám</span>
+                  <span className="contact-value">{siteInfo?.editor?.phone || '+36 30 123 4567'}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <a
-            href="https://bkk.hu/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sponsor-card"
-            title="BKK – Budapesti Közlekedési Központ"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/180px-BKK_logo.svg.png"
-              alt="BKK logó"
-              className="sponsor-logo"
-              onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
-            />
-            <span className="sponsor-fallback bkk-fallback">BKK</span>
-          </a>
+          <div className="footer-sponsors">
+            <a
+              href="https://www.mavcsoport.hu/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-card"
+              title="MÁV Csoport – Magyar Államvasutak"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAV_log%C3%B3.svg/180px-MAV_log%C3%B3.svg.png"
+                alt="MÁV logó"
+                className="sponsor-logo"
+                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+              />
+              <span className="sponsor-fallback mav-fallback">MÁV</span>
+            </a>
+
+            <a
+              href="https://bkk.hu/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-card"
+              title="BKK – Budapesti Közlekedési Központ"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/180px-BKK_logo.svg.png"
+                alt="BKK logó"
+                className="sponsor-logo"
+                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+              />
+              <span className="sponsor-fallback bkk-fallback">BKK</span>
+            </a>
+          </div>
+
+          <div className="footer-bottom">
+            <p className="footer-copy">
+              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva
+            </p>
+          </div>
         </div>
-
-        <p className="footer-copy">© 2026 TransportHU</p>
       </footer>
     </div>
   );
@@ -162,3 +206,5 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+

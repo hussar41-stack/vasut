@@ -32,6 +32,7 @@ async function request(path, options = {}) {
 export const api = {
   health: () => request('/health'),
   getNews: () => request('/news'),
+  getSiteInfo: () => request('/site-info'),
 
   // Auth
   register: ({ name, email, password }) =>

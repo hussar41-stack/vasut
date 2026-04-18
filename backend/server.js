@@ -320,6 +320,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), port: PORT });
 });
 
+app.get('/api/site-info', (req, res) => {
+  res.json({
+    editor: {
+      name: 'Huszár Barnabás',
+      email: 'huszarbarnabas@example.hu',
+      phone: '+36 30 123 4567',
+      role: 'Felelős szerkesztő'
+    },
+    version: '1.2.0-demo',
+    copyright: '© 2026 TransportHU',
+    disclaimer: 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'
+  });
+});
+
 const { getLatestNews } = require('./newsService');
 app.get('/api/news', async (req, res) => {
   try {
