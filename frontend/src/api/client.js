@@ -1,4 +1,4 @@
-let envUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').trim();
+let envUrl = (process.env.REACT_APP_API_URL || 'https://vasut.onrender.com/api').trim();
 // Normalize url so if user forgot /api in Vercel, we add it back safely
 if (envUrl.endsWith('/')) envUrl = envUrl.slice(0, -1);
 if (!envUrl.endsWith('/api')) envUrl += '/api';
