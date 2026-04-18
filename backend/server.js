@@ -317,7 +317,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // ─── Health & News ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString(), port: PORT });
+  res.json({ status: 'OK', version: '1.2.0-demo', timestamp: new Date().toISOString(), port: PORT });
 });
 
 app.get('/api/site-info', (req, res) => {

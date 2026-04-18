@@ -35,7 +35,7 @@ app.use('/api/news',        newsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), mode: 'in-memory' });
+  res.json({ status: 'ok', version: '1.2.0-demo', timestamp: new Date().toISOString(), mode: 'in-memory' });
 });
 
 app.get('/api/site-info', (req, res) => {
