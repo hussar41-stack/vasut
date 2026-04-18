@@ -190,6 +190,9 @@ function AppInner() {
             <p className="footer-copy">
               {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva
             </p>
+            {siteInfo?.version && (
+              <span className="footer-version">v{siteInfo.version}</span>
+            )}
           </div>
         </div>
       </footer>

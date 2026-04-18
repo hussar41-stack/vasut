@@ -389,6 +389,14 @@ body {
   text-align: center;
 }
 .footer-copy { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+.footer-version {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  margin-top: 4px;
+  font-family: monospace;
+}
 
 /* ─── Auth Pages ─── */
 .nav-user    { font-family: 'Inter', sans-serif; }
