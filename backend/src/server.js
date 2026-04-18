@@ -38,6 +38,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), mode: 'in-memory' });
 });
 
+app.get('/api/site-info', (req, res) => {
+  res.json({
+    editor: {
+      name: 'Huszár Barnabás',
+      email: 'huszarbarnabas@example.hu',
+      phone: '+36 30 123 4567',
+      role: 'Felelős szerkesztő'
+    },
+    version: '1.2.0-demo',
+    copyright: '© 2026 TransportHU',
+    disclaimer: 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'
+  });
+});
+
 // 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
