@@ -149,10 +149,13 @@ function generateFallbackResults(from, to, date) {
     const arrDate   = new Date(depDate.getTime() + train.dur * 60000);
 
     // Mock intermediate stops
+    const stop1Time = new Date(depDate.getTime() + (train.dur * 0.3) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'});
+    const stop2Time = new Date(depDate.getTime() + (train.dur * 0.6) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'});
+
     const stops = [
       { station: fromName, time: time },
-      { station: 'Közbülső állomás 1', time: new Date(depDate.getTime() + (train.dur * 0.4) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
-      { station: 'Közbülső állomás 2', time: new Date(depDate.getTime() + (train.dur * 0.7) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: 'Kelenföld', time: stop1Time },
+      { station: 'Tatabánya', time: stop2Time },
       { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
     ];
 

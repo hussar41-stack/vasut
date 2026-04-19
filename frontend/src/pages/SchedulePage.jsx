@@ -57,7 +57,7 @@ export default function SchedulePage() {
           .then(res => setAiAnalysis(res.analysis))
           .catch(err => {
              console.error('AI hiba:', err);
-             setAiAnalysis('💡 Hiba történt az AI asszisztens elérésekor.');
+             setAiAnalysis('🤖 Sajnálom, az AI asszisztens jelenleg túlterhelt (Rate Limit). Kérlek próbáld meg később!');
           })
           .finally(() => setAiLoading(false));
       }
@@ -202,7 +202,7 @@ export default function SchedulePage() {
             {trips.map(trip => (
               <div key={trip.id} className={`trip-card-v2 ${expandedTripId === trip.id ? 'active' : ''}`} style={{ 
                 background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', 
-                marginBottom: '12px', overflow: 'hidden', transition: 'all 0.3s ease' 
+                marginBottom: '12px', transition: 'all 0.3s ease' 
               }}>
                 {/* Main Card Header (Visible always) */}
                 <div className="trip-summary" onClick={() => setExpandedTripId(expandedTripId === trip.id ? null : trip.id)} style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -231,22 +231,32 @@ export default function SchedulePage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 200px', gap: '20px' }}>
                       
                       {/* Vertical Timeline */}
-                      <div className="timeline-container" style={{ position: 'relative', paddingLeft: '25px' }}>
-                        <div style={{ position: 'absolute', left: '7px', top: '10px', bottom: '10px', width: '3px', background: '#ffcc00', borderRadius: '2px' }}></div>
+                      <div className="timeline-container" style={{ position: 'relative', paddingLeft: '35px', color: '#fff' }}>
+                        <div style={{ position: 'absolute', left: '12px', top: '10px', bottom: '10px', width: '3px', background: '#ffcc00', borderRadius: '2px' }}></div>
                         
                         {trip.stops?.map((stop, sIdx) => (
-                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === 0 ? '40px' : '20px' }}>
-                            <div style={{ position: 'absolute', left: '-23px', top: '5px', width: '13px', height: '13px', borderRadius: '50%', background: '#fff', border: '3px solid #ffcc00', zIndex: 2 }}></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <div>
-                                <div style={{ fontWeight: (sIdx === 0 || sIdx === trip.stops.length - 1) ? 800 : 500, fontSize: '1rem' }}>{stop.station}</div>
-                                {sIdx === 0 && (
-                                  <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === trip.stops.length - 1 ? 0 : '30px' }}>
+                            {/* Circle Dot */}
+                            <div style={{ 
+                                position: 'absolute', left: '-27px', top: '6px', 
+                                width: '12px', height: '12px', borderRadius: '50%', 
+                                background: '#fff', border: '3px solid #ffcc00', zIndex: 10 
+                            }}></div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ fontSize: '1rem', fontWeight: (sIdx === 0 || sIdx === trip.stops.length - 1) ? 800 : 500 }}>
+                                {stop.station}
+                              </div>
+                              <div style={{ fontWeight: 700, opacity: 0.9 }}>{stop.time}</div>
+                            </div>
+
+                            {sIdx === 0 && (
+                                <div style={{ marginTop: '15px', background: 'rgba(255,255,255,0.06)', padding: '12px', borderRadius: '12px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                       {renderTrainBadge(trip)}
                                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{trip.type === 'LOCAL' ? 'személyvonat' : 'gyorsvonat'}</span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '10px', fontSize: '1.1rem', color: '#fff' }}>
+                                    <div style={{ display: 'flex', gap: '15px', fontSize: '1.2rem', marginBottom: '8px' }}>
                                       <span title="2. osztály">2</span>
                                       {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
                                       {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
@@ -254,12 +264,11 @@ export default function SchedulePage() {
                                       {trip.features?.climate && <span title="Klíma">❄️</span>}
                                       <span title="Elővárosi">E</span>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '5px' }}>{trip.platform}. vágány · Utazási idő: {getDuration(trip.departureTime, trip.arrivalTime)}</div>
-                                  </div>
-                                )}
-                              </div>
-                              <div style={{ fontWeight: 700, color: '#fff' }}>{stop.time}</div>
-                            </div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        {trip.platform}. vágány · Idő: {getDuration(trip.departureTime, trip.arrivalTime)}
+                                    </div>
+                                </div>
+                            )}
                           </div>
                         ))}
                       </div>
