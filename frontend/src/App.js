@@ -154,7 +154,7 @@ function AppInner() {
                 <p><strong>Felelős szerkesztő:</strong> Huszár Barnabás</p>
                 <p><strong>Email:</strong> hbgmunka@gmail.com</p>
                 <p><strong>Tel:</strong> +36 70 327 0059</p>
-                <p className="version-tag">Verzió: BETA 1.5.0</p>
+                <p className="version-tag">Verzió: v1.5.0</p>
               </div>
               </div>
             </div>
