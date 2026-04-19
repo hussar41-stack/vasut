@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import PurchaseModal from '../components/PurchaseModal';
 import DelayModal from '../components/DelayModal';
-import { STATIONS } from '../data/stations';
+import { ALL_STATIONS } from '../data/stations';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function formatTime(iso) {
@@ -97,8 +97,8 @@ export default function SchedulePage() {
     
     // Állomás validáció MÁV esetén
     if (form.network === 'mav') {
-      const fromValid = STATIONS.includes(form.from);
-      const toValid   = STATIONS.includes(form.to);
+      const fromValid = ALL_STATIONS.includes(form.from);
+      const toValid   = ALL_STATIONS.includes(form.to);
       
       if (!fromValid || !toValid) {
         setError(`Kérjük válasszon a listában szereplő érvényes vasútállomások közül! (${!fromValid ? form.from : form.to} nem található)`);
@@ -189,7 +189,7 @@ export default function SchedulePage() {
                   onChange={e => setForm(f => ({ ...f, to: e.target.value }))}
                 />
                 <datalist id="stations-list">
-                  {STATIONS.map(s => <option key={s} value={s} />)}
+                  {ALL_STATIONS.map(s => <option key={s} value={s} />)}
                 </datalist>
                 <button type="button" onClick={() => setForm(f => ({ ...f, from: f.to, to: f.from }))}
                   style={{

@@ -4,45 +4,53 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
 // ─── Hungarian station name resolver ────────────────────────────────────────
-// ─── Constants ───────────────────────────────────────────────────────────────
-const HUNGARY_STATIONS = [
-  "Budapest-Keleti", "Budapest-Déli", "Budapest-Nyugati", "Kőbánya-Kispest", "Zugló", "Ferencváros", "Kelenföld",
-  "Székesfehérvár", "Székesfehérvár-Repülőtér", "Győr", "Debrecen", "Szeged", "Pécs", "Miskolc-Tiszai",
-  "Nyíregyháza", "Kecskemét", "Szolnok", "Tatabánya", "Érd", "Kaposvár", "Sopron", "Veszprém", "Békéscsaba",
-  "Zalaegerszeg", "Eger", "Nagykanizsa", "Dunaújváros", "Hódmezővásárhely", "Dunakeszi", "Cegléd", "Baja",
-  "Salgótarján", "Vác", "Gödöllő", "Szentendre", "Szigetszentmiklós", "Budaörs", "Szekszárd", "Ajka", "Orosháza",
-  "Szentes", "Mosonmagyaróvár", "Esztergom", "Kazincbarcika", "Jászberény", "Kiskunfélegyháza", "Kiskunhalas",
-  "Pápa", "Gyöngyös", "Gyula", "Hatvan", "Hajdúszoboszló", "Komárom", "Veresegyház", "Pilisvörösvár", "Balatonfüred",
-  "Siófok", "Fonyód", "Keszthely", "Balatonalmádi", "Balatonlelle", "Balatonboglár", "Tapolca", "Sümeg",
-  "Bicske", "Biatorbágy", "Budafok", "Albertirsa", "Monor", "Pilis", "Üllő", "Kistarcsa", "Göd", "Nagymaros-Visegrád",
-  "Szob", "Verőce", "Aszód", "Turura", "Vámosgyörk", "Püspökladány", "Karcag", "Kisújszállás", "Abony",
-  "Mezőkövesd", "Nyékládháza", "Szerencs", "Tokaj", "Sárospatak", "Sátoraljaújhely", "Füzesabony", "Poroszló", "Tiszafüred"
+const STATION_COORDS = {
+  "Budapest-Keleti": { lat: 47.5005, lon: 19.0837 }, "Budapest-Déli": { lat: 47.4913, lon: 19.0264 }, "Budapest-Nyugati": { lat: 47.5105, lon: 19.0573 },
+  "Székesfehérvár": { lat: 47.1804, lon: 18.4231 }, "Székesfehérvár-Repülőtér": { lat: 47.1650, lon: 18.4250 }, "Győr": { lat: 47.6828, lon: 17.6353 },
+  "Debrecen": { lat: 47.5204, lon: 21.6267 }, "Szeged": { lat: 46.2393, lon: 20.1437 }, "Pécs": { lat: 46.0691, lon: 18.2323 },
+  "Miskolc-Tiszai": { lat: 48.1001, lon: 20.8066 }, "Nyíregyháza": { lat: 47.9495, lon: 21.7100 }, "Kecskemét": { lat: 46.9081, lon: 19.6934 },
+  "Szolnok": { lat: 47.1662, lon: 20.1772 }, "Tatabánya": { lat: 47.5684, lon: 18.4047 }, "Veszprém": { lat: 47.1121, lon: 17.9157 },
+  "Békéscsaba": { lat: 46.6811, lon: 21.0858 }, "Sopron": { lat: 47.6814, lon: 16.5925 }, "Zalaegerszeg": { lat: 46.8406, lon: 16.8465 },
+  "Eger": { lat: 47.8894, lon: 20.3794 }, "Siófok": { lat: 46.9061, lon: 18.0532 }, "Balatonfüred": { lat: 46.9584, lon: 17.8814 },
+  "Fonyód": { lat: 46.7431, lon: 17.5513 }, "Keszthely": { lat: 46.7594, lon: 17.2483 }, "Esztergom": { lat: 47.7801, lon: 18.7303 },
+  "Vác": { lat: 47.7788, lon: 19.1356 }, "Hatvan": { lat: 47.6625, lon: 19.6734 }, "Cegléd": { lat: 47.1708, lon: 19.8003 },
+  "Baja": { lat: 46.1821, lon: 18.9667 }, "Szekszárd": { lat: 46.3533, lon: 18.7042 }, "Salgótarján": { lat: 48.1028, lon: 19.8058 }
+};
+
+const HUNGARY_STATIONS = Object.keys(STATION_COORDS);
+
+const MAV_PRICES = [
+  { km: 5,   price: 310 }, { km: 10,  price: 310 }, { km: 15,  price: 370 }, { km: 20,  price: 465 },
+  { km: 25,  price: 560 }, { km: 30,  price: 705 }, { km: 35,  price: 815 }, { km: 40,  price: 930 },
+  { km: 45,  price: 1045 }, { km: 50,  price: 1120 }, { km: 60,  price: 1300 }, { km: 70,  price: 1490 },
+  { km: 80,  price: 1680 }, { km: 90,  price: 1860 }, { km: 100, price: 2520 }, { km: 120, price: 2830 },
+  { km: 140, price: 3130 }, { km: 160, price: 3410 }, { km: 180, price: 3700 }, { km: 200, price: 4180 },
+  { km: 250, price: 4660 }, { km: 300, price: 5210 }, { km: 350, price: 5760 }, { km: 400, price: 6300 },
+  { km: 450, price: 6860 }, { km: 500, price: 7410 }
 ];
 
-function resolveStationName(input) {
-  if (!input) return '';
-  const search = input.toLowerCase().trim();
-  const found = HUNGARY_STATIONS.find(s => s.toLowerCase() === search || s.toLowerCase().includes(search));
-  return found || input;
-}
-
-// ─── MÁV Pricing Logic ──────────────────────────────────────────────────────
 function calculateMavPrice(from, to) {
-  // Hash stations to a deterministic "distance" for simulation
-  const sum = (s) => s.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-  const distance = Math.abs(sum(from) - sum(to)) % 250 + 10; // 10-260 km
+  const c1 = STATION_COORDS[from];
+  const c2 = STATION_COORDS[to];
   
-  // Official-ish MÁV 2024 Tariffs
-  // ~25 Ft/km base + 375 Ft processing/base
-  const baseRate = 25;
-  const baseFee = 375;
-  const rawPrice = (distance * baseRate) + baseFee;
+  if (!c1 || !c2) return 1860; // Default if coords missing
   
-  // Snap to MÁV price steps (simplified)
-  if (distance < 25) return 465;
-  if (distance < 50) return 930;
-  if (distance < 100) return 1860;
-  return Math.round(rawPrice / 50) * 50; 
+  // Haversine formula (distance in KM)
+  const R = 6371; 
+  const dLat = (c2.lat - c1.lat) * Math.PI / 180;
+  const dLon = (c2.lon - c1.lon) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(c1.lat * Math.PI / 180) * Math.cos(c2.lat * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const airDistance = R * c;
+  
+  // Apply rail-winding factor (rails are not straight lines, avg 1.25x)
+  const trainDistance = airDistance * 1.25;
+  
+  // Find price step
+  const step = MAV_PRICES.find(p => p.km >= trainDistance) || MAV_PRICES[MAV_PRICES.length - 1];
+  return step.price;
 }
 
 const ROUTE_TEMPLATES = [
