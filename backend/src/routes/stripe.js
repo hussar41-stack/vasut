@@ -8,10 +8,23 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
  */
 router.post('/create-checkout-session', async (req, res) => {
   try {
-    const { tripId, tripData, passengerName, seatClass, quantity } = req.body;
+    const { type, tripId, tripData, passId, passData, passengerName, seatClass, quantity } = req.body;
+    
+    let lineItemName = 'TransportHU Vásárlás';
+    let lineItemDesc = 'Általános szolgáltatás';
+    let unitAmount = 0;
     const qty = Math.min(10, Math.max(1, parseInt(quantity, 10) || 1));
-    const basePrice = tripData?.basePrice ?? 2990;
-    const unitPrice = Math.round(basePrice * (seatClass === 'FIRST' ? 1.5 : 1));
+
+    if (type === 'TICKET') {
+      const basePrice = tripData?.basePrice ?? 2990;
+      unitAmount = Math.round(basePrice * (seatClass === 'FIRST' ? 1.5 : 1));
+      lineItemName = 'Vonatjegy';
+      lineItemDesc = `${tripData?.fromName} -> ${tripData?.toName} | ${tripData?.routeName}`;
+    } else if (type === 'PASS') {
+      unitAmount = passData?.price || 9450;
+      lineItemName = passData?.name || 'Vármegyebérlet';
+      lineItemDesc = passData?.description || 'Havi bérlet';
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -23,19 +36,22 @@ router.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'huf',
             product_data: {
-              name: 'TransportHU Jegyvásárlás',
-              description: `${tripData?.fromName} -> ${tripData?.toName} | ${tripData?.routeName}`,
+              name: `TransportHU ${lineItemName}`,
+              description: lineItemDesc,
             },
-            unit_amount: unitPrice * 100,
+            unit_amount: unitAmount * 100,
           },
           quantity: qty,
         },
       ],
       metadata: {
+        type,
         passengerName,
-        seatClass,
-        tripId,
-        tripData: JSON.stringify(tripData),
+        seatClass: seatClass || 'SECOND',
+        tripId: tripId || '',
+        passId: passId || '',
+        tripData: tripData ? JSON.stringify(tripData) : '',
+        passData: passData ? JSON.stringify(passData) : '',
       },
     });
 

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { api } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 import './PassesPage.css';
 
 const PASS_TYPES = [
@@ -28,17 +30,46 @@ const COUNTIES = [
 ];
 
 export default function PassesPage() {
+  const { user, isLoggedIn } = useAuth();
   const [selectedPass, setSelectedPass] = useState(null);
   const [isStudent, setIsStudent] = useState(false);
   const [selectedCounty, setSelectedCounty] = useState('Pest');
   const [purchaseStatus, setPurchaseStatus] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
+    if (!isLoggedIn) {
+      alert('A bérletvásárláshoz be kell jelentkeznie!');
+      return;
+    }
+    
     setPurchaseStatus('processing');
-    // Szimulált fizetés
-    setTimeout(() => {
-      setPurchaseStatus('success');
-    }, 2000);
+    setError(null);
+
+    const price = isStudent ? selectedPass.studentPrice : selectedPass.fullPrice;
+    
+    try {
+      const session = await api.createCheckoutSession({
+        type: 'PASS',
+        passId: selectedPass.id,
+        passengerName: user.name || user.email,
+        quantity: 1,
+        passData: {
+          name: `${selectedPass.name}${selectedPass.id === 'county' ? ` (${selectedCounty})` : ''}`,
+          price: price,
+          description: selectedPass.description,
+          isStudent: isStudent
+        }
+      });
+
+      if (session.url) {
+        window.location.href = session.url;
+      }
+    } catch (err) {
+      console.error('Stripe error:', err);
+      setError('Hiba történt a fizetés indításakor: ' + err.message);
+      setPurchaseStatus(null);
+    }
   };
 
   if (purchaseStatus === 'success') {

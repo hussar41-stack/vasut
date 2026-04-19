@@ -54,7 +54,29 @@ router.post('/', (req, res) => {
 router.get('/', (req, res) => {
   const { email } = req.query;
   if (email) {
-    return res.json(store.tickets.filter(t => t.passengerEmail === email));
+    const userTickets = store.tickets.filter(t => t.passengerEmail === email);
+    
+    // If NO tickets found, return a demo "Welcome" ticket
+    if (userTickets.length === 0) {
+      return res.json([{
+        id: 'welcome-demo',
+        tripId: 'demo',
+        tripName: 'Üdvözöljük a TransportHU-n!',
+        from: 'Kezdőpont',
+        to: 'Célállomás',
+        departureTime: new Date().toISOString(),
+        arrivalTime: new Date(Date.now() + 3600000).toISOString(),
+        passengerName: 'Új Felhasználó',
+        passengerEmail: email,
+        seatClass: 'SECOND',
+        quantity: 1,
+        totalPrice: 0,
+        purchasedAt: new Date().toISOString(),
+        status: 'CONFIRMED',
+        confirmationCode: 'WELCOME',
+      }]);
+    }
+    return res.json(userTickets);
   }
   res.json(store.tickets);
 });
