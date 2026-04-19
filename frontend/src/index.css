@@ -462,19 +462,18 @@ body {
     display: flex;
     overflow-x: auto;
     justify-content: flex-start;
-    padding: 8px 0;
-    -webkit-overflow-scrolling: touch;
-    gap: 12px;
+    padding: 6px 0;
+    gap: 8px; /* Kisebb térköz */
     width: 100%;
     scrollbar-width: none;
   }
   .nav-center::-webkit-scrollbar { display: none; }
   
   .nav-link {
-    font-size: 0.82rem;
-    white-space: nowrap;
-    padding: 4px 8px;
-    flex-shrink: 0;
+    font-size: 0.78rem; /* Kisebb betűméret */
+    padding: 4px 6px;
+    background: var(--bg-secondary); /* Adunk nekik egy kis gomb-szerű hátteret a jobb láthatóságért */
+    border-radius: 6px;
   }
 
   .hero-logo-large {

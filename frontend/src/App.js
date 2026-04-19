@@ -40,20 +40,20 @@ function AppInner() {
         <div className="nav-links">
           <NavLink to="/"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🔍 Menetrend
+            🔍 Kereső
           </NavLink>
           <NavLink to="/map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🚆 MÁV Térkép
+            🚆 Vonat
           </NavLink>
           <NavLink to="/bkk-map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🚌 BKK Járatok
+            🚌 BKK
           </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              🎫 Jegyeim
+              🎫 Jegyek
             </NavLink>
           )}
           {isLoggedIn ? (
