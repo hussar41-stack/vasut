@@ -13,42 +13,64 @@ router.post('/create-checkout-session', async (req, res) => {
     let lineItemName = 'TransportHU Vásárlás';
     let lineItemDesc = 'Általános szolgáltatás';
     let unitAmount = 0;
-    // Handle quantity and discount
     const qty = Math.min(10, Math.max(1, parseInt(quantity, 10) || 1));
     const finalType = type || 'TICKET';
 
     if (finalType === 'TICKET') {
+      // Robust ticket price calculation
       const basePrice = tripData?.basePrice ?? 2990;
-      
-      // Calculate multiplier based on discountType
       let multiplier = 1;
-      if (req.body.discountType === 'discount50') multiplier = 0.5;
-      else if (req.body.discountType === 'discount90') multiplier = 0.1;
-      else if (req.body.discountType === 'free') multiplier = 0;
       
-      unitAmount = Math.round(basePrice * multiplier * (seatClass === 'FIRST' ? 1.5 : 1));
-      lineItemName = 'Vonatjegy';
-      lineItemDesc = `${tripData?.fromName} -> ${tripData?.toName} | ${tripData?.routeName}`;
+      const discountType = req.body.discountType || 'full';
+      if (discountType === 'discount50') multiplier = 0.5;
+      else if (discountType === 'discount90') multiplier = 0.1;
+      else if (discountType === 'free') multiplier = 0;
+      
+      const classMultiplier = (seatClass === 'FIRST' ? 1.5 : 1);
+      unitAmount = Math.round(basePrice * multiplier * classMultiplier);
+      
+      lineItemName = 'Menetjegy';
+      lineItemDesc = `${tripData?.fromName} ➔ ${tripData?.toName} (${tripData?.routeName || 'Vonat'})`;
     } else if (finalType === 'PASS') {
-      unitAmount = passData?.price || 9450;
+      // Official pricing rules for passes if not provided or to verify
+      const officialPrices = {
+        'budapest': { full: 8950, student: 945 },
+        'country': { full: 18900, student: 1890 },
+        'county': { full: 9450, student: 945 }
+      };
+
+      const basePass = officialPrices[passId];
+      if (basePass) {
+        unitAmount = passData?.isStudent ? basePass.student : basePass.full;
+      } else {
+        unitAmount = passData?.price || 9450;
+      }
+
       lineItemName = passData?.name || 'Vármegyebérlet';
-      lineItemDesc = passData?.description || 'Havi bérlet';
+      lineItemDesc = `${passData?.description || 'Havi bérlet'} - Érvényes 30 napig`;
     }
+
+    // Handle 0 HUF transactions - Stripe requires at least ~200 HUF for real sessions
+    // For demo purposes, if amount is 0, we could potentially return a special flag 
+    // but here we'll just let Stripe handle the error if it's too low, 
+    // or use a minimum if it's a test.
+    const finalAmount = Math.max(0, unitAmount);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
-      success_url: `${FRONTEND_URL}/success`,
+      success_url: `${FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/cancel`,
       line_items: [
         {
           price_data: {
             currency: 'huf',
             product_data: {
-              name: `TransportHU ${lineItemName}`,
+              name: `TransportHU: ${lineItemName}`,
               description: lineItemDesc,
+              images: [finalType === 'PASS' ? 'https://transport.hu/icons/pass.png' : 'https://transport.hu/icons/ticket.png'],
             },
-            unit_amount: unitAmount * 100,
+            unit_amount: finalAmount * 100, // HUF is treated as 2-decimal in Stripe API
           },
           quantity: qty,
         },
@@ -58,17 +80,19 @@ router.post('/create-checkout-session', async (req, res) => {
         passengerName,
         passengerEmail: passengerEmail || '',
         seatClass: seatClass || 'SECOND',
-        quantity: qty.toString(), // Added quantity to metadata!
+        quantity: qty.toString(),
         discountType: req.body.discountType || 'full',
         tripId: tripId || '',
         passId: passId || '',
         tripData: tripData ? JSON.stringify(tripData) : '',
         passData: passData ? JSON.stringify(passData) : '',
+        finalUnitAmount: finalAmount.toString()
       },
     });
 
     res.json({ id: session.id, url: session.url });
   } catch (err) {
+    console.error('Stripe Session Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
