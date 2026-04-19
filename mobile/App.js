@@ -1,7 +1,34 @@
+import React from 'react';
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  SafeAreaView, 
+  ScrollView, 
+  Image, 
+  Alert, 
+  Dimensions 
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as WebBrowser from 'expo-web-browser';
+import { Search, Map, Train, Bus, CreditCard } from 'lucide-react-native';
 import { api } from './src/api';
-import { TextInput, Alert } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+const COLORS = {
+  bg: '#0f172a',
+  card: '#1e293b',
+  accent: '#3b82f6',
+  secondary: '#94a3b8',
+  text: '#f8fafc',
+  white: '#ffffff',
+};
 
 const Stack = createStackNavigator();
 

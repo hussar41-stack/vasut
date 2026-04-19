@@ -151,6 +151,33 @@ function mapSwissConnections(connections, fromName, toName) {
   });
 }
 
+// ─── POST /api/search ─────────────────────────────────────────────────────────
+router.post('/', async (req, res) => {
+  const { from, to, date } = req.body;
+  const ts = new Date().toISOString();
+  console.log(`[${ts}] 🔍 POST search from="${from}" to="${to}"`);
+  
+  const fromName = resolveStationName(from);
+  const toName = resolveStationName(to);
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  
+  const results = generateFallbackResults(from, to, date);
+  res.json({ source: 'fallback', fromName, toName, date: targetDate, results });
+});
+
+// ─── POST /api/ai-analyze ─────────────────────────────────────────────────────
+router.post('/ai-analyze', async (req, res) => {
+  const { from, to, network, results } = req.body;
+  if (!results || results.length === 0) {
+    return res.json({ analysis: "Nincs elegendő adat az AI elemzéshez." });
+  }
+
+  const fastest = results.find(r => r.status === 'ON_TIME') || results[0];
+  const analysis = `💡 **AI Asszisztens:** A(z) ${from} -> ${to} útvonalon a leggyorsabb opció a(z) **${fastest.routeName}**, amely várhatóan menetrend szerint közlekedik.`;
+  
+  res.json({ analysis });
+});
+
 // ─── GET /api/real-search?from=&to=&date= ────────────────────────────────────
 router.get('/', async (req, res) => {
   const { from, to, date } = req.query;

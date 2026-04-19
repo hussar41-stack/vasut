@@ -371,6 +371,8 @@ app.get('/api/mav-trains', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
 app.get('/api/bkk-vehicles', async (req, res) => {
   try {
     const bkkApiKey = process.env.BKK_API_KEY || 'apaiary-test';

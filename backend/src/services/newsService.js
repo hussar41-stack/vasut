@@ -1,37 +1,57 @@
-/**
- * TransportHU News Service
- * Generates dynamic, realistic Hungarian transit news.
- */
+const Parser = require('rss-parser');
+const parser = new Parser();
 
-const NEWS_POOL = [
-  { type: 'traffic', text: '🚧 M3 metró felújítás: Pótlóbuszok közlekednek a déli szakaszon.' },
-  { type: 'rail', text: '🚆 Új Stadler KISS emeletes vonatok álltak forgalomba a váci vonalon.' },
-  { type: 'alert', text: '🔴 Baleset miatt korlátozás várható az M0-ás autóúton, jelentős a torlódás.' },
-  { type: 'promo', text: '🎫 Próbálja ki az új digitális bérletvásárlást a TransportHU alkalmazásban!' },
-  { type: 'future', text: '🚉 Megkezdődött a Nyugati pályaudvar tetőszerkezetének következő üteme.' },
-  { type: 'weather', text: '⛈️ Viharos szél: Korlátozásokra kell számítani a balatoni hajózásban.' },
-  { type: 'info', text: 'ℹ️ Minden járatunk menetrend szerint közlekedik a fővárosban.' }
+// Backup mock adatok
+const MOCK_INFOS = [
+  { type: 'alert', text: '🚧 Vágányzár: Budapest-Keleti Pályaudvar felújítás miatt korlátozottan üzemel!' },
+  { type: 'info', text: '🚆 Érdekesség: A leggyorsabb InterCity vonatunk eléri a 160 km/h sebességet!' },
+  { type: 'news', text: '✨ Új funkció: Próbáld ki a valós idejű menetrendi térképünket!' },
+  { type: 'alert', text: '⚠️ FIGYELEM: Viharjelzés a Balaton északi partja mentén közlekedő járatoknál.' },
+  { type: 'info', text: '💡 Tudtad? A MÁV mobilalkalmazásával 10% kedvezményt kaphatsz!' }
 ];
 
+let cachedNews = null;
+let lastFetchTime = 0;
+const CACHE_DURATION_MS = 2 * 60 * 1000; // 2 perc gyorsítótár
+
 class NewsService {
-  constructor() {
-    this.currentNews = [...NEWS_POOL];
-    // Rotate news every 5 minutes internally
-    setInterval(() => this.rotateNews(), 5 * 60 * 1000);
-  }
+  async getNews() {
+    const now = Date.now();
+    if (cachedNews && (now - lastFetchTime) < CACHE_DURATION_MS) {
+      return cachedNews;
+    }
 
-  rotateNews() {
-    console.log('🔄 News rotated at ' + new Date().toLocaleTimeString());
-    const first = this.currentNews.shift();
-    this.currentNews.push(first);
-  }
+    try {
+      let rawNewsTexts = [];
+      
+      // 1. BKK RSS
+      try {
+        const bkkFeed = await parser.parseURL('https://bkk.hu/apps/bkkinfo/rss.php');
+        rawNewsTexts.push(...bkkFeed.items.slice(0, 3).map(i => `BKK: ${i.title}`));
+      } catch (e) { console.warn('BKK RSS hiba'); }
 
-  getNews() {
-    const now = new Date().toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
-    return this.currentNews.map(item => ({
-      ...item,
-      time: now
-    }));
+      // 2. MÁV RSS
+      try {
+        const mavFeed = await parser.parseURL('https://www.mavcsoport.hu/mavinform/rss.xml');
+        rawNewsTexts.push(...mavFeed.items.slice(0, 3).map(i => `MÁV: ${i.title}`));
+      } catch (e) { console.warn('MÁV RSS hiba'); }
+
+      if (rawNewsTexts.length === 0) return MOCK_INFOS;
+
+      // Egyszerűbb sanitize logika a stabil működésért
+      const formatted = rawNewsTexts.map(text => ({
+        type: text.toLowerCase().includes('késés') || text.toLowerCase().includes('korlátozás') ? 'alert' : 'info',
+        text: text.substring(0, 90),
+        time: new Date().toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })
+      }));
+
+      cachedNews = formatted;
+      lastFetchTime = now;
+      return cachedNews;
+    } catch (error) {
+      console.error('Hír szolgáltatás hiba:', error);
+      return MOCK_INFOS;
+    }
   }
 }
 

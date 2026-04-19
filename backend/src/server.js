@@ -8,15 +8,15 @@ const tripsRouter      = require('./routes/trips');
 const ticketsRouter    = require('./routes/tickets');
 const realSearchRouter = require('./routes/realSearch');
 const newsRouter       = require('./routes/news');
+const authRouter       = require('./routes/auth');
+const liveRouter       = require('./routes/live');
+const stripeRouter     = require('./routes/stripe');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 
 // Request logger
@@ -30,8 +30,12 @@ app.use((req, res, next) => {
 app.use('/api/stops',       stopsRouter);
 app.use('/api/trips',       tripsRouter);
 app.use('/api/tickets',     ticketsRouter);
-app.use('/api/real-search', realSearchRouter);
+app.use('/api/search',      realSearchRouter); // Changed from /real-search to /search
 app.use('/api/news',        newsRouter);
+app.use('/api/auth',        authRouter);
+app.use('/api/live',        liveRouter);
+app.use('/api',             stripeRouter); // Stripe handles /create-checkout-session at root of /api
+app.use('/api',             realSearchRouter); // Also handle /ai-analyze if it's there
 
 // Health check
 app.get('/api/health', (req, res) => {
