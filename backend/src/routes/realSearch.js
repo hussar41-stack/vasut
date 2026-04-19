@@ -71,37 +71,37 @@ const FEATURES = {
 const TRAIN_RELATIONS = [
   // Győri irány (1-es vonal)
   { match: ["Budapest", "Győr"], trains: [
-    { name: 'S10', type: 'LOCAL', dur: 105, features: FEATURES.S }, 
-    { name: 'G10', type: 'FAST', dur: 95, features: FEATURES.G }, 
-    { name: 'IC 922', type: 'IC', dur: 85, features: FEATURES.IC }, 
-    { name: 'RJX 60', type: 'RAILJET', dur: 75, features: FEATURES.RJX }
+    { name: 'S10', type: 'LOCAL', dur: 105 }, 
+    { name: 'G10', type: 'FAST', dur: 95 }, 
+    { name: 'IC 922', type: 'IC', dur: 85 }, 
+    { name: 'RJX 60', type: 'RAILJET', dur: 75 }
   ]},
   // Székesfehérvári irány (30/40-es vonal)
   { match: ["Budapest", "Székesfehérvár"], trains: [
-    { name: 'S30', type: 'LOCAL', dur: 65, features: FEATURES.S }, 
-    { name: 'G43', type: 'FAST', dur: 55, features: FEATURES.G },
-    { name: 'Z30', type: 'FAST', dur: 50, features: FEATURES.G }, 
-    { name: 'IC 834', type: 'IC', dur: 45, features: FEATURES.IC }
+    { name: 'S30', type: 'LOCAL', dur: 65 }, 
+    { name: 'G43', type: 'FAST', dur: 55 },
+    { name: 'Z30', type: 'FAST', dur: 50 }, 
+    { name: 'IC 834', type: 'IC', dur: 45 }
   ]},
   // Debreceni irány (100-as vonal)
   { match: ["Budapest", "Debrecen"], trains: [
-    { name: 'S50', type: 'LOCAL', dur: 180, features: FEATURES.S }, 
-    { name: 'IC 528', type: 'IC', dur: 150, features: FEATURES.IC },
-    { name: 'IC 612', type: 'IC', dur: 145, features: FEATURES.IC }, 
-    { name: 'EC 144', type: 'EC', dur: 140, features: FEATURES.EC }
+    { name: 'S50', type: 'LOCAL', dur: 180 }, 
+    { name: 'IC 528', type: 'IC', dur: 150 },
+    { name: 'IC 612', type: 'IC', dur: 145 }, 
+    { name: 'EC 144', type: 'EC', dur: 140 }
   ]},
   // Szegedi irány (140-es vonal)
   { match: ["Budapest", "Szeged"], trains: [
-    { name: 'S20', type: 'LOCAL', dur: 160, features: FEATURES.S }, 
-    { name: 'IC 712', type: 'IC', dur: 140, features: FEATURES.IC },
-    { name: 'IC 722', type: 'IC', dur: 138, features: FEATURES.IC }
+    { name: 'S20', type: 'LOCAL', dur: 160 }, 
+    { name: 'IC 712', type: 'IC', dur: 140 },
+    { name: 'IC 722', type: 'IC', dur: 138 }
   ]}
 ];
 
 const DEFAULT_TRAINS = [
-  { name: 'Személy', type: 'LOCAL', dur: 90, features: FEATURES.S },
-  { name: 'IC 701', type: 'IC', dur: 85, features: FEATURES.IC },
-  { name: 'G10', type: 'FAST', dur: 80, features: FEATURES.G }
+  { name: 'Személy', type: 'LOCAL', dur: 90 },
+  { name: 'IC 701', type: 'IC', dur: 85 },
+  { name: 'G10', type: 'FAST', dur: 80 }
 ];
 
 function getTrainsForRoute(from, to) {
@@ -159,6 +159,12 @@ function generateFallbackResults(from, to, date) {
       { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
     ];
 
+    let finalFeatures = FEATURES.S;
+    if (train.type === 'IC')      finalFeatures = FEATURES.IC;
+    else if (train.type === 'FAST') finalFeatures = FEATURES.G;
+    else if (train.type === 'RAILJET') finalFeatures = FEATURES.RJX;
+    else if (train.type === 'EC') finalFeatures = FEATURES.EC;
+
     return {
       id:            uuidv4(),
       routeName:     train.name,
@@ -172,7 +178,7 @@ function generateFallbackResults(from, to, date) {
       basePrice:     calculatedBasePrice,
       availableSeats: Math.floor(rand() * 150) + 10,
       platform:      Math.floor(rand() * 12) + 1,
-      features:      train.features || FEATURES.S,
+      features:      finalFeatures,
       stops:         stops,
       source:        'fallback',
     };
