@@ -2,9 +2,9 @@ import React from 'react';
 
 export default function AszfPage() {
   return (
-    <div className="container" style={{ padding: '40px 20px', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="container document-page" style={{ padding: '40px 15px', maxWidth: '900px', margin: '0 auto', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
       <header style={{ marginBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '20px' }}>
-        <h1 style={{ color: '#fff', fontSize: '2rem', marginBottom: '10px' }}>ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK (ÁSZF)</h1>
+        <h1 style={{ color: '#fff', fontSize: '1.8rem', marginBottom: '10px', lineHeight: '1.2' }}>ÁLTALÁNOS SZERZŐDÉSI FELTÉTELEK (ÁSZF)</h1>
         <p style={{ color: '#3b82f6', fontWeight: '600' }}>TransportHU – Közösségi Közlekedési Szolgáltatás</p>
         <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Hatályos: 2024. május 22-től</p>
       </header>
