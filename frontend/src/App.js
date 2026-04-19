@@ -13,6 +13,9 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import SuccessPage from './pages/SuccessPage';
 import CancelPage from './pages/CancelPage';
+import FAQPage           from './pages/FAQPage';
+import AboutPage         from './pages/AboutPage';
+import PrivacyPage       from './pages/PrivacyPage';
 import PrivateRoute      from './components/PrivateRoute';
 import HeroSlider        from './components/HeroSlider';
 
@@ -46,6 +49,18 @@ function AppInner() {
           <NavLink to="/bkk-map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             🚌 BKK Járatok
+          </NavLink>
+          <NavLink to="/faq"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            🙋 GY.I.K.
+          </NavLink>
+          <NavLink to="/about"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            👥 Rólunk
+          </NavLink>
+          <NavLink to="/privacy"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            ⚖️ Adatkezelés
           </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"
@@ -116,6 +131,11 @@ function AppInner() {
         <Route path="/login"           element={<main className="main"><LoginPage /></main>} />
         <Route path="/register"        element={<main className="main"><RegisterPage /></main>} />
         <Route path="/forgot-password" element={<main className="main"><ForgotPasswordPage /></main>} />
+        
+        <Route path="/faq"     element={<main className="main"><FAQPage /></main>} />
+        <Route path="/about"   element={<main className="main"><AboutPage /></main>} />
+        <Route path="/privacy" element={<main className="main"><PrivacyPage /></main>} />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
