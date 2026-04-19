@@ -36,6 +36,7 @@
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
+  --slider-item-height: 80px;
 }
 
 .hero-slider-track {
@@ -106,17 +107,30 @@
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* Mobil nézet finomhangolása */
 @media (max-width: 768px) {
+  .hero-slider-container {
+    height: auto;
+    --slider-item-height: 100px; /* Megemeljük mobilon a magasságot a tördelés miatt */
+    min-height: var(--slider-item-height);
+    max-height: 140px;
+  }
   .hero-slider-item {
-    padding: 0 10px;
-    gap: 10px;
+    height: var(--slider-item-height);
+    padding: 12px 15px;
+    gap: 12px;
+    flex-wrap: wrap; 
   }
   .info-text {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
+    white-space: normal; /* Engedjük a szöveg törését! */
+    line-height: 1.4;
   }
   .info-badge {
-    font-size: 0.65rem;
-    padding: 3px 8px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+  }
+  .main-logo {
+    height: 140px; /* Kisebb logó mobilon */
+    padding: 10px;
   }
 }

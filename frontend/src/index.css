@@ -498,94 +498,128 @@ body {
     height: auto;
   }
   
-  .nav-center {
+  .nav-links {
     display: flex;
     overflow-x: auto;
     justify-content: flex-start;
-    padding: 6px 0;
-    gap: 8px; /* Kisebb térköz */
+    padding: 8px 0;
+    gap: 12px;
     width: 100%;
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .nav-center::-webkit-scrollbar { display: none; }
+  .nav-links::-webkit-scrollbar { display: none; }
   
   .nav-link {
-    font-size: 0.78rem; /* Kisebb betűméret */
-    padding: 4px 6px;
-    background: var(--bg-secondary); /* Adunk nekik egy kis gomb-szerű hátteret a jobb láthatóságért */
-    border-radius: 6px;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-link.active {
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
-  .hero-logo-large {
-    font-size: 1.8rem;
-    padding: 1rem 0;
-    margin-bottom: 0.5rem;
+  .trip-card-v2 .trip-summary {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
   }
 
-  .search-container {
-    padding: 1.25rem;
-    border-radius: var(--radius);
-  }
-
-  .search-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .trip-card {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1.25rem;
-  }
-
-  .trip-meta {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .trip-actions {
-    flex-direction: row;
-    justify-content: space-between;
+  .trip-card-v2 .trip-summary div:last-child {
     width: 100%;
-    padding-top: 1rem;
+    justify-content: space-between;
+    text-align: left !important;
+  }
+
+  .trip-card-v2 .trip-expanded-details div[style*="display: grid"] {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+
+  .trip-card-v2 .legend-section {
+    border-left: none !important;
     border-top: 1px solid var(--border);
+    padding-left: 0 !important;
+    padding-top: 20px;
+  }
+
+  .search-card {
+    padding: 1.5rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+  }
+  .search-card h2 {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+  .search-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+  .search-card .btn-primary {
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .ai-box {
+    padding: 12px !important;
+    margin-bottom: 15px !important;
+  }
+  .ai-box p {
+    font-size: 0.88rem !important;
+    line-height: 1.5;
+  }
+
+  .trips-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+  .discount-select {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
   }
 
   .footer-links-row {
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding-bottom: 15px;
+    gap: 15px;
   }
 
   .footer-sponsors {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    padding: 0 10px;
+    gap: 20px;
+    padding: 10px;
   }
 
-  .sponsor-logo {
-    height: 34px;
-    width: 34px;
-  }
-
-  .footer-top {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .contact-info {
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-
-  .main { padding: 1rem; }
+  .main { padding: 12px; }
   .auth-card { padding: 1.5rem 1rem; }
+
+  /* Global Headings Reset for Mobile */
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.4rem !important; }
+  h3 { font-size: 1.1rem !important; }
+
+  .container {
+    padding: 20px 15px !important;
+  }
 }
 
 @media (max-width: 480px) {
-  .hero-logo-large { font-size: 1.5rem; }
-  .search-button { width: 100%; border-radius: var(--radius-sm) !important; }
+  .hero-slider-container { min-height: 110px; }
+  .info-text { font-size: 0.82rem; }
+  .btn { width: 100%; }
+  .nav-link { padding: 6px 10px; font-size: 0.75rem; }
 }

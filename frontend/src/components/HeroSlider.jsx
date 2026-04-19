@@ -71,7 +71,7 @@ export default function HeroSlider() {
         <div 
           className="hero-slider-track" 
           style={{ 
-             transform: `translateY(-${currentIndex * 80}px)`, 
+             transform: `translateY(calc(-${currentIndex} * var(--slider-item-height, 80px)))`, 
              transition: isTransitioning ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none'
           }}
           onTransitionEnd={handleTransitionEnd}
