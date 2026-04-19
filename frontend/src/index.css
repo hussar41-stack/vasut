@@ -72,14 +72,13 @@ body {
     -webkit-text-fill-color: transparent;
 }
 .sponsor-logo { 
-  height: 28px; 
+  height: 24px; 
   width: auto; 
-  color: #fff;
-  opacity: 0.9; 
+  display: block;
+  opacity: 0.85; 
   transition: all 0.3s ease;
 }
 .sponsor-card:hover .sponsor-logo { 
-  color: var(--accent);
   opacity: 1; 
   transform: scale(1.1); 
 }
