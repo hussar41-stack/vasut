@@ -20,7 +20,6 @@ import PrivacyPage       from './pages/PrivacyPage';
 import PassesPage        from './pages/PassesPage';
 import PrivateRoute      from './components/PrivateRoute';
 import HeroSlider        from './components/HeroSlider';
-import CertificatePage   from './pages/CertificatePage';
 
 function AppInner() {
   const { user, isLoggedIn } = useAuth();
@@ -141,7 +140,6 @@ function AppInner() {
         <Route path="/about"   element={<main className="main"><AboutPage /></main>} />
         <Route path="/privacy" element={<main className="main"><PrivacyPage /></main>} />
         <Route path="/passes"  element={<main className="main"><PassesPage /></main>} />
-        <Route path="/certificate" element={<main className="main"><CertificatePage /></main>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -152,7 +150,6 @@ function AppInner() {
             <NavLink to="/faq" className="footer-doc-link">🙋 GY.I.K.</NavLink>
             <NavLink to="/about" className="footer-doc-link">👥 Rólunk</NavLink>
             <NavLink to="/privacy" className="footer-doc-link">⚖️ Adatkezelés</NavLink>
-            <NavLink to="/certificate" className="footer-doc-link">📜 Tanúsítvány</NavLink>
             <button className="footer-link-btn" onClick={() => setShowContact(!showContact)}>📇 Kapcsolat</button>
           </div>
 
