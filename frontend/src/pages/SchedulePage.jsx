@@ -39,6 +39,7 @@ export default function SchedulePage() {
   const [searched, setSearched]     = useState(false);
   const [purchaseTrip, setPurchaseTrip] = useState(null);
   const [delayTrip, setDelayTrip]   = useState(null);
+  const [activeFeatures, setActiveFeatures] = useState(null);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiLoading, setAiLoading]   = useState(false);
   const [discountType, setDiscountType] = useState('full');
@@ -102,21 +103,76 @@ export default function SchedulePage() {
     if (trip.type === 'EC' || trip.type === 'RAILJET') { bg = '#c62828'; } // Red (RJ/EC)
 
     return (
-      <span style={{
-        backgroundColor: bg,
-        color: color,
-        padding: '3px 8px',
-        borderRadius: '4px',
-        fontWeight: '900',
-        fontSize: '0.85rem',
-        display: 'inline-block',
-        minWidth: '45px',
-        textAlign: 'center',
-        marginRight: 8,
-        letterSpacing: '0.5px'
-      }}>
-        {trip.routeName}
-      </span>
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <span 
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveFeatures(activeFeatures === trip.id ? null : trip.id);
+          }}
+          style={{
+            backgroundColor: bg,
+            color: color,
+            padding: '3px 8px',
+            borderRadius: '4px',
+            fontWeight: '900',
+            fontSize: '0.85rem',
+            display: 'inline-block',
+            minWidth: '45px',
+            textAlign: 'center',
+            marginRight: 8,
+            letterSpacing: '0.5px',
+            cursor: 'help',
+            boxShadow: activeFeatures === trip.id ? '0 0 0 2px var(--accent)' : 'none'
+          }}
+          title="Kattints a részletekért"
+        >
+          {trip.routeName}
+        </span>
+        
+        {activeFeatures === trip.id && trip.features && (
+          <div className="features-popover" style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            zIndex: 100,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
+            borderRadius: '8px',
+            padding: '12px',
+            marginTop: '8px',
+            minWidth: '180px',
+            animation: 'fadeInUp 0.2s ease-out'
+          }}>
+            <h5 style={{ margin: '0 0 8px 0', fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Felszereltség</h5>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.wifi ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {trip.features.wifi ? '✅' : '❌'} WiFi
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.climate ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {trip.features.climate ? '❄️' : '❌'} Klíma
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.wc ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {trip.features.wc ? '🚽' : '❌'} WC
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.bicycle ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {trip.features.bicycle ? '🚲' : '❌'} Bicikli
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.accessible ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {trip.features.accessible ? '♿' : '❌'} Akadálymentes
+              </div>
+            </div>
+            <button 
+                onClick={(e) => { e.stopPropagation(); setActiveFeatures(null); }}
+                style={{ 
+                    marginTop: '10px', width: '100%', padding: '4px', background: 'var(--border)', 
+                    border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' 
+                }}>
+              Bezárás
+            </button>
+          </div>
+        )}
+      </div>
     );
   };
 
