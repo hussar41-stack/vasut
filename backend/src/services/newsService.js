@@ -3,10 +3,10 @@ const parser = new Parser();
 
 // Backup mock adatok
 const MOCK_INFOS = [
-  { type: 'alert', text: '🚧 Vágányzár: Budapest-Keleti Pályaudvar felújítás miatt korlátozottan üzemel!' },
+  { type: 'news', text: '🏆 TransportHU: Mostantól több mint 1150 aktív vasútállomást kezelünk országosan!' },
   { type: 'info', text: '🚆 Érdekesség: A leggyorsabb InterCity vonatunk eléri a 160 km/h sebességet!' },
-  { type: 'news', text: '✨ Új funkció: Próbáld ki a valós idejű menetrendi térképünket!' },
-  { type: 'alert', text: '⚠️ FIGYELEM: Viharjelzés a Balaton északi partja mentén közlekedő járatoknál.' },
+  { type: 'alert', text: '🚧 Vágányzár: Budapest-Keleti Pályaudvar felújítás miatt korlátozottan üzemel!' },
+  { type: 'news', text: '✨ Új funkció: Próbáld ki a v1.8.0-as verzió továbbfejlesztett keresőjét!' },
   { type: 'info', text: '💡 Tudtad? A MÁV mobilalkalmazásával 10% kedvezményt kaphatsz!' }
 ];
 

@@ -1,4 +1,4 @@
-// Full Server Reset & Redeploy Trigger: 2026-04-17 03:51
+// Full Server Reset & Redeploy Trigger: 2024-04-19 13:54
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -39,7 +39,7 @@ app.use('/api',             realSearchRouter); // Also handle /ai-analyze if it'
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.2.1-demo', timestamp: new Date().toISOString(), mode: 'in-memory' });
+  res.json({ status: 'ok', version: '1.8.0', timestamp: new Date().toISOString(), mode: 'in-memory' });
 });
 
 app.get('/api/site-info', (req, res) => {
@@ -50,7 +50,7 @@ app.get('/api/site-info', (req, res) => {
       phone: '+36 70 327 0059',
       role: 'Felelős szerkesztő'
     },
-    version: '1.2.1-demo',
+    version: '1.8.0',
     copyright: '© 2026 TransportHU',
     disclaimer: 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'
   });
