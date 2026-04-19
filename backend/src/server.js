@@ -39,7 +39,7 @@ app.use('/api',             realSearchRouter); // Also handle /ai-analyze if it'
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.2.0-demo', timestamp: new Date().toISOString(), mode: 'in-memory' });
+  res.json({ status: 'ok', version: '1.2.1-demo', timestamp: new Date().toISOString(), mode: 'in-memory' });
 });
 
 app.get('/api/site-info', (req, res) => {
@@ -50,7 +50,7 @@ app.get('/api/site-info', (req, res) => {
       phone: '+36 70 327 0059',
       role: 'Felelős szerkesztő'
     },
-    version: '1.2.0-demo',
+    version: '1.2.1-demo',
     copyright: '© 2026 TransportHU',
     disclaimer: 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'
   });
