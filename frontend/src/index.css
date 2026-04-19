@@ -369,9 +369,12 @@ body {
   box-shadow: none;
 }
 .sponsor-logo {
-  height: 48px; width: auto; object-fit: contain;
+  height: 60px; width: auto; object-fit: contain;
   opacity: 1;
   transition: transform 0.2s ease;
+  background: white; /* Fehér háttér a logóknak, hogy biztosan látsszanak */
+  padding: 5px;
+  border-radius: 4px;
 }
 .sponsor-card:hover .sponsor-logo { transform: scale(1.1); }
 .mav-logo { height: 54px; }

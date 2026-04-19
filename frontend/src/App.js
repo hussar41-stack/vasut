@@ -181,7 +181,7 @@ function AppInner() {
               title="MÁV Csoport – Magyar Államvasutak"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAV_log%C3%B3.svg/512px-MAV_log%C3%B3.svg.png"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/M%C3%81V_Zrt._logo.svg/512px-M%C3%81V_Zrt._logo.svg.png"
                 alt="MÁV logó"
                 className="sponsor-logo mav-logo"
               />
