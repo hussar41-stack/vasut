@@ -92,6 +92,34 @@ export default function SchedulePage() {
     }
   }, []);
 
+  const renderTrainBadge = (trip) => {
+    let color = '#fff'; 
+    let bg = '#005bac'; // Default blue (Személy)
+    
+    if (trip.type === 'LOCAL') { bg = '#005bac'; }
+    if (trip.type === 'FAST')  { bg = '#00a3e0'; }
+    if (trip.type === 'IC')    { bg = '#7b1fa2'; } // Purple (IC)
+    if (trip.type === 'EC' || trip.type === 'RAILJET') { bg = '#c62828'; } // Red (RJ/EC)
+
+    return (
+      <span style={{
+        backgroundColor: bg,
+        color: color,
+        padding: '3px 8px',
+        borderRadius: '4px',
+        fontWeight: '900',
+        fontSize: '0.85rem',
+        display: 'inline-block',
+        minWidth: '45px',
+        textAlign: 'center',
+        marginRight: 8,
+        letterSpacing: '0.5px'
+      }}>
+        {trip.routeName}
+      </span>
+    );
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     
@@ -336,7 +364,11 @@ export default function SchedulePage() {
                   </div>
                 
                   <div className="trip-main" style={{ paddingTop: (trip.isRecommendedFastest || trip.isRecommendedDirect) ? 4 : 0 }}>
-                    <div className="trip-name">{trip.routeName}</div>
+                    <div className="trip-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {renderTrainBadge(trip)}
+                        {trip.type === 'IC' && <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#7b1fa2', textTransform: 'uppercase' }}>InterCity</span>}
+                        {trip.type === 'RAILJET' && <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#c62828', textTransform: 'uppercase' }}>Railjet X-press</span>}
+                    </div>
                     <div className="trip-times">
                       <span className="trip-time">{formatTime(trip.departureTime)}</span>
                       <span className="trip-arrow">→</span>
@@ -356,7 +388,6 @@ export default function SchedulePage() {
                   </div>
 
                   <div className="trip-meta">
-                    <span className={`trip-badge badge-${trip.type}`}>{trip.type}</span>
                     <span className={`status-badge status-${trip.status}`}>
                       {trip.status === 'DELAYED' ? `+${trip.delayMinutes} perc` : 'Menetrend szerint'}
                     </span>

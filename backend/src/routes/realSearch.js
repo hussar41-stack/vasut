@@ -60,17 +60,42 @@ function calculateMavPrice(from, to, trainType) {
   return finalPrice;
 }
 
-const ROUTE_TEMPLATES = [
-  { name: 'IC 701 Intercity',      type: 'IC',       durationMin: 90,  platform: 5 },
-  { name: 'IC 801 Intercity',      type: 'IC',       durationMin: 85,  platform: 6 },
-  { name: 'IC 903 Intercity',      type: 'IC',       durationMin: 120, platform: 3 },
-  { name: 'S40 Sebesvonat',        type: 'FAST',     durationMin: 110, platform: 2 },
-  { name: 'G10 Gyorsvonat',        type: 'FAST',     durationMin: 100, platform: 4 },
-  { name: 'S50 Sebesvonat',        type: 'FAST',     durationMin: 130, platform: 7 },
-  { name: 'Személyvonat 3041',     type: 'LOCAL',    durationMin: 155, platform: 1 },
-  { name: 'EC 131 EuroCity',       type: 'EC',       durationMin: 75,  platform: 9 },
-  { name: 'RJ 60 Railjet',         type: 'RAILJET',  durationMin: 70,  platform: 10 },
+const TRAIN_RELATIONS = [
+  // Győri irány (1-es vonal)
+  { match: ["Budapest", "Győr"], trains: [
+    { name: 'S10', type: 'LOCAL', dur: 105 }, { name: 'G10', type: 'FAST', dur: 95 }, 
+    { name: 'IC 922', type: 'IC', dur: 85 }, { name: 'RJX 60', type: 'RAILJET', dur: 75 }
+  ]},
+  // Székesfehérvári irány (30/40-es vonal)
+  { match: ["Budapest", "Székesfehérvár"], trains: [
+    { name: 'S30', type: 'LOCAL', dur: 65 }, { name: 'G43', type: 'FAST', dur: 55 },
+    { name: 'Z30', type: 'FAST', dur: 50 }, { name: 'IC 834', type: 'IC', dur: 45 }
+  ]},
+  // Debreceni irány (100-as vonal)
+  { match: ["Budapest", "Debrecen"], trains: [
+    { name: 'S50', type: 'LOCAL', dur: 180 }, { name: 'IC 528', type: 'IC', dur: 150 },
+    { name: 'IC 612', type: 'IC', dur: 145 }, { name: 'EC 144', type: 'EC', dur: 140 }
+  ]},
+  // Szegedi irány (140-es vonal)
+  { match: ["Budapest", "Szeged"], trains: [
+    { name: 'S20', type: 'LOCAL', dur: 160 }, { name: 'IC 712', type: 'IC', dur: 140 },
+    { name: 'IC 722', type: 'IC', dur: 138 }
+  ]}
 ];
+
+const DEFAULT_TRAINS = [
+  { name: 'Személy', type: 'LOCAL', dur: 90 },
+  { name: 'IC 701', type: 'IC', dur: 85 },
+  { name: 'G10', type: 'FAST', dur: 80 }
+];
+
+function getTrainsForRoute(from, to) {
+  const rel = TRAIN_RELATIONS.find(r => 
+    (from.includes(r.match[0]) && to.includes(r.match[1])) ||
+    (from.includes(r.match[1]) && to.includes(r.match[0]))
+  );
+  return rel ? rel.trains : DEFAULT_TRAINS;
+}
 
 const DEPARTURE_HOURS = ['05:15', '06:00', '07:30', '08:00', '09:00', '10:30', '11:15',
                          '12:00', '13:15', '14:30', '15:45', '17:00', '18:30', '19:45', '21:00'];
@@ -95,22 +120,23 @@ function generateFallbackResults(from, to, date) {
   const seed = strSeed(fromName + toName + targetDate);
   const rand = seededRand(seed);
 
-  const count = Math.floor(rand() * 5) + 5;
+  const availableTrains = getTrainsForRoute(fromName, toName);
+  const count = Math.min(Math.floor(rand() * 4) + 6, DEPARTURE_HOURS.length);
+  
   const shuffledTimes  = [...DEPARTURE_HOURS].sort(() => rand() - 0.5).slice(0, count).sort();
-  const shuffledRoutes = [...ROUTE_TEMPLATES].sort(() => rand() - 0.5);
 
   return shuffledTimes.map((time, i) => {
-    const route     = shuffledRoutes[i % shuffledRoutes.length];
-    const calculatedBasePrice = calculateMavPrice(fromName, toName, route.type);
+    const train     = availableTrains[i % availableTrains.length];
+    const calculatedBasePrice = calculateMavPrice(fromName, toName, train.type);
     
     const depDate   = new Date(`${targetDate}T${time}:00`);
-    const delayMin  = rand() < 0.22 ? Math.floor(rand() * 28) + 2 : 0;
-    const arrDate   = new Date(depDate.getTime() + route.durationMin * 60000);
+    const delayMin  = rand() < 0.15 ? Math.floor(rand() * 20) + 2 : 0;
+    const arrDate   = new Date(depDate.getTime() + train.dur * 60000);
 
     return {
       id:            uuidv4(),
-      routeName:     route.name,
-      type:          route.type,
+      routeName:     train.name,
+      type:          train.type,
       fromName,
       toName,
       departureTime: depDate.toISOString(),
@@ -119,7 +145,7 @@ function generateFallbackResults(from, to, date) {
       status:        delayMin > 0 ? 'DELAYED' : 'ON_TIME',
       basePrice:     calculatedBasePrice,
       availableSeats: Math.floor(rand() * 150) + 10,
-      platform:      route.platform,
+      platform:      Math.floor(rand() * 12) + 1,
       source:        'fallback',
     };
   });
