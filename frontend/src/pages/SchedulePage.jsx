@@ -141,7 +141,7 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="schedule-page">
+    <div className="schedule-page" style={{ overflowY: 'auto', minHeight: '100vh' }}>
       <div className="search-card">
         <h2>🔍 Menetrend keresés</h2>
         <form onSubmit={handleSearch}>
@@ -231,23 +231,27 @@ export default function SchedulePage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 200px', gap: '20px' }}>
                       
                       {/* Vertical Timeline */}
-                      <div className="timeline-container" style={{ position: 'relative', paddingLeft: '35px', color: '#fff' }}>
+                      <div className="timeline-container" style={{ position: 'relative', paddingLeft: '40px', color: '#fff', flex: 1 }}>
                         <div style={{ position: 'absolute', left: '12px', top: '10px', bottom: '10px', width: '3px', background: '#ffcc00', borderRadius: '2px' }}></div>
                         
-                        {trip.stops?.map((stop, sIdx) => (
-                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === trip.stops.length - 1 ? 0 : '30px' }}>
+                        {(trip.stops && trip.stops.length > 0 ? trip.stops : [
+                            { station: trip.fromName, time: formatTime(trip.departureTime) },
+                            { station: 'Közbülső megálló', time: '...' },
+                            { station: trip.toName, time: formatTime(trip.arrivalTime) }
+                        ]).map((stop, sIdx, arr) => (
+                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === arr.length - 1 ? 0 : '35px', minHeight: '24px' }}>
                             {/* Circle Dot */}
                             <div style={{ 
-                                position: 'absolute', left: '-27px', top: '6px', 
+                                position: 'absolute', left: '-33px', top: '4px', 
                                 width: '12px', height: '12px', borderRadius: '50%', 
                                 background: '#fff', border: '3px solid #ffcc00', zIndex: 10 
                             }}></div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontSize: '1rem', fontWeight: (sIdx === 0 || sIdx === trip.stops.length - 1) ? 800 : 500 }}>
+                              <div style={{ fontSize: '1rem', fontWeight: (sIdx === 0 || sIdx === arr.length - 1) ? 800 : 500, color: '#fff' }}>
                                 {stop.station}
                               </div>
-                              <div style={{ fontWeight: 700, opacity: 0.9 }}>{stop.time}</div>
+                              <div style={{ fontWeight: 700, opacity: 0.9, color: '#fff' }}>{stop.time}</div>
                             </div>
 
                             {sIdx === 0 && (

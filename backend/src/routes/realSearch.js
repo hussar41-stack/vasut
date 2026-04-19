@@ -195,31 +195,38 @@ function mapSwissConnections(connections, fromName, toName) {
     const platform = conn.from?.platform || String(Math.floor(Math.random() * 10) + 1);
 
     let type = 'IC';
-    if (vehicle.match(/^S\d/))        type = 'LOCAL';
-    else if (vehicle.match(/^EC/))    type = 'EC';
-    else if (vehicle.match(/^RE|^RB/)) type = 'FAST';
-    else if (vehicle.match(/^IC/))    type = 'IC';
+    let features = FEATURES.IC;
+    if (vehicle.match(/^S\d/))          { type = 'LOCAL'; features = FEATURES.S; }
+    else if (vehicle.match(/^EC/))      { type = 'EC';    features = FEATURES.EC; }
+    else if (vehicle.match(/^RE|^RB|^G/)) { type = 'FAST';  features = FEATURES.G; }
+    else if (vehicle.match(/^RJ/))      { type = 'RAILJET'; features = FEATURES.RJX; }
 
     const depDate = conn.from?.departure ? new Date(conn.from.departure) : new Date();
     const arrDate = conn.to?.arrival    ? new Date(conn.to.arrival)    : new Date(depDate.getTime() + 90 * 60000);
+    const durMins = Math.round((arrDate - depDate) / 60000);
 
-    // Price heuristic: longer trip → more expensive
-    const mins      = Math.round((arrDate - depDate) / 60000);
-    const basePrice = Math.round((mins * 22 + 1200) / 10) * 10;
+    const stops = [
+      { station: fromName, time: depDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: 'Kelenföld', time: new Date(depDate.getTime() + (durMins * 0.3) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: 'Tatabánya', time: new Date(depDate.getTime() + (durMins * 0.6) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
+    ];
 
     return {
       id:            uuidv4(),
       routeName:     vehicle,
-      type,
+      type:          type,
       fromName,
       toName,
       departureTime: depDate.toISOString(),
       arrivalTime:   arrDate.toISOString(),
       delayMinutes:  delay,
       status:        delay > 0 ? 'DELAYED' : 'ON_TIME',
-      basePrice,
+      basePrice:     calculateMavPrice(fromName, toName, type),
       availableSeats: Math.floor(Math.random() * 150) + 20,
       platform:      typeof platform === 'string' ? parseInt(platform, 10) || 1 : platform,
+      features:      features,
+      stops:         stops,
       source:        'api',
     };
   });
