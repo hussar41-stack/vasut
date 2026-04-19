@@ -161,10 +161,20 @@ function AppInner() {
 
           <div className="footer-sponsors">
             <a href="https://www.mavcsoport.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/MAV_logo.svg/512px-MAV_logo.svg.png" className="sponsor-logo mav-logo" alt="" />
+              <svg className="sponsor-logo mav-logo" viewBox="0 0 100 40" width="80" height="30">
+                <path fill="currentColor" d="M10,10 L30,10 L35,25 L40,10 L60,10 L60,30 L50,30 L50,15 L45,15 L40,30 L30,30 L25,15 L20,15 L20,30 L10,30 Z" />
+                <circle fill="var(--accent)" cx="75" cy="20" r="10" />
+                <path fill="white" d="M70,20 L80,20 M75,15 L75,25" />
+              </svg>
             </a>
             <a href="https://bkk.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg/512px-Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg.png" className="sponsor-logo bkk-logo" alt="" />
+              <svg className="sponsor-logo bkk-logo" viewBox="0 0 100 40" width="80" height="30">
+                <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" strokeWidth="3"/>
+                <path fill="currentColor" d="M45,10 L50,10 L50,30 L45,30 Z M55,10 L75,10 L75,15 L55,15 Z M55,20 L70,20 L70,25 L55,25 Z M55,30 L75,30 L75,35 L55,35 Z"/>
+              </svg>
+            </a>
+            <a href="https://stripe.com/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" className="sponsor-logo stripe-logo" alt="" />
             </a>
           </div>
 
