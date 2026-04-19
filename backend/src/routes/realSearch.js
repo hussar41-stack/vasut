@@ -148,6 +148,14 @@ function generateFallbackResults(from, to, date) {
     const delayMin  = rand() < 0.15 ? Math.floor(rand() * 20) + 2 : 0;
     const arrDate   = new Date(depDate.getTime() + train.dur * 60000);
 
+    // Mock intermediate stops
+    const stops = [
+      { station: fromName, time: time },
+      { station: 'Közbülső állomás 1', time: new Date(depDate.getTime() + (train.dur * 0.4) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: 'Közbülső állomás 2', time: new Date(depDate.getTime() + (train.dur * 0.7) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+      { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
+    ];
+
     return {
       id:            uuidv4(),
       routeName:     train.name,
@@ -161,7 +169,8 @@ function generateFallbackResults(from, to, date) {
       basePrice:     calculatedBasePrice,
       availableSeats: Math.floor(rand() * 150) + 10,
       platform:      Math.floor(rand() * 12) + 1,
-      features:      train.features,
+      features:      train.features || FEATURES.S,
+      stops:         stops,
       source:        'fallback',
     };
   });

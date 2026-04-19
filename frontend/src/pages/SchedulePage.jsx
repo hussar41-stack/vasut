@@ -174,6 +174,24 @@ export default function SchedulePage() {
                 <span>{trip.features.accessible ? 'Akadálymentes' : 'Nem akadálymentes'}</span>
               </div>
             </div>
+
+            {trip.stops && trip.stops.length > 0 && (
+              <div style={{ marginTop: '16px', borderTop: '1px solid #333', paddingTop: '12px' }}>
+                <h5 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#aaa' }}>Útvonal / Megállók</h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {trip.stops.map((stop, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: (idx === 0 || idx === trip.stops.length -1) ? '#fff' : '#bbb' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: (idx === 0 || idx === trip.stops.length -1) ? 'var(--accent)' : '#555' }}></span>
+                        {stop.station}
+                      </span>
+                      <span style={{ fontWeight: 600 }}>{stop.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #333', fontSize: '0.75rem', color: '#888', textAlign: 'center' }}>
                 {trip.routeName} vonat adatai
             </div>
