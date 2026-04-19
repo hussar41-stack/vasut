@@ -372,10 +372,11 @@ body {
 }
 .sponsor-logo {
   height: 28px; width: auto; object-fit: contain;
-  filter: brightness(0) invert(1); opacity: 0.7;
-  transition: opacity 0.2s;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
 }
-.sponsor-card:hover .sponsor-logo { opacity: 1; }
+.sponsor-card:hover .sponsor-logo { opacity: 1; transform: scale(1.05); }
+.stripe-logo { height: 22px; } /* A Stripe logó arányaiban laposabb, így kisebb magasság kell neki */
 .sponsor-fallback {
   display: none; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;

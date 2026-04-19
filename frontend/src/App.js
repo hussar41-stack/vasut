@@ -181,12 +181,10 @@ function AppInner() {
               title="MÁV Csoport – Magyar Államvasutak"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/MAV_log%C3%B3.svg/180px-MAV_log%C3%B3.svg.png"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/M%C3%81V_Zrt._logo.svg/1024px-M%C3%81V_Zrt._logo.svg.png"
                 alt="MÁV logó"
                 className="sponsor-logo"
-                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
               />
-              <span className="sponsor-fallback mav-fallback">MÁV</span>
             </a>
 
             <a
@@ -197,12 +195,24 @@ function AppInner() {
               title="BKK – Budapesti Közlekedési Központ"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/180px-BKK_logo.svg.png"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/1024px-BKK_logo.svg.png"
                 alt="BKK logó"
                 className="sponsor-logo"
-                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
               />
-              <span className="sponsor-fallback bkk-fallback">BKK</span>
+            </a>
+
+            <a
+              href="https://stripe.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-card stripe-card"
+              title="Stripe - Biztonságos fizetési partner"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1024px-Stripe_Logo%2C_revised_2016.svg.png"
+                alt="Stripe logó"
+                className="sponsor-logo stripe-logo"
+              />
             </a>
           </div>
 
