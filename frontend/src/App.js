@@ -146,53 +146,34 @@ function AppInner() {
 
       <footer className="footer">
         <div className="footer-content">
-          <div className="footer-links-row">
-            <NavLink to="/faq" className="footer-doc-link">🙋 GY.I.K.</NavLink>
-            <NavLink to="/about" className="footer-doc-link">👥 Rólunk</NavLink>
-            <NavLink to="/privacy" className="footer-doc-link">⚖️ Adatkezelés</NavLink>
-          </div>
-          
-          <div className="footer-top">
-            <p className="footer-disclaimer">
-              {siteInfo?.disclaimer || 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'}
-            </p>
-            <button 
-              className={`footer-link-btn ${showContact ? 'active' : ''}`} 
-              onClick={() => setShowContact(!showContact)}
-            >
-              📇 Kapcsolat
-            </button>
+          <div className="footer-links">
+            <NavLink to="/faq" className="footer-link">🙋 GY.I.K.</NavLink>
+            <NavLink to="/about" className="footer-link">👥 Rólunk</NavLink>
+            <NavLink to="/privacy" className="footer-link">⚖️ Adatkezelés</NavLink>
+            <button className="footer-link-btn" onClick={() => setShowContact(!showContact)}>📇 Kapcsolat</button>
           </div>
 
           {showContact && (
             <div className="footer-contact-info">
-              <div className="contact-grid">
-                <div className="contact-info">
-                  <p><strong>Felelős szerkesztő:</strong> Huszár Barnabás</p>
-                  <p><strong>Email:</strong> hbgmunka@gmail.com</p>
-                  <p><strong>Tel:</strong> +36 70 327 0059</p>
-                </div>
-              </div>
+              <p><strong>Felelős:</strong> Huszár Barnabás · <strong>Email:</strong> hbgmunka@gmail.com</p>
             </div>
           )}
 
           <div className="footer-sponsors">
             <a href="https://www.mavcsoport.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/MAV_logo.svg" alt="MÁV" className="sponsor-logo mav-logo" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/MAV_logo.svg" className="sponsor-logo" alt="MAV" />
             </a>
-
             <a href="https://bkk.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg" alt="BKK" className="sponsor-logo bkk-logo" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg" className="sponsor-logo" alt="BKK" />
             </a>
-
             <a href="https://stripe.com/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="sponsor-logo stripe-logo" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" className="sponsor-logo" alt="Stripe" />
             </a>
           </div>
 
           <div className="footer-bottom">
             <p className="footer-copy">
-              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva · <span className="footer-version">v{version}</span>
+              © 2026 TransportHU · <span className="footer-version">v{version}</span>
             </p>
           </div>
         </div>
@@ -210,5 +191,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-

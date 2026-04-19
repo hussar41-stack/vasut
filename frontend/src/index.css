@@ -74,13 +74,12 @@ body {
 .sponsor-logo { 
   height: 24px; 
   width: auto; 
-  display: block;
-  opacity: 0.85; 
+  opacity: 0.9; 
   transition: all 0.3s ease;
 }
 .sponsor-card:hover .sponsor-logo { 
   opacity: 1; 
-  transform: scale(1.1); 
+  transform: scale(1.05); 
 }
 .nav-links { display: flex; gap: 8px; align-items: center; }
 .nav-link {
