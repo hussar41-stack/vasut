@@ -358,27 +358,25 @@ body {
 .sponsor-card {
   display: flex;
   align-items: center; gap: 12px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px 24px;
-  text-decoration: none; color: var(--text-primary);
+  background: transparent; border: none;
+  padding: 10px 20px;
+  text-decoration: none;
   transition: all 0.2s ease;
-  min-width: 140px;
+  min-width: auto;
 }
 .sponsor-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-light);
-  background: var(--bg-card-hover);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transform: translateY(-5px);
+  box-shadow: none;
 }
 .sponsor-logo {
-  height: 36px; width: auto; object-fit: contain;
+  height: 48px; width: auto; object-fit: contain;
   opacity: 1;
   transition: transform 0.2s ease;
 }
 .sponsor-card:hover .sponsor-logo { transform: scale(1.1); }
-.mav-logo { height: 42px; }
-.bkk-logo { height: 32px; }
-.stripe-logo { height: 26px; }
+.mav-logo { height: 54px; }
+.bkk-logo { height: 42px; }
+.stripe-logo { height: 34px; }
 .sponsor-fallback {
   display: none; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;
