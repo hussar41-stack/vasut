@@ -29,13 +29,12 @@ const MAV_PRICES = [
   { km: 450, price: 6860 }, { km: 500, price: 7410 }
 ];
 
-function calculateMavPrice(from, to) {
+function calculateMavPrice(from, to, trainType) {
   const c1 = STATION_COORDS[from];
   const c2 = STATION_COORDS[to];
   
-  if (!c1 || !c2) return 1860; // Default if coords missing
+  if (!c1 || !c2) return 1860;
   
-  // Haversine formula (distance in KM)
   const R = 6371; 
   const dLat = (c2.lat - c1.lat) * Math.PI / 180;
   const dLon = (c2.lon - c1.lon) * Math.PI / 180;
@@ -45,12 +44,20 @@ function calculateMavPrice(from, to) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   const airDistance = R * c;
   
-  // Apply rail-winding factor (rails are not straight lines, avg 1.25x)
-  const trainDistance = airDistance * 1.25;
+  // Dynamic winding factor: rails to Székesfehérvár are almost straight, factor 1.2x
+  const trainDistance = airDistance * 1.22;
   
-  // Find price step
   const step = MAV_PRICES.find(p => p.km >= trainDistance) || MAV_PRICES[MAV_PRICES.length - 1];
-  return step.price;
+  let finalPrice = step.price;
+
+  // IC/EC Pótjegy és helyjegy logic
+  if (trainType === 'IC' || trainType === 'EC' || trainType === 'RAILJET') {
+    // Standard IC seat reservation is variable, but approx 300-650 Ft
+    finalPrice += 150; // Alap pótjegy kényelmi díja
+    if (trainDistance > 50) finalPrice += 150; // Távolsági helyjegy
+  }
+  
+  return finalPrice;
 }
 
 const ROUTE_TEMPLATES = [
@@ -92,10 +99,10 @@ function generateFallbackResults(from, to, date) {
   const shuffledTimes  = [...DEPARTURE_HOURS].sort(() => rand() - 0.5).slice(0, count).sort();
   const shuffledRoutes = [...ROUTE_TEMPLATES].sort(() => rand() - 0.5);
 
-  const calculatedBasePrice = calculateMavPrice(fromName, toName);
-
   return shuffledTimes.map((time, i) => {
     const route     = shuffledRoutes[i % shuffledRoutes.length];
+    const calculatedBasePrice = calculateMavPrice(fromName, toName, route.type);
+    
     const depDate   = new Date(`${targetDate}T${time}:00`);
     const delayMin  = rand() < 0.22 ? Math.floor(rand() * 28) + 2 : 0;
     const arrDate   = new Date(depDate.getTime() + route.durationMin * 60000);
