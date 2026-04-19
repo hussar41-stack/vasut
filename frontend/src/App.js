@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { api } from './api/client';
+import { version } from '../package.json';
 import './index.css';
 import SchedulePage      from './pages/SchedulePage';
 import TicketsPage       from './pages/TicketsPage';
@@ -211,7 +212,7 @@ function AppInner() {
 
           <div className="footer-bottom">
             <p className="footer-copy">
-              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva · <span className="footer-version">v1.5.0</span>
+              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva · <span className="footer-version">v{version}</span>
             </p>
           </div>
         </div>
