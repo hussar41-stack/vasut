@@ -56,16 +56,16 @@ router.get('/', (req, res) => {
   if (email) {
     const userTickets = store.tickets.filter(t => t.passengerEmail === email);
     
-    // If NO tickets found, return a demo "Welcome" ticket
+    // If NO real tickets found, return a demo "Welcome" ticket
     if (userTickets.length === 0) {
       return res.json([{
         id: 'welcome-demo',
         tripId: 'demo',
-        tripName: 'Üdvözöljük a TransportHU-n!',
-        from: 'Kezdőpont',
+        tripName: 'TransportHU Üdvözlő Jegy (v1.6.2)',
+        from: 'Kezdőállomás',
         to: 'Célállomás',
         departureTime: new Date().toISOString(),
-        arrivalTime: new Date(Date.now() + 3600000).toISOString(),
+        arrivalTime: new Date(Date.now() + 7200000).toISOString(),
         passengerName: 'Új Felhasználó',
         passengerEmail: email,
         seatClass: 'SECOND',
@@ -73,7 +73,7 @@ router.get('/', (req, res) => {
         totalPrice: 0,
         purchasedAt: new Date().toISOString(),
         status: 'CONFIRMED',
-        confirmationCode: 'WELCOME',
+        confirmationCode: 'WELCOME2024',
       }]);
     }
     return res.json(userTickets);

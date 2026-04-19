@@ -5,8 +5,16 @@ import './PassesPage.css';
 
 const PASS_TYPES = [
   {
+    id: 'budapest',
+    name: 'Budapest-bérlet (Havi)',
+    fullPrice: 8950,
+    studentPrice: 945,
+    description: 'Érvényes Budapest közigazgatási határán belül minden BKK, MÁV és Volánbusz járaton.',
+    icon: '🏙️'
+  },
+  {
     id: 'country',
-    name: 'Országbérlet',
+    name: 'Országbérlet (Havi)',
     fullPrice: 18900,
     studentPrice: 1890,
     description: 'Érvényes Magyarország egész területén minden MÁV-START, Volánbusz, MÁV-HÉV és GYSEV járaton.',
@@ -14,7 +22,7 @@ const PASS_TYPES = [
   },
   {
     id: 'county',
-    name: 'Vármegyebérlet',
+    name: 'Vármegyebérlet (Havi)',
     fullPrice: 9450,
     studentPrice: 945,
     description: 'Érvényes a választott vármegye területén minden helyközi járaton.',
