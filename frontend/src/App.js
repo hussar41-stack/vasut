@@ -151,11 +151,10 @@ function AppInner() {
             <div className="footer-contact-info">
               <div className="contact-grid">
                 <div className="contact-info">
-                <p><strong>Felelős szerkesztő:</strong> Huszár Barnabás</p>
-                <p><strong>Email:</strong> hbgmunka@gmail.com</p>
-                <p><strong>Tel:</strong> +36 70 327 0059</p>
-                <p className="version-tag">Verzió: v1.5.0</p>
-              </div>
+                  <p><strong>Felelős szerkesztő:</strong> Huszár Barnabás</p>
+                  <p><strong>Email:</strong> hbgmunka@gmail.com</p>
+                  <p><strong>Tel:</strong> +36 70 327 0059</p>
+                </div>
               </div>
             </div>
           )}
@@ -206,11 +205,8 @@ function AppInner() {
 
           <div className="footer-bottom">
             <p className="footer-copy">
-              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva
+              {siteInfo?.copyright || '© 2026 TransportHU'} · Minden jog fenntartva · <span className="footer-version">v1.5.0</span>
             </p>
-            {siteInfo?.version && (
-              <span className="footer-version">v{siteInfo.version}</span>
-            )}
           </div>
         </div>
       </footer>
