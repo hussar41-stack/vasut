@@ -300,10 +300,6 @@ export default function SchedulePage() {
 
       {purchaseTrip && <PurchaseModal trip={purchaseTrip} discountType={discountType} onClose={() => setPurchaseTrip(null)} />}
       {delayTrip && <DelayModal trip={delayTrip} onClose={() => setDelayTrip(null)} onUpdated={(u) => setTrips(prev => prev.map(t => t.id === u.id ? { ...t, ...u } : t))} />}
-
-      <footer style={{ marginTop: '40px', textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '0.8rem', borderTop: '1px solid var(--border)' }}>
-          TransportHU v{version} · {new Date().getFullYear()}
-      </footer>
     </div>
   );
 }

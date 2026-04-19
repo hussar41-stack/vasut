@@ -146,10 +146,10 @@ function AppInner() {
 
       <footer className="footer">
         <div className="footer-content">
-          <div className="footer-links">
-            <NavLink to="/faq" className="footer-link">🙋 GY.I.K.</NavLink>
-            <NavLink to="/about" className="footer-link">👥 Rólunk</NavLink>
-            <NavLink to="/privacy" className="footer-link">⚖️ Adatkezelés</NavLink>
+          <div className="footer-links-row">
+            <NavLink to="/faq" className="footer-doc-link">🙋 GY.I.K.</NavLink>
+            <NavLink to="/about" className="footer-doc-link">👥 Rólunk</NavLink>
+            <NavLink to="/privacy" className="footer-doc-link">⚖️ Adatkezelés</NavLink>
             <button className="footer-link-btn" onClick={() => setShowContact(!showContact)}>📇 Kapcsolat</button>
           </div>
 

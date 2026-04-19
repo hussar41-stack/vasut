@@ -26,7 +26,7 @@ export default function FAQPage() {
       </header>
 
       <section style={{ marginBottom: '40px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', borderLeft: '4px solid #3b82f6', paddingLeft: '15px' }}>1. Általános kérdések</h2>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', textAlign: 'center', borderBottom: '2px solid #3b82f6', display: 'inline-block', paddingBottom: '8px', width: '100%' }}>1. Általános kérdések</h2>
         <FAQItem 
           question="Mi az a TransportHU?" 
           answer="A TransportHU egy modern közösségi közlekedés tervező alkalmazás, amely segít megtalálni a leggyorsabb és legkényelmesebb útvonalakat Magyarország területén."
@@ -38,7 +38,7 @@ export default function FAQPage() {
       </section>
 
       <section style={{ marginBottom: '40px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', borderLeft: '4px solid #3b82f6', paddingLeft: '15px' }}>2. Útvonaltervezés és Kedvencek</h2>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', textAlign: 'center', borderBottom: '2px solid #3b82f6', display: 'inline-block', paddingBottom: '8px', width: '100%' }}>2. Útvonaltervezés és Kedvencek</h2>
         <FAQItem 
           question="Hogyan menthetek el egy útvonalat a kedvencek közé?" 
           answer="A tervezés után az útvonal mellett található 'csillag' vagy 'mentés' ikonra kattintva adhatja hozzá azt a saját profiljához. Ezeket később bármikor elérheti a 'Kedvenceim' menüpont alatt."
@@ -50,7 +50,7 @@ export default function FAQPage() {
       </section>
 
       <section style={{ marginBottom: '50px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', borderLeft: '4px solid #3b82f6', paddingLeft: '15px' }}>3. Fizetés és Előfizetés</h2>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '20px', textAlign: 'center', borderBottom: '2px solid #3b82f6', display: 'inline-block', paddingBottom: '8px', width: '100%' }}>3. Fizetés és Előfizetés</h2>
         <FAQItem 
           question="Milyen fizetési módok érhetőek el?" 
           answer="A fizetés bankkártyával történik a világ egyik legbiztonságosabb fizetési rendszere, a Stripe segítségével. Elfogadunk minden nagyobb típusú kártyát (Visa, Mastercard, Maestro)."
