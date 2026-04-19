@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import PurchaseModal from '../components/PurchaseModal';
 import DelayModal from '../components/DelayModal';
+import { STATIONS } from '../data/stations';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function formatTime(iso) {
@@ -93,6 +94,18 @@ export default function SchedulePage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    
+    // Állomás validáció MÁV esetén
+    if (form.network === 'mav') {
+      const fromValid = STATIONS.includes(form.from);
+      const toValid   = STATIONS.includes(form.to);
+      
+      if (!fromValid || !toValid) {
+        setError(`Kérjük válasszon a listában szereplő érvényes vasútállomások közül! (${!fromValid ? form.from : form.to} nem található)`);
+        return;
+      }
+    }
+
     fetchResults(form);
   };
   
@@ -158,6 +171,7 @@ export default function SchedulePage() {
                 <label>Indulás</label>
                 <input
                   id="search-from"
+                  list="stations-list"
                   required
                   placeholder={form.network === 'mav' ? "pl. Budapest Keleti" : "pl. Széll Kálmán tér"}
                   value={form.from}
@@ -168,11 +182,15 @@ export default function SchedulePage() {
                 <label>Érkezés</label>
                 <input
                   id="search-to"
+                  list="stations-list"
                   required
                   placeholder={form.network === 'mav' ? "pl. Győr" : "pl. Deák Ferenc tér"}
                   value={form.to}
                   onChange={e => setForm(f => ({ ...f, to: e.target.value }))}
                 />
+                <datalist id="stations-list">
+                  {STATIONS.map(s => <option key={s} value={s} />)}
+                </datalist>
                 <button type="button" onClick={() => setForm(f => ({ ...f, from: f.to, to: f.from }))}
                   style={{
                     position: 'absolute', top: 31, left: -22, zIndex: 5,
