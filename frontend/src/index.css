@@ -369,17 +369,13 @@ body {
   box-shadow: none;
 }
 .sponsor-logo {
-  height: 60px; width: auto; object-fit: contain;
+  height: 40px; width: 40px; object-fit: contain;
   opacity: 1;
   transition: transform 0.2s ease;
-  background: white; /* Fehér háttér a logóknak, hogy biztosan látsszanak */
-  padding: 5px;
-  border-radius: 4px;
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3)); /* Finom kékes ragyogás, hogy jól látszódjon a sötétben */
 }
-.sponsor-card:hover .sponsor-logo { transform: scale(1.1); }
-.mav-logo { height: 54px; }
-.bkk-logo { height: 42px; }
-.stripe-logo { height: 34px; }
+.sponsor-card:hover .sponsor-logo { transform: scale(1.15); }
+.mav-logo, .bkk-logo, .stripe-logo { height: 40px; width: 40px; }
 .sponsor-fallback {
   display: none; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;

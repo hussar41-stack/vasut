@@ -181,7 +181,7 @@ function AppInner() {
               title="MÁV Csoport – Magyar Államvasutak"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/M%C3%81V_Zrt._logo.svg/512px-M%C3%81V_Zrt._logo.svg.png"
+                src="https://www.google.com/s2/favicons?domain=mavcsoport.hu&sz=128"
                 alt="MÁV logó"
                 className="sponsor-logo mav-logo"
               />
@@ -195,7 +195,7 @@ function AppInner() {
               title="BKK – Budapesti Közlekedési Központ"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/512px-BKK_logo.svg.png"
+                src="https://www.google.com/s2/favicons?domain=bkk.hu&sz=128"
                 alt="BKK logó"
                 className="sponsor-logo bkk-logo"
               />
@@ -209,7 +209,7 @@ function AppInner() {
               title="Stripe - Biztonságos fizetési partner"
             >
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/512px-Stripe_Logo%2C_revised_2016.svg.png"
+                src="https://www.google.com/s2/favicons?domain=stripe.com&sz=128"
                 alt="Stripe logó"
                 className="sponsor-logo stripe-logo"
               />
