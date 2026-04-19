@@ -122,6 +122,19 @@ export default function CertificatePage() {
             <strong>4.3. Titoktartás (NDA):</strong> A Tesztelő vállalja a technikai megoldások bizalmas kezelését.
           </p>
 
+          <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginTop: '30px' }}>V. FELELŐSSÉGKORLÁTOZÁS</h3>
+          <p style={{ textAlign: 'justify', fontSize: '0.9rem' }}>
+            A Fejlesztő kifejezetten kizárja a felelősségét a demo verzió használatából eredő közvetlen vagy közvetett károkért. 
+            A szoftver "ahogy van" (as-is) állapotban kerül átadásra.
+          </p>
+
+          <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginTop: '30px' }}>VI. FEJLESZTÉSI CIKLUS ÉS METODOLÓGIA</h3>
+          <p style={{ textAlign: 'justify', fontSize: '0.9rem' }}>
+            A TransportHU fejlesztése agilis metodológia mentén történik. A szoftver automatizált CI/CD láncot használ, 
+            így minden módosítás a GitHub feltöltést követően azonnal frissül a Vercel és Render platformokon a transzparens tesztelés érdekében. 
+            A technológiai stack alapja: React, Node.js, Stripe és Google Gemini AI.
+          </p>
+
           <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ textAlign: 'center', width: '200px' }}>
               <div style={{ borderBottom: '1px solid #1a202c', marginBottom: '10px', height: '40px' }}></div>

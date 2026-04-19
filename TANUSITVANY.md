@@ -52,6 +52,20 @@ A Tesztelő vállalja, hogy a tesztelés során megismert üzleti titkokat, tech
 ## V. FELELŐSSÉGKORLÁTOZÁS
 A Fejlesztő kifejezetten kizárja a felelősségét a demo verzió használatából eredő közvetlen vagy közvetett károkért, elmaradt haszonért vagy adatvesztésért. A szoftver "ahogy van" (as-is) állapotban kerül átadásra tesztelési célokra.
 
+## VI. FEJLESZTÉSI CIKLUS ÉS METODOLÓGIA
+A TransportHU fejlesztése agilis metodológia mentén, iteratív szakaszokban történik.
+
+### 6.1. CI/CD Folyamat
+A szoftver automatizált folyamatos integrációs és telepítési (CI/CD) láncot használ. Minden kódmódosítás automatikus tesztelésen esik át, majd a GitHub-ra történő feltöltést követően a Vercel (frontend) és Render (backend) platformokon keresztül azonnal frissül az élő tesztkörnyezet.
+
+### 6.2. Verziókezelési stratégia
+- **Stable Demo (v1.x.x)**: A jelenleg vizsgált, funkcionálisan zárt, de ismert hibákkal rendelkező változat.
+- **Experimental (v2.x.x)**: A valós idejű GTFS adatok és a perzisztens adatbázis integrációját tartalmazó belső tesztváltozat.
+
+### 6.3. Technológiai Stack
+A rendszer modern JavaScript alapokon nyugszik: React (Frontend), Node.js/Express (Backend) és Stripe (Payment Gateway), kiegészítve Google Gemini AI modellekkel az intelligens útvonaltervezéshez.
+
+
 ---
 **Huszár Barnabás**  
 Kibocsátó (Fejlesztő)
