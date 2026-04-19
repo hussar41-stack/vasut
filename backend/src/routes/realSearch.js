@@ -22,29 +22,14 @@ const STATION_COORDS = {
 
 function resolveStationName(name) {
   if (!name) return "Budapest-Keleti";
-  // Try exact match or first key that includes the name
   if (STATION_COORDS[name]) return name;
   const found = Object.keys(STATION_COORDS).find(k => k.toLowerCase().includes(name.toLowerCase()));
-  return found || "Budapest-Keleti";
+  return found || name;
 }
 
-const HUNGARY_STATIONS = Object.keys(STATION_COORDS);
-
-const MAV_PRICES = [
-  { km: 5,   price: 310 }, { km: 10,  price: 310 }, { km: 15,  price: 370 }, { km: 20,  price: 465 },
-  { km: 25,  price: 560 }, { km: 30,  price: 705 }, { km: 35,  price: 815 }, { km: 40,  price: 930 },
-  { km: 45,  price: 1045 }, { km: 50,  price: 1120 }, { km: 60,  price: 1300 }, { km: 70,  price: 1490 },
-  { km: 80,  price: 1680 }, { km: 90,  price: 1860 }, { km: 100, price: 2520 }, { km: 120, price: 2830 },
-  { km: 140, price: 3130 }, { km: 160, price: 3410 }, { km: 180, price: 3700 }, { km: 200, price: 4180 },
-  { km: 250, price: 4660 }, { km: 300, price: 5210 }, { km: 350, price: 5760 }, { km: 400, price: 6300 },
-  { km: 450, price: 6860 }, { km: 500, price: 7410 }
-];
-
 function calculateMavPrice(from, to, trainType) {
-  const c1 = STATION_COORDS[from];
-  const c2 = STATION_COORDS[to];
-  
-  if (!c1 || !c2) return 1860;
+  const c1 = STATION_COORDS[from] || { lat: 47.1 + (strSeed(from)%100)/200, lon: 19.1 + (strSeed(from)%100)/200 };
+  const c2 = STATION_COORDS[to]   || { lat: 47.1 + (strSeed(to)%100)/200,   lon: 19.1 + (strSeed(to)%100)/200 };
   
   const R = 6371; 
   const dLat = (c2.lat - c1.lat) * Math.PI / 180;
@@ -55,17 +40,13 @@ function calculateMavPrice(from, to, trainType) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   const airDistance = R * c;
   
-  // Dynamic winding factor: rails to Székesfehérvár are almost straight, factor 1.2x
-  const trainDistance = airDistance * 1.22;
+  const trainDistance = Math.max(airDistance * 1.25, 5);
   
   const step = MAV_PRICES.find(p => p.km >= trainDistance) || MAV_PRICES[MAV_PRICES.length - 1];
   let finalPrice = step.price;
 
-  // IC/EC Pótjegy és helyjegy logic
   if (trainType === 'IC' || trainType === 'EC' || trainType === 'RAILJET') {
-    // Standard IC seat reservation is variable, but approx 300-650 Ft
-    finalPrice += 150; // Alap pótjegy kényelmi díja
-    if (trainDistance > 50) finalPrice += 150; // Távolsági helyjegy
+    finalPrice += 300; 
   }
   
   return finalPrice;
