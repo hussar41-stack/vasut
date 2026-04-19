@@ -76,7 +76,7 @@ router.post('/confirm-payment', async (req, res) => {
         return res.status(400).json({ error: 'Payment not completed or session not found.' });
     }
 
-    const { type, passengerName, passengerEmail, seatClass, quantity, tripId, tripData, passId } = session.metadata;
+    const { type, passengerName, passengerEmail, seatClass, quantity, tripId, tripData, passId, passData } = session.metadata;
     
     const { v4: uuidv4 } = require('uuid');
     const store = require('../data/inMemoryStore');
@@ -85,6 +85,7 @@ router.post('/confirm-payment', async (req, res) => {
         const parsedTrip = JSON.parse(tripData);
         const ticket = {
             id: uuidv4(),
+            type: 'TICKET',
             tripId,
             tripName: parsedTrip.routeName,
             from: parsedTrip.fromName,
@@ -102,6 +103,26 @@ router.post('/confirm-payment', async (req, res) => {
         };
         store.tickets.push(ticket);
         return res.json({ success: true, ticket });
+    }
+
+    if (type === 'PASS') {
+        const parsedPass = JSON.parse(passData);
+        const pass = {
+            id: uuidv4(),
+            type: 'PASS',
+            passId,
+            name: parsedPass.name,
+            totalPrice: parsedPass.price,
+            description: parsedPass.description,
+            isStudent: parsedPass.isStudent,
+            passengerName,
+            passengerEmail,
+            purchasedAt: new Date().toISOString(),
+            status: 'CONFIRMED',
+            confirmationCode: `PASS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        };
+        store.tickets.push(pass); // We store both in 'tickets' for simplicity in this demo
+        return res.json({ success: true, pass });
     }
 
     res.json({ success: true, message: 'Payment confirmed but no logic for this type yet' });

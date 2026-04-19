@@ -384,6 +384,9 @@ body {
   border-radius: var(--radius);
   padding: 1.5rem;
   animation: slideUp 0.3s ease;
+  text-align: center;
+  max-width: 600px;
+  margin: 1.5rem auto;
 }
 .contact-grid {
   display: grid;

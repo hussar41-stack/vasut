@@ -111,23 +111,36 @@ export default function TicketsPage() {
       {!loading && tickets.length > 0 && (
         <div className="tickets-list" style={{ animation: 'fadeIn 0.5s ease' }}>
           {tickets.map(ticket => (
-            <div key={ticket.id} className="ticket-card" style={{ borderLeft: '4px solid var(--accent)' }}>
+            <div key={ticket.id} className="ticket-card" style={{ borderLeft: `4px solid ${ticket.type === 'PASS' ? 'var(--success)' : 'var(--accent)'}` }}>
               <div>
                 <div className="ticket-conf">{ticket.confirmationCode}</div>
-                <div className="ticket-route" style={{ fontSize: '1.1rem' }}>{ticket.from} → {ticket.to}</div>
+                <div className="ticket-route" style={{ fontSize: '1.1rem' }}>
+                    {ticket.type === 'PASS' ? ticket.name : `${ticket.from} → ${ticket.to}`}
+                </div>
                 <div className="ticket-meta">
-                  <b>{ticket.tripName}</b> · {formatDate(ticket.departureTime)}
+                  {ticket.type === 'PASS' ? (
+                      <div>{ticket.description}</div>
+                  ) : (
+                      <b>{ticket.tripName}</b>
+                  )}
+                  {ticket.departureTime && <span> · {formatDate(ticket.departureTime)}</span>}
                 </div>
                 <div className="ticket-meta" style={{ marginTop: 4, display: 'flex', gap: '10px' }}>
-                  <span>🕒 {formatTime(ticket.departureTime)} – {formatTime(ticket.arrivalTime)}</span>
+                  {ticket.departureTime && <span>🕒 {formatTime(ticket.departureTime)} – {formatTime(ticket.arrivalTime)}</span>}
                   <span>👤 {ticket.passengerName}</span>
                 </div>
                 <div className="ticket-meta" style={{ marginTop: 4, opacity: 0.8 }}>
-                  {ticket.quantity} db · {ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}
+                  {ticket.type === 'PASS' ? (
+                      <span>{ticket.isStudent ? 'Diák bérlet' : 'Teljes árú bérlet'}</span>
+                  ) : (
+                      <span>{ticket.quantity} db · {ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}</span>
+                  )}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div className="ticket-price" style={{ color: 'var(--accent)' }}>{ticket.totalPrice.toLocaleString('hu-HU')} Ft</div>
+                <div className="ticket-price" style={{ color: ticket.type === 'PASS' ? 'var(--success)' : 'var(--accent)' }}>
+                    {ticket.totalPrice.toLocaleString('hu-HU')} Ft
+                </div>
                 <div className={`status-badge status-${ticket.status}`} style={{ marginTop: 8 }}>
                   {ticket.status === 'CONFIRMED' ? '✓ Érvényes' : ticket.status}
                 </div>
