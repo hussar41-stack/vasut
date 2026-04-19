@@ -50,18 +50,6 @@ function AppInner() {
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             🚌 BKK Járatok
           </NavLink>
-          <NavLink to="/faq"
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🙋 GY.I.K.
-          </NavLink>
-          <NavLink to="/about"
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            👥 Rólunk
-          </NavLink>
-          <NavLink to="/privacy"
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            ⚖️ Adatkezelés
-          </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
@@ -141,6 +129,12 @@ function AppInner() {
 
       <footer className="footer">
         <div className="footer-content">
+          <div className="footer-links-row">
+            <NavLink to="/faq" className="footer-doc-link">🙋 GY.I.K.</NavLink>
+            <NavLink to="/about" className="footer-doc-link">👥 Rólunk</NavLink>
+            <NavLink to="/privacy" className="footer-doc-link">⚖️ Adatkezelés</NavLink>
+          </div>
+          
           <div className="footer-top">
             <p className="footer-disclaimer">
               {siteInfo?.disclaimer || 'Nem hivatalos demo alkalmazás · JWT autentikáció · Leaflet térkép'}

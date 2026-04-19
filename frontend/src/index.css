@@ -288,6 +288,29 @@ body {
   flex-direction: column;
   gap: 2rem;
 }
+.footer-links-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.footer-doc-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-doc-link:hover {
+  color: var(--accent);
+}
+
 .footer-top {
   display: flex;
   justify-content: space-between;
