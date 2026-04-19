@@ -6,11 +6,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { version } from '../version';
 
 const ALL_STATIONS = [
-  'Budapest-Keleti', 'Budapest-Nyugati', 'Budapest-Déli', 'Győr', 'Tatabánya', 'Komárom',
-  'Székesfehérvár', 'Siófok', 'Fonyód', 'Balatonszentgyörgy', 'Nagykanizsa', 'Debrecen',
-  'Szolnok', 'Püspökladány', 'Hajdúszoboszló', 'Nyíregyháza', 'Szeged', 'Kecskemét',
-  'Cegléd', 'Miskolc-Tiszai', 'Füzesabony', 'Eger', 'Pécs', 'Dombóvár', 'Szentlőrinc'
-];
+  'Budapest-Keleti', 'Budapest-Nyugati', 'Budapest-Déli', 'Budapest-Kelenföld', 'Kőbánya-Kispest', 
+  'Győr', 'Székesfehérvár', 'Tatabánya', 'Miskolc-Tiszai', 'Debrecen', 'Nyíregyháza', 'Szeged', 'Kecskemét', 
+  'Pécs', 'Szolnok', 'Békéscsaba', 'Veszprém', 'Sopron', 'Szombathely', 'Zalaegerszeg', 'Kaposvár', 
+  'Eger', 'Salgótarján', 'Szekszárd', 'Cegléd', 'Vác', 'Esztergom', 'Hatvan', 'Gödöllő', 'Vác',
+  'Siófok', 'Balatonfüred', 'Fonyód', 'Keszthely', 'Balatonalmádi', 'Tapolca', 'Badacsony',
+  'Dunaújváros', 'Baja', 'Hódmezővásárhely', 'Mosonmagyaróvár', 'Komárom', 'Pápa', 'Ajka',
+  'Dombóvár', 'Hatvan', 'Füzesabony', 'Mezőkövesd', 'Szerencs', 'Sátoraljaújhely', 'Kazincbarcika',
+  'Ózd', 'Kisvárda', 'Záhony', 'Hajdúszoboszló', 'Püspökladány', 'Karcag', 'Mezőtúr',
+  'Gyula', 'Orosháza', 'Szentes', 'Makó', 'Kiskunfélegyháza', 'Kiskunhalas', 'Paks', 'Mohács',
+  'Szentlőrinc', 'Barcs', 'Nagykanizsa', 'Körmend', 'Szentgotthárd', 'Celldömölk', 'Kőszeg'
+].sort();
 
 export default function SchedulePage() {
   const { ws } = useAuth();
