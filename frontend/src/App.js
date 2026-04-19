@@ -150,18 +150,12 @@ function AppInner() {
           {showContact && (
             <div className="footer-contact-info">
               <div className="contact-grid">
-                <div className="contact-item">
-                  <span className="contact-label">{siteInfo?.editor?.role || 'Felelős szerkesztő'}</span>
-                  <span className="contact-value">{siteInfo?.editor?.name || 'Huszár Barnabás'}</span>
-                </div>
-                <div className="contact-item">
-                  <span className="contact-label">Email</span>
-                  <span className="contact-value">{siteInfo?.editor?.email || 'hbgmunka@gmail.com'}</span>
-                </div>
-                <div className="contact-item">
-                  <span className="contact-label">Telefonszám</span>
-                  <span className="contact-value">{siteInfo?.editor?.phone || '+36 70 327 0059'}</span>
-                </div>
+                <div className="contact-info">
+                <p><strong>Felelős szerkesztő:</strong> Huszár Barnabás</p>
+                <p><strong>Email:</strong> hbgmunka@gmail.com</p>
+                <p><strong>Tel:</strong> +36 70 327 0059</p>
+                <p className="version-tag">Verzió: BETA 1.5.0</p>
+              </div>
               </div>
             </div>
           )}

@@ -453,31 +453,100 @@ body {
 
 /* ─── Mobile Responsiveness ─── */
 @media (max-width: 768px) {
-  .navbar { padding: 0 1rem; }
-  .navbar-brand { font-size: 1.1rem; }
-  .hero { padding: 2rem 1rem; }
-  .hero h1 { font-size: 1.6rem; }
-  .main { padding: 1rem; }
-  .nav-links { gap: 2px; }
-  .nav-link { padding: 6px 8px; font-size: 0.8rem; }
+  .navbar {
+    padding: 0.8rem 1rem;
+    height: auto;
+  }
   
+  .nav-center {
+    display: flex;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    width: 100%;
+    scrollbar-width: none;
+  }
+  .nav-center::-webkit-scrollbar { display: none; }
+  
+  .nav-link {
+    font-size: 0.82rem;
+    white-space: nowrap;
+    padding: 4px 8px;
+    flex-shrink: 0;
+  }
+
+  .hero-logo-large {
+    font-size: 1.8rem;
+    padding: 1rem 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .search-container {
+    padding: 1.25rem;
+    border-radius: var(--radius);
+  }
+
+  .search-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
   .trip-card {
     grid-template-columns: 1fr;
     gap: 1rem;
-    padding: 1rem;
-  }
-  .trip-meta { align-items: flex-start; flex-direction: row; gap: 12px; }
-  .trip-actions {
-    align-items: center;
-    flex-direction: row-reverse;
-    justify-content: space-between;
-    width: 100%;
-    border-top: 1px solid var(--border);
-    padding-top: 1rem;
+    padding: 1.25rem;
   }
 
-  .form-row { grid-template-columns: 1fr; }
-  .ticket-card { grid-template-columns: 1fr; }
-  .ticket-price { text-align: left; }
-  .auth-card { padding: 2rem 1rem; }
+  .trip-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .trip-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-links-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+  }
+
+  .footer-sponsors {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 0 10px;
+  }
+
+  .sponsor-logo {
+    height: 34px;
+    width: 34px;
+  }
+
+  .footer-top {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .contact-info {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .main { padding: 1rem; }
+  .auth-card { padding: 1.5rem 1rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-logo-large { font-size: 1.5rem; }
+  .search-button { width: 100%; border-radius: var(--radius-sm) !important; }
 }
