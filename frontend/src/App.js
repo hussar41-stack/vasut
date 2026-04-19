@@ -161,13 +161,10 @@ function AppInner() {
 
           <div className="footer-sponsors">
             <a href="https://www.mavcsoport.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/MAV_logo.svg" className="sponsor-logo mav-logo" alt="" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/MAV_logo.svg/512px-MAV_logo.svg.png" className="sponsor-logo mav-logo" alt="" />
             </a>
             <a href="https://bkk.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg" className="sponsor-logo bkk-logo" alt="" />
-            </a>
-            <a href="https://stripe.com/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" className="sponsor-logo stripe-logo" alt="" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg/512px-Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg.png" className="sponsor-logo bkk-logo" alt="" />
             </a>
           </div>
 
