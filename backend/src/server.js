@@ -46,8 +46,8 @@ app.get('/api/site-info', (req, res) => {
   res.json({
     editor: {
       name: 'Huszár Barnabás',
-      email: 'huszarbarnabas@example.hu',
-      phone: '+36 30 123 4567',
+      email: 'hbgmunka@gmail.com',
+      phone: '+36 70 327 0059',
       role: 'Felelős szerkesztő'
     },
     version: '1.2.0-demo',
