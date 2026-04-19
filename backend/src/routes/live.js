@@ -41,10 +41,10 @@ router.get('/bkk-vehicles', async (req, res) => {
     
     // Attempt real API
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
-      if (response.ok) {
-         // ... mapping logic from monolithic server.js could go here, 
-         // but let's stick to AI/Mock for now to keep it simple and robust
+      const axios = require('axios');
+      const response = await axios.get(url, { timeout: 3000 });
+      if (response.status === 200) {
+         // ... mapping logic from monolithic server.js
       }
     } catch(e) {}
 
