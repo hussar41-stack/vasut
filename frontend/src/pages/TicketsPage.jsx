@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
@@ -9,20 +10,28 @@ function formatDate(iso) {
 }
 
 export default function TicketsPage() {
+  const { user, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searched, setSearched] = useState(false);
 
-  async function handleSearch(e) {
-    e.preventDefault();
-    if (!email) return;
+  // Auto-fetch tickets on mount if user is logged in
+  useEffect(() => {
+    if (isLoggedIn && user?.email) {
+      setEmail(user.email);
+      fetchTickets(user.email);
+    }
+  }, [isLoggedIn, user]);
+
+  async function fetchTickets(targetEmail) {
+    if (!targetEmail) return;
     setError(null);
     setLoading(true);
     setSearched(true);
     try {
-      const results = await api.getMyTickets(email);
+      const results = await api.getMyTickets(targetEmail);
       setTickets(results);
     } catch (err) {
       setError(err.message);
@@ -31,29 +40,43 @@ export default function TicketsPage() {
     }
   }
 
+  async function handleSearch(e) {
+    e.preventDefault();
+    await fetchTickets(email);
+  }
+
   return (
     <div className="tickets-page">
-      <h2>🎫 Jegyeim</h2>
-
-      <div className="search-card">
-        <form onSubmit={handleSearch}>
-          <div className="search-grid" style={{ gridTemplateColumns: '1fr auto' }}>
-            <div className="field">
-              <label>E-mail cím</label>
-              <input
-                type="email"
-                placeholder="utas@gmail.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2 style={{ margin: 0 }}>🎫 Jegyeim</h2>
+        {isLoggedIn && (
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Bejelentkezve mint: <b style={{ color: 'var(--accent)' }}>{user.email}</b>
             </div>
-            <button className="btn btn-primary" type="submit" disabled={loading}>
-              {loading ? '⏳ Keresés...' : '🔍 Jegyek lekérése'}
-            </button>
-          </div>
-        </form>
+        )}
       </div>
+
+      {!isLoggedIn && (
+        <div className="search-card">
+          <form onSubmit={handleSearch}>
+            <div className="search-grid" style={{ gridTemplateColumns: '1fr auto' }}>
+              <div className="field">
+                <label>E-mail cím</label>
+                <input
+                  type="email"
+                  placeholder="utas@gmail.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <button className="btn btn-primary" type="submit" disabled={loading}>
+                {loading ? '⏳ Keresés...' : '🔍 Jegyek lekérése'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {error && <div className="error-banner">⚠️ {error}</div>}
       {loading && <div className="loading"><span className="spinner" /> Betöltés...</div>}

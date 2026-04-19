@@ -52,15 +52,17 @@ function AppInner() {
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             🚌 BKK
           </NavLink>
-          <NavLink to="/passes"
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-            🎫 Bérlet
-          </NavLink>
           {isLoggedIn && (
-            <NavLink to="/tickets"
-              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-              🎫 Jegyek
-            </NavLink>
+            <>
+              <NavLink to="/passes"
+                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                🎫 Bérlet
+              </NavLink>
+              <NavLink to="/tickets"
+                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                🎟️ Jegyek
+              </NavLink>
+            </>
           )}
           {isLoggedIn ? (
             <NavLink to="/profile" className={({ isActive }) => `nav-link nav-user${isActive ? ' active' : ''}`}>
