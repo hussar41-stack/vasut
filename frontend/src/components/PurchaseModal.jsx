@@ -6,9 +6,16 @@ import { useAuth } from '../contexts/AuthContext';
 // We don't need stripePromise here anymore because we redirect directly to url
 // const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_mock');
 
-export default function PurchaseModal({ trip, onClose, onSuccess }) {
+export default function PurchaseModal({ trip, discountType, onClose, onSuccess }) {
   const { user } = useAuth();
   
+  const DISCOUNTS = {
+    full: { label: 'Teljes ár (100%)', multiplier: 1 },
+    discount50: { label: '50% Kedvezmény', multiplier: 0.5 },
+    discount90: { label: '90% Kedvezmény (Diák)', multiplier: 0.1 },
+    free: { label: 'Díjmentes (0 Ft)', multiplier: 0 }
+  };
+
   const [form, setForm] = useState({
     passengerName:  user?.name || '',
     seatClass:      'SECOND',
@@ -17,7 +24,7 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  const priceMultiplier = form.seatClass === 'FIRST' ? 1.5 : 1;
+  const priceMultiplier = (form.seatClass === 'FIRST' ? 1.5 : 1) * DISCOUNTS[discountType].multiplier;
   const total = Math.round(trip.basePrice * priceMultiplier * form.quantity);
 
   function formatTime(iso) {
@@ -71,6 +78,11 @@ export default function PurchaseModal({ trip, onClose, onSuccess }) {
             {trip.routeName} · {formatDate(trip.departureTime)} · {formatTime(trip.departureTime)} – {formatTime(trip.arrivalTime)}
           </div>
           <div className="trip-detail" style={{ marginTop: 4 }}>🪑 {trip.availableSeats} szabad hely</div>
+          {discountType !== 'full' && (
+            <div className="trip-detail" style={{ marginTop: 4, color: 'var(--accent)', fontWeight: 600 }}>
+              🏷️ Alkalmazott kedvezmény: {DISCOUNTS[discountType].label}
+            </div>
+          )}
         </div>
 
         {error && <div className="error-banner">⚠️ {error}</div>}

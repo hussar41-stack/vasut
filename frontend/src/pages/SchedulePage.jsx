@@ -40,6 +40,14 @@ export default function SchedulePage() {
   const [delayTrip, setDelayTrip]   = useState(null);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiLoading, setAiLoading]   = useState(false);
+  const [discountType, setDiscountType] = useState('full');
+
+  const DISCOUNTS = {
+    full: { label: 'Teljes ár (100%)', multiplier: 1 },
+    discount50: { label: '50% Kedvezmény', multiplier: 0.5 },
+    discount90: { label: '90% Kedvezmény (Diák)', multiplier: 0.1 },
+    free: { label: 'Díjmentes (0 Ft)', multiplier: 0 }
+  };
 
   const fetchResults = useCallback(async (searchParams) => {
     setError(null);
@@ -223,8 +231,39 @@ export default function SchedulePage() {
       ) : searched ? (
         <div style={{ marginTop: '2rem' }}>
           <div className="trips-header">
-            <h2>Találatok</h2>
-            <span className="result-count">{trips.length} járat</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h2>Találatok</h2>
+              <span className="result-count">{trips.length} járat</span>
+            </div>
+            
+            <div className="discount-selector-container" style={{
+              background: 'var(--bg-secondary)',
+              padding: '6px 12px',
+              borderRadius: '12px',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Kedvezmény:</span>
+              <select 
+                value={discountType} 
+                onChange={e => setDiscountType(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--accent)',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                {Object.entries(DISCOUNTS).map(([key, item]) => (
+                  <option key={key} value={key}>{item.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {trips.length === 0 ? (
@@ -314,7 +353,7 @@ export default function SchedulePage() {
 
                   <div className="trip-actions">
                     <div className="trip-price">
-                      {(trip.basePrice ?? 0).toLocaleString('hu-HU')} <span>Ft / fő</span>
+                       {Math.round((trip.basePrice ?? 0) * DISCOUNTS[discountType].multiplier).toLocaleString('hu-HU')} <span>Ft / fő</span>
                     </div>
                     <button
                       className="btn btn-primary btn-sm"
@@ -335,6 +374,7 @@ export default function SchedulePage() {
       {purchaseTrip && (
         <PurchaseModal
           trip={purchaseTrip}
+          discountType={discountType}
           onClose={() => setPurchaseTrip(null)}
           onSuccess={() => {}}
         />

@@ -16,6 +16,7 @@ import CancelPage from './pages/CancelPage';
 import FAQPage           from './pages/FAQPage';
 import AboutPage         from './pages/AboutPage';
 import PrivacyPage       from './pages/PrivacyPage';
+import PassesPage        from './pages/PassesPage';
 import PrivateRoute      from './components/PrivateRoute';
 import HeroSlider        from './components/HeroSlider';
 
@@ -49,6 +50,10 @@ function AppInner() {
           <NavLink to="/bkk-map"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             🚌 BKK
+          </NavLink>
+          <NavLink to="/passes"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            🎫 Bérlet
           </NavLink>
           {isLoggedIn && (
             <NavLink to="/tickets"
@@ -123,6 +128,7 @@ function AppInner() {
         <Route path="/faq"     element={<main className="main"><FAQPage /></main>} />
         <Route path="/about"   element={<main className="main"><AboutPage /></main>} />
         <Route path="/privacy" element={<main className="main"><PrivacyPage /></main>} />
+        <Route path="/passes"  element={<main className="main"><PassesPage /></main>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
