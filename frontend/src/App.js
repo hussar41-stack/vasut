@@ -142,11 +142,11 @@ function AppInner() {
                 </div>
                 <div className="contact-item">
                   <span className="contact-label">Email</span>
-                  <span className="contact-value">{siteInfo?.editor?.email || 'huszarbarnabas@example.hu'}</span>
+                  <span className="contact-value">{siteInfo?.editor?.email || 'hbgmunka@gmail.com'}</span>
                 </div>
                 <div className="contact-item">
                   <span className="contact-label">Telefonszám</span>
-                  <span className="contact-value">{siteInfo?.editor?.phone || '+36 30 123 4567'}</span>
+                  <span className="contact-value">{siteInfo?.editor?.phone || '+36 70 327 0059'}</span>
                 </div>
               </div>
             </div>
