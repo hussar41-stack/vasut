@@ -371,12 +371,14 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 .sponsor-logo {
-  height: 28px; width: auto; object-fit: contain;
-  opacity: 0.8;
-  transition: opacity 0.2s, transform 0.2s;
+  height: 36px; width: auto; object-fit: contain;
+  opacity: 1;
+  transition: transform 0.2s ease;
 }
-.sponsor-card:hover .sponsor-logo { opacity: 1; transform: scale(1.05); }
-.stripe-logo { height: 22px; } /* A Stripe logó arányaiban laposabb, így kisebb magasság kell neki */
+.sponsor-card:hover .sponsor-logo { transform: scale(1.1); }
+.mav-logo { height: 42px; }
+.bkk-logo { height: 32px; }
+.stripe-logo { height: 26px; }
 .sponsor-fallback {
   display: none; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;

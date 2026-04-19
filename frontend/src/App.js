@@ -183,7 +183,7 @@ function AppInner() {
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/M%C3%81V_Zrt._logo.svg/1024px-M%C3%81V_Zrt._logo.svg.png"
                 alt="MÁV logó"
-                className="sponsor-logo"
+                className="sponsor-logo mav-logo"
               />
             </a>
 
@@ -197,7 +197,7 @@ function AppInner() {
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/BKK_logo.svg/1024px-BKK_logo.svg.png"
                 alt="BKK logó"
-                className="sponsor-logo"
+                className="sponsor-logo bkk-logo"
               />
             </a>
 
