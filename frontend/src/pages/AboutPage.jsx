@@ -77,7 +77,7 @@ export default function AboutPage() {
           és a hatékony szoftverfejlesztésnek. A projekt célja, hogy a magyarországi közlekedési adatokból 
           a legtöbbet hozza ki a közösség számára.
         </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap', marginBottom: '40px' }}>
           <div>
             <p style={{ color: '#64748b', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</p>
             <p style={{ color: '#fff', fontWeight: '600' }}>hbgmunka@gmail.com</p>
@@ -86,6 +86,35 @@ export default function AboutPage() {
             <p style={{ color: '#64748b', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Telefon</p>
             <p style={{ color: '#fff', fontWeight: '600' }}>+36 70 327 0059</p>
           </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '30px' }}>
+          <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '15px' }}>Dokumentumok</h3>
+          <button 
+            onClick={() => {
+              const content = `# TransportHU – Szoftver Értékbecslés\n\nBecsült fejlesztési érték: 2,2M Ft - 6,2M Ft\nPiaci szorzókkal korrigált érték: 8M Ft - 12M Ft\nKódbázis szintjén eladási ár: 3-5 millió Ft\nSzolgáltatásként eladási ár: 10-20 millió Ft\n\nKelt: 2024. 04. 19.`;
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'TransportHU_Ertekbecsles.txt';
+              link.click();
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            📥 Értékbecslés letöltése (.txt)
+          </button>
         </div>
       </section>
 
