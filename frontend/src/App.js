@@ -161,7 +161,7 @@ function AppInner() {
 
           <div className="footer-sponsors">
             <a href="https://www.mavcsoport.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/BSicon_MAV.svg" className="sponsor-logo mav-logo" alt="" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/M%C3%81V_Szem%C3%A9lysz%C3%A1ll%C3%ADt%C3%A1si_Zrt.png" className="sponsor-logo mav-logo" alt="" />
             </a>
             <a href="https://bkk.hu/" target="_blank" rel="noopener noreferrer" className="sponsor-card">
               <img src="https://logowik.com/content/uploads/images/t_budapesti-kozlekedesi-kozpont2751.logowik.com.webp" className="sponsor-logo bkk-logo" alt="" />
