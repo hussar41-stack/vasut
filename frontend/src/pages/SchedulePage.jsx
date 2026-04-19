@@ -132,44 +132,51 @@ export default function SchedulePage() {
         {activeFeatures === trip.id && trip.features && (
           <div className="features-popover" style={{
             position: 'absolute',
-            top: '100%',
-            left: 0,
-            zIndex: 100,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-            borderRadius: '8px',
-            padding: '12px',
-            marginTop: '8px',
-            minWidth: '180px',
-            animation: 'fadeInUp 0.2s ease-out'
+            top: '0',
+            left: 'calc(100% + 10px)',
+            zIndex: 9999,
+            background: '#1a1a1a', // Dark theme support explicit
+            color: '#fff',
+            border: '1px solid #444',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+            borderRadius: '12px',
+            padding: '16px',
+            minWidth: '220px',
+            animation: 'fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
           }}>
-            <h5 style={{ margin: '0 0 8px 0', fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Felszereltség</h5>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.wifi ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                {trip.features.wifi ? '✅' : '❌'} WiFi
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h5 style={{ margin: 0, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#aaa' }}>Felszereltség</h5>
+                <button 
+                    onClick={(e) => { e.stopPropagation(); setActiveFeatures(null); }}
+                    style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer', padding: '0 5px' }}>
+                    ×
+                </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: trip.features.wifi ? '#fff' : '#666' }}>
+                <span style={{ fontSize: '1.2rem' }}>{trip.features.wifi ? '📶' : '🚫'}</span>
+                <span>{trip.features.wifi ? 'Ingyen WiFi' : 'Nincs WiFi'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.climate ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                {trip.features.climate ? '❄️' : '❌'} Klíma
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: trip.features.climate ? '#fff' : '#666' }}>
+                <span style={{ fontSize: '1.2rem' }}>{trip.features.climate ? '❄️' : '🚫'}</span>
+                <span>{trip.features.climate ? 'Klímatizált' : 'Nincs klíma'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.wc ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                {trip.features.wc ? '🚽' : '❌'} WC
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: trip.features.wc ? '#fff' : '#666' }}>
+                <span style={{ fontSize: '1.2rem' }}>{trip.features.wc ? '🚽' : '🚫'}</span>
+                <span>{trip.features.wc ? 'Mosdó (WC)' : 'Nincs WC'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.bicycle ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                {trip.features.bicycle ? '🚲' : '❌'} Bicikli
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: trip.features.bicycle ? '#fff' : '#666' }}>
+                <span style={{ fontSize: '1.2rem' }}>{trip.features.bicycle ? '🚲' : '🚫'}</span>
+                <span>{trip.features.bicycle ? 'Kerékpárszállítás' : 'Bicikli nem vihető'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: trip.features.accessible ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                {trip.features.accessible ? '♿' : '❌'} Akadálymentes
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: trip.features.accessible ? '#fff' : '#666' }}>
+                <span style={{ fontSize: '1.2rem' }}>{trip.features.accessible ? '♿' : '🚫'}</span>
+                <span>{trip.features.accessible ? 'Akadálymentes' : 'Nem akadálymentes'}</span>
               </div>
             </div>
-            <button 
-                onClick={(e) => { e.stopPropagation(); setActiveFeatures(null); }}
-                style={{ 
-                    marginTop: '10px', width: '100%', padding: '4px', background: 'var(--border)', 
-                    border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' 
-                }}>
-              Bezárás
-            </button>
+            <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #333', fontSize: '0.75rem', color: '#888', textAlign: 'center' }}>
+                {trip.routeName} vonat adatai
+            </div>
           </div>
         )}
       </div>
