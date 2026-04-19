@@ -5,38 +5,10 @@ import DelayModal from '../components/DelayModal';
 import { useAuth } from '../contexts/AuthContext';
 import { version } from '../version';
 
-const ALL_STATIONS = [
-  'Abda', 'Abony', 'Ács', 'Adony', 'Agárd', 'Ajka', 'Albertirsa', 'Alsógöd', 'Alsónémedi', 'Apaj', 'Aszód', 
-  'Bábolna', 'Badacsony', 'Badacsonytomaj', 'Bag', 'Baja', 'Balatonalmádi', 'Balatonberény', 'Balatonboglár', 
-  'Balatonfenyves', 'Balatonfüred', 'Balatonfűzfő', 'Balatongyörök', 'Balatonlelle', 'Balatonmáriafürdő', 
-  'Balatonszárszó', 'Balatonszemes', 'Balatonszentgyörgy', 'Balatonvilágos', 'Balmazújváros', 'Barcs', 
-  'Battonya', 'Bátonyterenye', 'Beled', 'Békéscsaba', 'Biatorbágy', 'Bicske', 'Biharkeresztes', 'Bodajk', 
-  'Bonyhád', 'Budaörs', 'Budakalász', 'Budapest-Déli', 'Budapest-Keleti', 'Budapest-Nyugati', 'Budapest-Kelenföld', 
-  'Cegléd', 'Celldömölk', 'Csongrád', 'Csorna', 'Csurgó', 'Dabronc', 'Debrecen', 'Decs', 'Devecser', 'Dombóvár', 
-  'Dorog', 'Dunakeszi', 'Dunaújváros', 'Ecser', 'Eger', 'Érd', 'Esztergom', 'Fegyvernek', 'Fehérgyarmat', 
-  'Felsőgöd', 'Fertőd', 'Fertőszentmiklós', 'Fonyód', 'Füzesabony', 'Gárdony', 'Göd', 'Gödöllő', 'Gyál', 
-  'Gyoma', 'Gyömrő', 'Gyöngyös', 'Győr', 'Gyula', 'Hajdúböszörmény', 'Hajdúhadház', 'Hajdúnánás', 
-  'Hajdúszoboszló', 'Halásztelek', 'Harkány', 'Hatvan', 'Heves', 'Hódmezővásárhely', 'Hort', 'Hortobágy', 
-  'Isaszeg', 'Jákó', 'Jánossomorja', 'Jászapáti', 'Jászberény', 'Jászladány', 'Kál-Kápolna', 'Kalocsa', 
-  'Kaposvár', 'Kapuvár', 'Karcag', 'Kazincbarcika', 'Kecskemét', 'Kelebia', 'Kerepes', 'Keszthely', 
-  'Kiskőrös', 'Kiskunfélegyháza', 'Kiskunhalas', 'Kiskunlacháza', 'Kismaros', 'Kisújszállás', 'Kisvárda', 
-  'Kőbánya-Kispest', 'Komárom', 'Komló', 'Körmend', 'Kőszeg', 'Kunhegyes', 'Kunszentmárton', 'Lajosmizse', 
-  'Lengyeltóti', 'Lőrinci', 'Maglód', 'Makó', 'Marcali', 'Martonvásár', 'Mátészalka', 'Mezőberény', 
-  'Mezőkövesd', 'Mezőtúr', 'Miskolc-Tiszai', 'Mohács', 'Monor', 'Mór', 'Mosonmagyaróvár', 'Nadap', 
-  'Nagyigmánd', 'Nagykanizsa', 'Nagykáta', 'Nagykőrös', 'Nagymaros', 'Nagyatád', 'Nemesgulács', 
-  'Nyékládháza', 'Nyergesújfalu', 'Nyírbátor', 'Nyíregyháza', 'Orosháza', 'Oroszlány', 'Ózd', 'Paks', 
-  'Pápa', 'Pásztó', 'Pécel', 'Pécs', 'Pétfürdő', 'Pilis', 'Piliscsaba', 'Polgárdi', 'Pomáz', 
-  'Püspökladány', 'Putnok', 'Ráckeve', 'Rétság', 'Sárbogárd', 'Sarkad', 'Sárospatak', 'Sárvár', 
-  'Sásd', 'Sátoraljaújhely', 'Sellye', 'Siófok', 'Soltvadkert', 'Sopron', 'Sümeg', 'Szabadszállás', 
-  'Szarvas', 'Százhalombatta', 'Szécsény', 'Szeged', 'Szeghalom', 'Székesfehérvár', 'Szekszárd', 
-  'Szentendre', 'Szentes', 'Szentgotthárd', 'Szentlőrinc', 'Szerencs', 'Szigetvár', 'Szob', 
-  'Szolnok', 'Szombathely', 'Tab', 'Tamási', 'Tápiószecső', 'Tapolca', 'Tatabánya', 'Tata', 
-  'Téglás', 'Tiszakecske', 'Tiszafüred', 'Tiszaújváros', 'Tokaj', 'Tolna', 'Törökszentmiklós', 
-  'Tura', 'Újszász', 'Üllő', 'Vác', 'Várpalota', 'Vecsés', 'Veresegyház', 'Veszprém', 'Villány', 
-  'Visegrád', 'Záhony', 'Zalaegerszeg', 'Zalalövő', 'Zalaszentiván', 'Zamárdi', 'Zirc', 'Zsámbék', 'Zsurk'
-].sort();
+import { ALL_HUNGARY_STATIONS } from '../data/allStations';
 
 export default function SchedulePage() {
+  const ALL_STATIONS = ALL_HUNGARY_STATIONS;
   const { ws } = useAuth();
   const [form, setForm] = useState({ from: '', to: '', date: new Date().toISOString().split('T')[0], network: 'mav', sortBy: 'departure' });
   const [trips, setTrips] = useState([]);
