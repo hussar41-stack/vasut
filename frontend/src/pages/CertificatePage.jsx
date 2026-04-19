@@ -76,9 +76,9 @@ export default function CertificatePage() {
           <h4 style={{ fontSize: '1.1rem', marginTop: '20px', marginBottom: '10px' }}>2.1. Fizetési modul és Stripe integráció</h4>
           <p style={{ textAlign: 'justify' }}>
             A rendszer jelenleg a Stripe Payments Europe, Ltd. tesztkörnyezetét (Sandbox) használja. 
-            <strong> A v{version} verzióban a korábbi ár-inkonzisztencia javításra került.</strong> A dinamikus árazási 
-            algoritmus és a kedvezménykezelési logika szinkronizálva lett, így a frontend és a Stripe felé továbbított 
-            összegek egyezősége biztosított.
+            Az országos, vármegyei, valamint a Budapest-bérletek vásárlási folyamatában technikai inkonzisztencia 
+            tapasztalható a front-end felületen feltüntetett bruttó végösszeg és a Stripe fizetési kapu felé 
+            továbbított érték között. A hiba javítása a szoftver v1.8-as verziójában várható.
           </p>
 
           <h4 style={{ fontSize: '1.1rem', marginTop: '20px', marginBottom: '10px' }}>2.2. Térképi és menetrendi adatok integrációja</h4>
@@ -93,6 +93,16 @@ export default function CertificatePage() {
             Az "AI Travel Advisor" modul nagynyelvű modelleket (LLM) használ a természetes nyelven érkező
             lekérdezések feldolgozására. A tesztelés során "Internal AI Error" típusú üzenetek fordulhatnak elő
             limitációk esetén.
+          </p>
+
+          <h4 style={{ fontSize: '1.1rem', marginTop: '20px', marginBottom: '10px' }}>2.4. Díjmentes tranzakciók kezelése</h4>
+          <p style={{ textAlign: 'justify' }}>
+            A "Díjmentes (0 Ft)" jegyvásárlások jelenleg hibát eredményezhetnek a Stripe minimum limitjei miatt.
+          </p>
+
+          <h4 style={{ fontSize: '1.1rem', marginTop: '20px', marginBottom: '10px' }}>2.5. Perzisztencia hiánya</h4>
+          <p style={{ textAlign: 'justify' }}>
+            A rendszer memóriabázisú tárolást használ; a szerver újraindulása adatvesztéssel jár.
           </p>
 
           <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginTop: '30px' }}>III. TESZTELÉSI HOZZÁFÉRÉS ÉS BIZTONSÁG</h3>

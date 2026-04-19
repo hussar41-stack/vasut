@@ -16,13 +16,19 @@ A dokumentum aláírásával az Átvevő (Tesztelő) tudomásul veszi, hogy a sz
 A fejlesztői csapat (a továbbiakban: Fejlesztő) rögzíti, hogy a demo verzió **1.7.5-ös változata** funkcionálisan stabil, azonban az alábbi modulok tesztelése során fokozott körültekintés szükséges:
 
 ### 2.1. Fizetési modul és Stripe integráció
-A rendszer a Stripe Payments Europe, Ltd. tesztkörnyezetét (Sandbox) használja. **A korábban jelzett inkonzisztencia az összegek (front-end vs. Stripe) között a v1.7.5-ös verzióban javításra került.** A dinamikus árazási algoritmust és a kedvezménykezelési logikát összehangoltuk, a rendszer most már a pontos, kedvezményekkel módosított bruttó végösszeget továbbítja a fizetési kapu felé.
+A rendszer a Stripe Payments Europe, Ltd. tesztkörnyezetét (Sandbox) használja. Az országos, vármegyei, valamint a Budapest-bérletek vásárlási folyamatában technikai inkonzisztencia tapasztalható a front-end felületen feltüntetett bruttó végösszeg és a Stripe fizetési kapu felé továbbított érték között. Ez az anomália a dinamikus árazási algoritmus és a devizaváltási kerekítési szabályok közötti szoftveres konfliktus eredménye. A hiba javítása a szoftver következő (v1.8) verziójában várható.
 
 ### 2.2. Térképi és menetrendi adatok integrációja
 A szoftver architektúrája felkészült a GTFS és GTFS-Realtime adatok fogadására. Jelen fázisban a valós idejű adatszolgáltatás a MÁV-START Zrt. hivatalos API hozzáférésére vár. Ezen hozzáférés hiányában a térképi modul statikus adatokkal és szimulált pozíciókkal operál, ami az útvonaltervezés pontosságát befolyásolhatja.
 
 ### 2.3. Mesterséges Intelligencia (AI) Utazástervező
 Az "AI Travel Advisor" modul nagynyelvű modelleket (LLM) használ a természetes nyelven érkező lekérdezések feldolgozására. A tesztelés során "Internal AI Error" típusú üzenetek fordulhatnak elő, amennyiben a lekérdezés bonyolultsága meghaladja a jelenlegi token-limitációt, vagy a bemeneti adat nem felel meg a strukturált paraméterezésnek.
+
+### 2.4. Díjmentes tranzakciók kezelése
+A "Díjmentes (0 Ft)" típusú jegywásárlások jelenleg technikai hibát eredményezhetnek a Stripe validációs szabályai miatt (minimum tranzakciós korlát). Ezen jegytípusokhoz külön logikai ág beépítése szükséges a későbbi verziókban.
+
+### 2.5. Perzisztens adattárolás hiánya
+A vizsgált demo verzió in-memory store-t használ. A szerver leállása vagy automatikus újraindulása (pl. deployment során) az összes aktív munkamenet és vásárolt jegy/bérlet adatának törlését vonja maga után. A végleges változatban PostgresSQL alapú perzisztencia váltja fel ezt a modult.
 
 ## III. TESZTELÉSI HOZZÁFÉRÉS ÉS BIZTONSÁG
 A Fejlesztő a tesztelési folyamat validálásához az alábbi specifikus adatokat biztosítja:
