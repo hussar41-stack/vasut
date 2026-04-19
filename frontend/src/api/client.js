@@ -68,4 +68,6 @@ export const api = {
     }),
   getMyTickets: (email) =>
     request(`/tickets${email ? `?email=${encodeURIComponent(email)}` : ''}`),
+  confirmPayment: (sessionId) =>
+    request('/confirm-payment', { method: 'POST', body: JSON.stringify({ sessionId }) }),
 };

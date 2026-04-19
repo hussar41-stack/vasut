@@ -48,6 +48,7 @@ export default function PurchaseModal({ trip, discountType, onClose, onSuccess }
         tripId:   trip.id,
         tripData: trip,
         passengerName: form.passengerName,
+        passengerEmail: user.email,
         seatClass: form.seatClass,
         quantity: form.quantity
       });

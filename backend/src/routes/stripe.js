@@ -8,7 +8,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
  */
 router.post('/create-checkout-session', async (req, res) => {
   try {
-    const { type, tripId, tripData, passId, passData, passengerName, seatClass, quantity } = req.body;
+    const { type, tripId, tripData, passId, passData, passengerName, passengerEmail, seatClass, quantity } = req.body;
     
     let lineItemName = 'TransportHU Vásárlás';
     let lineItemDesc = 'Általános szolgáltatás';
@@ -47,6 +47,7 @@ router.post('/create-checkout-session', async (req, res) => {
       metadata: {
         type,
         passengerName,
+        passengerEmail: passengerEmail || '',
         seatClass: seatClass || 'SECOND',
         tripId: tripId || '',
         passId: passId || '',
@@ -57,6 +58,55 @@ router.post('/create-checkout-session', async (req, res) => {
 
     res.json({ id: session.id, url: session.url });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/confirm-payment
+ * Simplified confirmation for demo/dev purposes
+ */
+router.post('/confirm-payment', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== 'paid') {
+        return res.status(400).json({ error: 'Payment not completed or session not found.' });
+    }
+
+    const { type, passengerName, passengerEmail, seatClass, quantity, tripId, tripData, passId } = session.metadata;
+    
+    const { v4: uuidv4 } = require('uuid');
+    const store = require('../data/inMemoryStore');
+
+    if (type === 'TICKET') {
+        const parsedTrip = JSON.parse(tripData);
+        const ticket = {
+            id: uuidv4(),
+            tripId,
+            tripName: parsedTrip.routeName,
+            from: parsedTrip.fromName,
+            to: parsedTrip.toName,
+            departureTime: parsedTrip.departureTime,
+            arrivalTime: parsedTrip.arrivalTime,
+            passengerName,
+            passengerEmail,
+            seatClass,
+            quantity: parseInt(quantity, 10),
+            totalPrice: session.amount_total / 100,
+            purchasedAt: new Date().toISOString(),
+            status: 'CONFIRMED',
+            confirmationCode: `HU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        };
+        store.tickets.push(ticket);
+        return res.json({ success: true, ticket });
+    }
+
+    res.json({ success: true, message: 'Payment confirmed but no logic for this type yet' });
+  } catch (err) {
+    console.error('Confirm Payment Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
