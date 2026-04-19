@@ -13,14 +13,23 @@ router.post('/create-checkout-session', async (req, res) => {
     let lineItemName = 'TransportHU Vásárlás';
     let lineItemDesc = 'Általános szolgáltatás';
     let unitAmount = 0;
+    // Handle quantity and discount
     const qty = Math.min(10, Math.max(1, parseInt(quantity, 10) || 1));
+    const finalType = type || 'TICKET';
 
-    if (type === 'TICKET') {
+    if (finalType === 'TICKET') {
       const basePrice = tripData?.basePrice ?? 2990;
-      unitAmount = Math.round(basePrice * (seatClass === 'FIRST' ? 1.5 : 1));
+      
+      // Calculate multiplier based on discountType
+      let multiplier = 1;
+      if (req.body.discountType === 'discount50') multiplier = 0.5;
+      else if (req.body.discountType === 'discount90') multiplier = 0.1;
+      else if (req.body.discountType === 'free') multiplier = 0;
+      
+      unitAmount = Math.round(basePrice * multiplier * (seatClass === 'FIRST' ? 1.5 : 1));
       lineItemName = 'Vonatjegy';
       lineItemDesc = `${tripData?.fromName} -> ${tripData?.toName} | ${tripData?.routeName}`;
-    } else if (type === 'PASS') {
+    } else if (finalType === 'PASS') {
       unitAmount = passData?.price || 9450;
       lineItemName = passData?.name || 'Vármegyebérlet';
       lineItemDesc = passData?.description || 'Havi bérlet';
@@ -45,10 +54,12 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       metadata: {
-        type,
+        type: finalType,
         passengerName,
         passengerEmail: passengerEmail || '',
         seatClass: seatClass || 'SECOND',
+        quantity: qty.toString(), // Added quantity to metadata!
+        discountType: req.body.discountType || 'full',
         tripId: tripId || '',
         passId: passId || '',
         tripData: tripData ? JSON.stringify(tripData) : '',
@@ -82,7 +93,7 @@ router.post('/confirm-payment', async (req, res) => {
     const store = require('../data/inMemoryStore');
 
     if (type === 'TICKET') {
-        const parsedTrip = JSON.parse(tripData);
+        const parsedTrip = tripData ? JSON.parse(tripData) : {};
         const ticket = {
             id: uuidv4(),
             type: 'TICKET',
@@ -106,14 +117,14 @@ router.post('/confirm-payment', async (req, res) => {
     }
 
     if (type === 'PASS') {
-        const parsedPass = JSON.parse(passData);
+        const parsedPass = passData ? JSON.parse(passData) : {};
         const pass = {
             id: uuidv4(),
             type: 'PASS',
             passId,
-            name: parsedPass.name,
-            totalPrice: parsedPass.price,
-            description: parsedPass.description,
+            name: parsedPass.name || 'Bérlet',
+            totalPrice: session.amount_total / 100,
+            description: parsedPass.description || '',
             isStudent: parsedPass.isStudent,
             passengerName,
             passengerEmail,

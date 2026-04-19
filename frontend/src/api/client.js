@@ -56,15 +56,15 @@ export const api = {
     request(`/trips/${tripId}/delay`, { method: 'PATCH', body: JSON.stringify({ delayMinutes }) }),
 
   // Tickets
-  purchaseTicket: ({ tripId, tripData, passengerName, seatClass, quantity }) =>
+  purchaseTicket: (data) =>
     request('/tickets', {
       method: 'POST',
-      body: JSON.stringify({ tripId, tripData, passengerName, seatClass, quantity }),
+      body: JSON.stringify(data),
     }),
-  createCheckoutSession: ({ tripId, tripData, passengerName, seatClass, quantity }) =>
+  createCheckoutSession: (data) =>
     request('/create-checkout-session', {
       method: 'POST',
-      body: JSON.stringify({ tripId, tripData, passengerName, seatClass, quantity }),
+      body: JSON.stringify(data),
     }),
   getMyTickets: (email) =>
     request(`/tickets${email ? `?email=${encodeURIComponent(email)}` : ''}`),

@@ -45,12 +45,14 @@ export default function PurchaseModal({ trip, discountType, onClose, onSuccess }
     setLoading(true);
     try {
       const session = await api.createCheckoutSession({
+        type:     'TICKET',
         tripId:   trip.id,
         tripData: trip,
         passengerName: form.passengerName,
         passengerEmail: user.email,
         seatClass: form.seatClass,
-        quantity: form.quantity
+        quantity: form.quantity,
+        discountType: discountType
       });
       
       if (session.url) {
