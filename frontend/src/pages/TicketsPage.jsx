@@ -42,7 +42,7 @@ export default function TicketsPage() {
               <label>E-mail cím</label>
               <input
                 type="email"
-                placeholder="utas@example.hu"
+                placeholder="utas@gmail.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
