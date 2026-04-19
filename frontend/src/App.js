@@ -36,7 +36,15 @@ function AppInner() {
     <div className="layout">
       <nav className="navbar">
         <NavLink className="navbar-brand" to="/">
-          <span className="logo-icon">🚆</span>
+          <svg className="logo-icon-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="3" width="16" height="16" rx="2" />
+            <path d="M4 11h16" />
+            <path d="M12 3v8" />
+            <path d="m8 19-2 2" />
+            <path d="m18 21-2-2" />
+            <circle cx="8" cy="15" r="1" />
+            <circle cx="16" cy="15" r="1" />
+          </svg>
           <span>TransportHU</span>
         </NavLink>
         <div className="nav-links">
@@ -177,7 +185,7 @@ function AppInner() {
               title="MÁV Csoport – Magyar Államvasutak"
             >
               <img
-                src="https://www.google.com/s2/favicons?domain=mavcsoport.hu&sz=128"
+                src="https://upload.wikimedia.org/wikipedia/commons/4/41/MAV_logo.svg"
                 alt="MÁV logó"
                 className="sponsor-logo mav-logo"
               />
@@ -191,7 +199,7 @@ function AppInner() {
               title="BKK – Budapesti Közlekedési Központ"
             >
               <img
-                src="https://www.google.com/s2/favicons?domain=bkk.hu&sz=128"
+                src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Budapesti_K%C3%B6zleked%C3%A9si_K%C3%B6zpont_logo.svg"
                 alt="BKK logó"
                 className="sponsor-logo bkk-logo"
               />
@@ -205,7 +213,7 @@ function AppInner() {
               title="Stripe - Biztonságos fizetési partner"
             >
               <img
-                src="https://www.google.com/s2/favicons?domain=stripe.com&sz=128"
+                src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
                 alt="Stripe logó"
                 className="sponsor-logo stripe-logo"
               />

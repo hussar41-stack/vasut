@@ -60,14 +60,28 @@ body {
   text-decoration: none;
   letter-spacing: -0.5px;
 }
-.navbar-brand .logo-icon { 
-  font-size: 1.8rem; 
+.logo-icon-svg { 
+  color: var(--accent);
   filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+  transition: transform 0.3s ease;
 }
+.navbar-brand:hover .logo-icon-svg { transform: scale(1.1) rotate(-5deg); }
 .navbar-brand span { 
     background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+.sponsor-logo { 
+  height: 32px; 
+  width: auto; 
+  filter: grayscale(1) brightness(1.5); 
+  opacity: 0.7; 
+  transition: all 0.3s ease;
+}
+.sponsor-card:hover .sponsor-logo { 
+  filter: grayscale(0) brightness(1); 
+  opacity: 1; 
+  transform: scale(1.05); 
 }
 .nav-links { display: flex; gap: 8px; align-items: center; }
 .nav-link {
