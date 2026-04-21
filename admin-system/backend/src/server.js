@@ -349,6 +349,40 @@ app.delete('/api/alerts', authenticate, isAdmin, (req, res) => {
   res.json({ message: 'Riasztás törölve' });
 });
 
+// --- PERSONNEL OPERATIONS (SIGN ON/OFF) ---
+
+// Sign On for Duty
+app.post('/api/ops/sign-on', authenticate, async (req, res) => {
+  const email = req.admin.id;
+  try {
+    await pool.query(
+      'INSERT INTO staff_presence (staff_email, status, sign_on_time) VALUES ($1, $2, CURRENT_TIMESTAMP)',
+      [email, 'ACTIVE']
+    );
+    activePersonnel.add(email);
+    broadcast({ type: 'STAFF_SIGN_ON', data: { email, time: new Date() } });
+    res.json({ message: 'Szolgálat megkezdve' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Sign Off from Duty
+app.post('/api/ops/sign-off', authenticate, async (req, res) => {
+  const email = req.admin.id;
+  try {
+    await pool.query(
+      'UPDATE staff_presence SET status = $1, sign_off_time = CURRENT_TIMESTAMP WHERE staff_email = $2 AND status = $3',
+      ['CLOSED', email, 'ACTIVE']
+    );
+    activePersonnel.delete(email);
+    broadcast({ type: 'STAFF_SIGN_OFF', data: { email, time: new Date() } });
+    res.json({ message: 'Szolgálat befejezve' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- TECH & DEFECT REPORTS ---
 
 let techReports = [];
@@ -427,6 +461,18 @@ app.post('/api/staff-schedules', authenticate, isAdmin, async (req, res) => {
 app.get('/api/ops/all-reports', authenticate, isAdmin, (req, res) => {
   res.json({ tech: techReports, defects: defectTickets });
 });
+
+// Initialize active personnel from DB
+async function initActivePersonnel() {
+  try {
+    const res = await pool.query("SELECT staff_email FROM staff_presence WHERE status = 'ACTIVE'");
+    res.rows.forEach(r => activePersonnel.add(r.staff_email));
+    console.log(`✅ ${activePersonnel.size} personnel active at startup.`);
+  } catch (err) {
+    console.error('Personnel init error:', err.message);
+  }
+}
+initActivePersonnel();
 
 server.listen(PORT, () => {
     console.log(`🏢 GVK Admin Backend running on port ${PORT}`);
