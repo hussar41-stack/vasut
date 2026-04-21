@@ -75,7 +75,7 @@ export default function Settings() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
         
         {/* Profile Card */}
         <section className="glass-panel" style={{ padding: '1.5rem' }}>

@@ -132,3 +132,39 @@ input:focus {
     gap: 15px;
   }
 }
+
+/* Refined Mobile Navigation */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    position: fixed !important;
+    left: -100%;
+    top: 61px; /* Height of mobile header */
+    bottom: 0;
+    width: 100% !important;
+    z-index: 999;
+    background: #0f172a !important;
+    display: flex !important;
+    padding: 2rem !important;
+  }
+
+  .admin-sidebar.open {
+    left: 0;
+  }
+
+  .mobile-only-header {
+    display: flex !important;
+    position: sticky;
+    top: 0;
+    width: 100%;
+  }
+
+  nav {
+    display: block !important;
+    overflow-x: visible !important;
+  }
+
+  nav > div {
+    margin-bottom: 10px !important;
+    font-size: 1.1rem !important;
+  }
+}

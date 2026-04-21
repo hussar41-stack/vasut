@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, Train, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Activity, Users, ShieldAlert, Calendar as CalendarIcon } from 'lucide-react';
+import { LayoutDashboard, Train, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Activity, Users, ShieldAlert, Calendar as CalendarIcon, Menu, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { API_URL } from '../config';
@@ -15,6 +15,7 @@ import SettingsView from './Settings';
 export default function AdminDashboard() {
   const { admin, logout } = useAdminAuth();
   const [activeView, setActiveView] = useState('dash');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [stats, setStats] = useState({ activeTrips: 0, delays: 0, systemHealth: '...' });
   const [trips, setTrips] = useState([]);
   const [mapReady, setMapReady] = useState(false);
@@ -53,9 +54,33 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="admin-layout" style={{ display: 'flex', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
-      {/* Sidebar */}
-      <aside style={{ width: 280, background: 'rgba(15, 23, 42, 0.95)', borderRight: '1px solid var(--border)', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+    <div className="admin-layout" style={{ display: 'flex', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)', flexDirection: window.innerWidth <= 768 ? 'column' : 'row' }}>
+      
+      {/* Mobile Header (Only visible on small screens) */}
+      <header className="mobile-only-header" style={{
+          display: window.innerWidth <= 768 ? 'flex' : 'none',
+          alignItems: 'center', justifyContent: 'space-between',
+          padding: '1rem', background: 'rgba(15, 23, 42, 0.95)',
+          borderBottom: '1px solid var(--border)', zIndex: 1000
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 30, height: 30, background: 'var(--accent)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Train size={18} color="white" />
+          </div>
+          <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>TRANSPORT<span style={{ color: 'var(--accent)' }}>GVK</span></span>
+        </div>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </header>
+
+      {/* Sidebar / Mobile Menu */}
+      <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ 
+          width: 280, background: 'rgba(15, 23, 42, 0.95)', 
+          borderRight: '1px solid var(--border)', padding: '2rem', 
+          display: 'flex', flexDirection: 'column',
+          transition: 'all 0.3s ease'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '3rem' }}>
           <div style={{ width: 40, height: 40, background: 'var(--accent)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px var(--accent-glow)' }}>
              <Train color="white" size={24} />
@@ -75,7 +100,10 @@ export default function AdminDashboard() {
             { id: 'alert', icon: <AlertTriangle size={20}/>, label: 'Napló' },
           ].map(item => (
             <div key={item.id} 
-                onClick={() => setActiveView(item.id)}
+                onClick={() => {
+                    setActiveView(item.id);
+                    setMobileMenuOpen(false);
+                }}
                 style={{ 
                     display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px', 
                     borderRadius: '12px', cursor: 'pointer', marginBottom: '10px',
