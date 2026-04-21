@@ -96,44 +96,41 @@ const fordaDB = {
 let activePersonnel = new Set(); // Aktív szolgálatban lévők
 
 // Auth Route
-  // 1. Database Login (Preferred)
-  try {
-    const table = email.includes('admin') ? 'admins' : 'staff';
-    const result = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
-    const user = result.rows[0];
-    
-    if (user) {
-        // Simple password check for demo (use bcrypt in production)
-        if (password === user.password_hash) {
-            const token = jwt.sign({ id: user.email, role: user.role, name: user.name, id_db: user.id }, JWT_SECRET, { expiresIn: '8h' });
-            return res.json({ 
-                token, 
-                admin: { name: user.name, role: user.role, email: user.email, avatar_url: user.avatar_url, forda: fordaDB[email] || null } 
-            });
-        }
-    }
-  } catch (err) {
-    console.error('DB Login Error:', err.message);
-  }
-
-  // 2. Hardcoded Fallback for safety during transition
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  // Hardcoded Demo Users (Always work even if DB is failing)
   const demoUsers = [
     { email: 'peterszabo@transporthu.hu', pass: 'péter', name: 'Szabó Péter', role: 'ENGINEER' },
     { email: 'zsoltkarasz@transporthu.hu', pass: 'zsolt', name: 'Kárász Zsolt Bence', role: 'ENGINEER' },
-    { email: 'sandorkantor@transporthu.hu', pass: 'sándor', name: 'Kántor Sándor', role: 'ENGINEER' },
     { email: 'imrehorvath@transporthu.hu', pass: 'imre', name: 'Horváth Imre', role: 'CONDUCTOR' },
     { email: 'admin@transporthu.hu', pass: 'admin', name: 'GVK Diszpécser', role: 'admin' }
   ];
 
   const userFound = demoUsers.find(u => u.email === email && u.pass === password);
-
   if (userFound) {
-    const forda = fordaDB[email] || null;
     const token = jwt.sign({ id: userFound.email, role: userFound.role, name: userFound.name }, JWT_SECRET, { expiresIn: '8h' });
     return res.json({ 
         token, 
-        admin: { name: userFound.name, role: userFound.role, email: userFound.email, forda } 
+        admin: { name: userFound.name, role: userFound.role, email: userFound.email, forda: fordaDB[email] || null } 
     });
+  }
+
+  // Database check as secondary
+  try {
+    const table = email.includes('admin') ? 'admins' : 'staff';
+    const result = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
+    const user = result.rows[0];
+    
+    if (user && user.password_hash === password) {
+        const token = jwt.sign({ id: user.email, role: user.role, name: user.name, id_db: user.id }, JWT_SECRET, { expiresIn: '8h' });
+        return res.json({ 
+            token, 
+            admin: { name: user.name, role: user.role, email: user.email, avatar_url: user.avatar_url, forda: fordaDB[email] || null } 
+        });
+    }
+  } catch (err) {
+    console.error('DB Login Error:', err.message);
   }
 
   res.status(401).json({ error: 'Hibás belépés vagy jelszó.' });
