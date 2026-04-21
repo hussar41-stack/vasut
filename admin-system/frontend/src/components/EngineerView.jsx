@@ -66,7 +66,7 @@ export default function EngineerView() {
     try {
         const token = localStorage.getItem('adminToken');
         const res = await axios.post(`${API_URL}/api/tech-reports`, 
-            { type, details: 'Mozdonyvezetői észrevétel', trip_id: forda?.trips[0]?.id || 'ISMERETLEN' },
+            { type, details: 'Mozdonyvezetői észrevétel', trip_id: schedule?.[0]?.id || 'ISMERETLEN' },
             { headers: { Authorization: `Bearer ${token}` } }
         );
         setActiveIncident(res.data);
