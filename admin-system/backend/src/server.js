@@ -105,7 +105,7 @@ app.post('/api/auth/login', async (req, res) => {
     { email: 'kovacsbalazs@transporthu.hu', pass: 'balázs', name: 'Kovács Balázs', role: 'CONDUCTOR' },
     { email: 'totheszter@transporthu.hu', pass: 'eszter', name: 'Tóth Eszter', role: 'ENGINEER' },
     { email: 'molnaradam@transporthu.hu', pass: 'ádám', name: 'Molnár Ádám', role: 'CONDUCTOR' },
-    { email: 'admin@transporthu.hu', pass: 'admin', name: 'GVK Diszpécser', role: 'admin' }
+    { email: 'mav.admin', pass: 'admin', name: 'MÁV Adminisztrátor', role: 'admin' }
   ];
 
   const userFound = demoUsers.find(u => u.email === email && u.pass === password);
