@@ -19,6 +19,7 @@ export default function StaffScheduler() {
   useEffect(() => {
     if (selectedStaff) {
       fetchSchedules();
+      setSuggestions([]); // Clear old suggestions while loading
     }
   }, [selectedStaff, currentDate]);
 

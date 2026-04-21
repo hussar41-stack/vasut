@@ -255,15 +255,14 @@ app.get('/api/driver/schedule', authenticate, async (req, res) => {
     if (!driverLocation) return res.json([]); // No home station assigned yet
 
     // 2. Fetch trains that start OR end at this location
-    // Filtering for "today" (simple date comparison)
     const today = new Date().toISOString().split('T')[0];
 
     const tripsRes = await pool.query(`
       SELECT * FROM trips 
       WHERE (departure_station = $1 OR arrival_station = $1)
-      AND departure_time::text LIKE $2
+      AND departure_time::date = $2::date
       ORDER BY departure_time ASC
-    `, [driverLocation, `${today}%`]);
+    `, [driverLocation, today]);
 
     res.json(tripsRes.rows);
   } catch (err) {
@@ -287,9 +286,9 @@ app.get('/api/admin/staff-suggestions/:email', authenticate, isAdmin, async (req
       SELECT id, train_number, departure_station, arrival_station, departure_time 
       FROM trips 
       WHERE (departure_station = $1 OR arrival_station = $1)
-      AND departure_time::text LIKE $2
+      AND departure_time::date = $2::date
       ORDER BY departure_time ASC
-    `, [loc, `${today}%`]);
+    `, [loc, today]);
 
     res.json(tripsRes.rows);
   } catch (err) {
