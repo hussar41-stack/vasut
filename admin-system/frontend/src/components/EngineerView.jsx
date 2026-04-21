@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, AlertTriangle, PenTool, CheckCircle, ShieldAlert } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config';
@@ -18,15 +18,13 @@ export default function EngineerView() {
   const fetchTodaySchedule = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const today = new Date().toISOString().split('T')[0];
-      const res = await axios.get(`${API_URL}/api/staff-schedules?email=${admin.email}&date=${today}`, {
+      // New Senior-level Logic: Fetch trains relevant to this driver's home station
+      const res = await axios.get(`${API_URL}/api/driver/schedule`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // PG uses DATE, we might need to filter manually if endpoint doesn't support 'date' query yet
-      const found = res.data.find(s => s.duty_date.startsWith(today));
-      setSchedule(found);
+      setSchedule(res.data); // res.data is now an array of trains
     } catch (e) {
-      console.error("Scale fetch error", e);
+      console.error("Schedule fetch error", e);
     }
   };
 
@@ -104,19 +102,39 @@ export default function EngineerView() {
         <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #64748b', color: '#64748b', padding: '5px 10px', borderRadius: '5px', fontSize: '0.7rem' }}>Kijelentkezés</button>
       </header>
 
-      {/* Daily Forda Display */}
+      {/* Smart Route Assignment Display */}
       <div className="glass-panel" style={{ padding: '1.2rem', marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)' }}>
-        <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>NAPI FELADATOK (ADATBÁZISBÓL)</h3>
-        {schedule ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
-            <div>
-              <b style={{ color: 'var(--accent)' }}>SZOLGÁLAT: {schedule.shift_start} - {schedule.shift_end}</b> <br/>
-              <span style={{ fontSize: '0.85rem' }}>Járatok: {schedule.trip_ids?.join(', ')}</span> <br/>
-              <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>Megjegyzés: {schedule.notes || 'Nincs'}</span>
-            </div>
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>RELEVÁNS MAI JÁRATOK ({admin?.location || 'Minden telephely'})</h3>
+        {schedule && schedule.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {schedule.map(trip => (
+              <div key={trip.id} style={{ 
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                  padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' 
+              }}>
+                <div>
+                  <b style={{ color: 'var(--accent)', fontSize: '1rem' }}>{trip.train_number} sz. vonat</b> <br/>
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                    {trip.departure_station} ➔ {trip.arrival_station}
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                    {new Date(trip.departure_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  <div style={{ 
+                      fontSize: '0.75rem', 
+                      color: trip.delay > 0 ? 'var(--danger)' : 'var(--success)',
+                      fontWeight: 600
+                  }}>
+                    {trip.delay > 0 ? `+${trip.delay} KÉSIK` : 'IDŐBEN'}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincs mára beosztott feladatod az adatbázisban.</p>
+          <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincs mára beosztott vagy érintett járatod a telephelyeden.</p>
         )}
       </div>
 

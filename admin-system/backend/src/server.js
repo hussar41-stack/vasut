@@ -242,6 +242,36 @@ app.delete('/api/trips/:id', authenticate, isAdmin, async (req, res) => {
   }
 });
 
+// Get relevant schedule for the logged-in driver (based on home station)
+app.get('/api/driver/schedule', authenticate, async (req, res) => {
+  const email = req.admin.id; // From JWT
+  
+  try {
+    // 1. Get driver's home station (location)
+    const staffRes = await pool.query('SELECT location FROM staff WHERE email = $1', [email]);
+    if (staffRes.rows.length === 0) return res.status(404).json({ error: 'Munkavállaló nem található' });
+    
+    const driverLocation = staffRes.rows[0].location;
+    if (!driverLocation) return res.json([]); // No home station assigned yet
+
+    // 2. Fetch trains that start OR end at this location
+    // Filtering for "today" (simple date comparison)
+    const today = new Date().toISOString().split('T')[0];
+
+    const tripsRes = await pool.query(`
+      SELECT * FROM trips 
+      WHERE (departure_station = $1 OR arrival_station = $1)
+      AND departure_time::text LIKE $2
+      ORDER BY departure_time ASC
+    `, [driverLocation, `${today}%`]);
+
+    res.json(tripsRes.rows);
+  } catch (err) {
+    console.error('Driver Schedule Error:', err.message);
+    res.status(500).json({ error: 'Hiba a menetrend lekérésekor' });
+  }
+});
+
 // --- STAFF MANAGEMENT ---
 
 // Get all staff
