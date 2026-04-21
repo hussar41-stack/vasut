@@ -76,6 +76,7 @@ export default function EngineerView() {
     }
   };
 
+  return (
     <div className="fade-in" style={{ padding: '0', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
       {/* Status Bar */}
       <div style={{ 
