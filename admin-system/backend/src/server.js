@@ -101,9 +101,10 @@ app.post('/api/auth/login', async (req, res) => {
   
   // Hardcoded Demo Users (Always work even if DB is failing)
   const demoUsers = [
-    { email: 'peterszabo@transporthu.hu', pass: 'péter', name: 'Szabó Péter', role: 'ENGINEER' },
-    { email: 'zsoltkarasz@transporthu.hu', pass: 'zsolt', name: 'Kárász Zsolt Bence', role: 'ENGINEER' },
-    { email: 'imrehorvath@transporthu.hu', pass: 'imre', name: 'Horváth Imre', role: 'CONDUCTOR' },
+    { email: 'simonstella@transporthu.hu', pass: 'stella', name: 'Simon Stella', role: 'ENGINEER' },
+    { email: 'kovacsbalazs@transporthu.hu', pass: 'balázs', name: 'Kovács Balázs', role: 'CONDUCTOR' },
+    { email: 'totheszter@transporthu.hu', pass: 'eszter', name: 'Tóth Eszter', role: 'ENGINEER' },
+    { email: 'molnaradam@transporthu.hu', pass: 'ádám', name: 'Molnár Ádám', role: 'CONDUCTOR' },
     { email: 'admin@transporthu.hu', pass: 'admin', name: 'GVK Diszpécser', role: 'admin' }
   ];
 
