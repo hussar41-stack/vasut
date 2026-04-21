@@ -121,13 +121,13 @@ export default function AdminDashboard() {
       <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
         {activeView === 'dash' && (
           <>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <header className="calendar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Vezérlőpult Áttekintés</h1>
               <div style={{ color: '#4a5568' }}>{new Date().toLocaleString('hu-HU')}</div>
             </header>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
               <div className="glass-panel fade-in" style={{ padding: '1.5rem' }}>
                 <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>Aktív vonatok</div>
                 <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent)', textShadow: '0 0 10px var(--accent-glow)' }}>{stats.activeTrips}</div>
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Live Map & Action Table Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }}>
+            <div className="map-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }}>
               
               {/* Map Column */}
               <div className="glass-panel fade-in" style={{ animationDelay: '0.3s', height: '500px', overflow: 'hidden', padding: '10px' }}>
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                <h3 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
                   <ShieldAlert size={18} color="var(--danger)" /> Operatív Eseménynapló (Személyzeti jelentések)
                </h3>
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+               <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                   {/* Tech Reports */}
                   <div>
                     <h4 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '10px' }}>MOZDONYVEZETŐI JELENTÉSEK</h4>

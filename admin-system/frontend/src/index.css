@@ -85,3 +85,50 @@ input:focus {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column !important;
+  }
+  
+  aside {
+    width: 100% !important;
+    height: auto !important;
+    padding: 1rem !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  /* Horizontal scroll for sidebar on mobile */
+  nav {
+    display: flex !important;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    gap: 5px !important;
+  }
+
+  nav > div {
+    white-space: nowrap;
+    padding: 10px 15px !important;
+    margin-bottom: 0 !important;
+  }
+
+  main {
+    padding: 1rem !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .map-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+}

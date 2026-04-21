@@ -87,13 +87,13 @@ export default function StaffScheduler() {
 
   return (
     <div className="fade-in" style={{ padding: '2rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <header className="calendar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Havi Vezénylés Tervező</h1>
           <p style={{ color: 'var(--text-muted)' }}>Személyzet beosztásának kezelése</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
           <select 
             value={selectedStaff?.email} 
             onChange={(e) => setSelectedStaff(staff.find(s => s.email === e.target.value))}
@@ -112,7 +112,7 @@ export default function StaffScheduler() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+      <div className="map-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         {/* Calendar Grid */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', textAlign: 'center', marginBottom: '10px' }}>
