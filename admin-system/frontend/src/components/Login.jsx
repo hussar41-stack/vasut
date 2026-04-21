@@ -17,7 +17,7 @@ export default function Login() {
       const success = await login(email, password);
       if (success) navigate('/dashboard');
     } catch (err) {
-      alert('Hibás belépési adatok! Próbáld: admin / admin');
+      alert('Hibás belépési adatok!');
     } finally {
       setLoading(false);
     }
@@ -70,13 +70,6 @@ export default function Login() {
             {loading ? 'Azonosítás...' : 'Bejelentkezés'}
           </button>
         </form>
-
-        <div style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6', textAlign: 'center', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-          <b>Személyzeti terminál teszt adatok:</b><br/>
-          GVK: admin / admin<br/>
-          Mozdonyvezető: engineer / engineer<br/>
-          Jegyvizsgáló: conductor / conductor
-        </div>
       </div>
     </div>
   );
