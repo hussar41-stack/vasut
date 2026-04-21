@@ -32,6 +32,13 @@ export const AdminAuthProvider = ({ children }) => {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    setAdmin(null);
+    window.location.href = '/login';
+  };
+
   const updateAdmin = (newData) => {
     const updated = { ...admin, ...newData };
     localStorage.setItem('adminData', JSON.stringify(updated));
