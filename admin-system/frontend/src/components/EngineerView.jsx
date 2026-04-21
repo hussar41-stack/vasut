@@ -7,7 +7,28 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 export default function EngineerView() {
   const { admin, logout } = useAdminAuth();
   const [isOnDuty, setIsOnDuty] = useState(localStorage.getItem('onDuty') === 'true');
-  const forda = admin?.forda;
+  const [schedule, setSchedule] = useState(null);
+  
+  useEffect(() => {
+    if (admin?.email) {
+      fetchTodaySchedule();
+    }
+  }, [admin]);
+
+  const fetchTodaySchedule = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const today = new Date().toISOString().split('T')[0];
+      const res = await axios.get(`${API_URL}/api/staff-schedules?email=${admin.email}&date=${today}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // PG uses DATE, we might need to filter manually if endpoint doesn't support 'date' query yet
+      const found = res.data.find(s => s.duty_date.startsWith(today));
+      setSchedule(found);
+    } catch (e) {
+      console.error("Scale fetch error", e);
+    }
+  };
 
   const handleSignOn = async () => {
     try {
@@ -85,23 +106,17 @@ export default function EngineerView() {
 
       {/* Daily Forda Display */}
       <div className="glass-panel" style={{ padding: '1.2rem', marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)' }}>
-        <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>NAPI FORDA FELADATOK</h3>
-        {forda?.trips ? forda.trips.map(trip => (
-          <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>NAPI FELADATOK (ADATBÁZISBÓL)</h3>
+        {schedule ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
             <div>
-              <b style={{ color: 'var(--accent)' }}>{trip.id}</b> <br/>
-              <span style={{ fontSize: '0.85rem' }}>{trip.from} ➔ {trip.to}</span>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 'bold' }}>{trip.dep}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--success)' }}>{trip.track}. vágány</div>
+              <b style={{ color: 'var(--accent)' }}>SZOLGÁLAT: {schedule.shift_start} - {schedule.shift_end}</b> <br/>
+              <span style={{ fontSize: '0.85rem' }}>Járatok: {schedule.trip_ids?.join(', ')}</span> <br/>
+              <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>Megjegyzés: {schedule.notes || 'Nincs'}</span>
             </div>
           </div>
-        )) : <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincsenek mára beosztott feladatok.</p>}
-        {forda?.notes && (
-          <div style={{ marginTop: '1rem', padding: '8px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '6px', fontSize: '0.8rem', color: '#fbbf24' }}>
-            ⚠️ {forda.notes}
-          </div>
+        ) : (
+          <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincs mára beosztott feladatod az adatbázisban.</p>
         )}
       </div>
 

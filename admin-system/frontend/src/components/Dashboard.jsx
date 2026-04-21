@@ -9,6 +9,7 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import TripManager from './TripManager';
 import StaffManager from './StaffManager';
 import AlertManager from './AlertManager';
+import StaffScheduler from './StaffScheduler';
 
 export default function AdminDashboard() {
   const { admin, logout } = useAdminAuth();
@@ -66,6 +67,7 @@ export default function AdminDashboard() {
           {[
             { id: 'dash', icon: <LayoutDashboard size={20}/>, label: 'Vezérlőpult' },
             { id: 'trips', icon: <Train size={20}/>, label: 'Járatkezelés' },
+            { id: 'schedule', icon: <CalendarIcon size={20}/>, label: 'Vezénylés' },
             { id: 'staff', icon: <Users size={20}/>, label: 'Személyzet' },
             { id: 'map', icon: <MapIcon size={20}/>, label: 'Élő Forgalom' },
             { id: 'alert', icon: <AlertTriangle size={20}/>, label: 'Napló' },
@@ -241,6 +243,7 @@ export default function AdminDashboard() {
         )}
 
         {activeView === 'trips' && <TripManager />}
+        {activeView === 'schedule' && <StaffScheduler />}
         {activeView === 'staff' && <StaffManager />}
         {activeView === 'alert' && <AlertManager />}
       </main>

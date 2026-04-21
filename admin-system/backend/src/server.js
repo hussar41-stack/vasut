@@ -279,7 +279,58 @@ app.post('/api/defects', authenticate, async (req, res) => {
   res.status(201).json(ticket);
 });
 
-// Get all reports (GVK Admin)
+// --- STAFF MONTHLY SCHEDULES (Vezénylés) ---
+
+// Get schedules for a month
+app.get('/api/staff-schedules', authenticate, async (req, res) => {
+  const { month, year, email } = req.query; // format month: 0-11
+  try {
+    let query = 'SELECT * FROM staff_schedules WHERE 1=1';
+    const params = [];
+    
+    if (month && year) {
+        const start = `${year}-${Number(month)+1}-01`;
+        const end = `${year}-${Number(month)+1}-31`; // Approx, PG handles it
+        query += ` AND duty_date >= $${params.length+1} AND duty_date <= $${params.length+2}`;
+        params.push(start, end);
+    }
+    
+    if (email) {
+        query += ` AND staff_email = $${params.length+1}`;
+        params.push(email);
+    }
+    
+    const result = await pool.query(query + ' ORDER BY duty_date ASC', params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save/Update schedule for a day
+app.post('/api/staff-schedules', authenticate, isAdmin, async (req, res) => {
+  const { staff_email, duty_date, shift_start, shift_end, trip_ids, notes, status } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO staff_schedules 
+       (staff_email, duty_date, shift_start, shift_end, trip_ids, notes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (staff_email, duty_date) 
+       DO UPDATE SET 
+         shift_start = EXCLUDED.shift_start,
+         shift_end = EXCLUDED.shift_end,
+         trip_ids = EXCLUDED.trip_ids,
+         notes = EXCLUDED.notes,
+         status = EXCLUDED.status
+       RETURNING *`,
+      [staff_email, duty_date, shift_start, shift_end, trip_ids, notes, status || 'ASSIGNED']
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/ops/all-reports', authenticate, isAdmin, (req, res) => {
   res.json({ tech: techReports, defects: defectTickets });
 });
