@@ -168,3 +168,10 @@ input:focus {
     font-size: 1.1rem !important;
   }
 }
+
+/* Staff Suggestions UI */
+.suggestion-item:hover {
+  background: rgba(56, 189, 248, 0.15) !important;
+  border-color: var(--accent) !important;
+  transform: translateX(5px);
+}

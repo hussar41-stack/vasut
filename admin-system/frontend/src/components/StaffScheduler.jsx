@@ -10,6 +10,7 @@ export default function StaffScheduler() {
   const [schedules, setSchedules] = useState({});
   const [editingDay, setEditingDay] = useState(null);
   const [formData, setFormData] = useState({ start: '08:00', end: '16:00', notes: '', trips: '' });
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     fetchStaff();
@@ -62,6 +63,24 @@ export default function StaffScheduler() {
       notes: existing.notes || '',
       trips: existing.trip_ids ? existing.trip_ids.join(', ') : ''
     });
+    fetchSuggestions(selectedStaff.email);
+  };
+
+  const fetchSuggestions = async (email) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/staff-suggestions/${email}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuggestions(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const addTripToForm = (trainNum) => {
+    const current = formData.trips.split(',').map(t => t.trim()).filter(t => t);
+    if (!current.includes(trainNum)) {
+        setFormData({...formData, trips: [...current, trainNum].join(', ')});
+    }
   };
 
   const handleSave = async () => {
@@ -176,6 +195,30 @@ export default function StaffScheduler() {
               >
                 <Save size={18} /> BEOSZTÁS MENTÉSE
               </button>
+
+              {/* Smart Suggestions Panel */}
+              {suggestions.length > 0 && (
+                <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                   <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                     Javasolt járatok ({selectedStaff?.location})
+                   </h4>
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {suggestions.map(s => (
+                        <div key={s.id} onClick={() => addTripToForm(s.train_number)} style={{
+                            padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
+                            border: '1px solid transparent', transition: 'all 0.2s'
+                        }} className="suggestion-item">
+                           <div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{s.train_number}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.departure_station} ➔ {s.arrival_station}</div>
+                           </div>
+                           <div style={{ background: 'var(--accent)', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>+</div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              )}
             </>
           ) : (
             <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>

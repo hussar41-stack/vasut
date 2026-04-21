@@ -272,6 +272,31 @@ app.get('/api/driver/schedule', authenticate, async (req, res) => {
   }
 });
 
+// Admin endpoint to get suggestions for ANY staff member
+app.get('/api/admin/staff-suggestions/:email', authenticate, isAdmin, async (req, res) => {
+  const { email } = req.params;
+  try {
+    const staffRes = await pool.query('SELECT location FROM staff WHERE email = $1', [email]);
+    if (staffRes.rows.length === 0) return res.status(404).json({ error: 'Mayer nem található' });
+    
+    const loc = staffRes.rows[0].location;
+    if (!loc) return res.json([]);
+
+    const today = new Date().toISOString().split('T')[0];
+    const tripsRes = await pool.query(`
+      SELECT id, train_number, departure_station, arrival_station, departure_time 
+      FROM trips 
+      WHERE (departure_station = $1 OR arrival_station = $1)
+      AND departure_time::text LIKE $2
+      ORDER BY departure_time ASC
+    `, [loc, `${today}%`]);
+
+    res.json(tripsRes.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- STAFF MANAGEMENT ---
 
 // Get all staff
