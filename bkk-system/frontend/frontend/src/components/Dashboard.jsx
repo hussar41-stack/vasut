@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, Activity, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Activity, Users, ShieldAlert, Calendar as CalendarIcon, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Activity, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Users, ShieldAlert, Calendar as CalendarIcon } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { API_URL } from '../config';
