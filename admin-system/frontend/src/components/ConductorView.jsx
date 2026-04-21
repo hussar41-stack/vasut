@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardCheck, Wrench, AlertCircle, Users, CheckSquare, Square, Activity } from 'lucide-react';
+import { ClipboardCheck, Wrench, AlertCircle, Users, CheckSquare, Square, Activity, ChevronLeft } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
+import SettingsView from './Settings';
 
 export default function ConductorView() {
   const { admin, logout } = useAdminAuth();
   const [isOnDuty, setIsOnDuty] = useState(localStorage.getItem('onDuty') === 'true');
   const [schedule, setSchedule] = useState(null);
+  const [view, setView] = useState('dash'); // 'dash' or 'profile'
   
   useEffect(() => {
     if (admin?.email) {
@@ -84,6 +86,20 @@ export default function ConductorView() {
     padding: '6px 15px', fontSize: '0.75rem', background: color, border: 'none', borderRadius: '5px', color: 'white', fontWeight: 'bold', cursor: 'pointer'
   });
 
+  if (view === 'profile') {
+    return (
+      <div style={{ background: '#0f172a', minHeight: '100vh', color: 'white' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+           <button onClick={() => setView('dash')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+             <ChevronLeft size={24} />
+           </button>
+           <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Saját Profil</h2>
+        </div>
+        <SettingsView />
+      </div>
+    );
+  }
+
   return (
     <div className="fade-in" style={{ padding: '0', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
       {/* Status Bar */}
@@ -110,7 +126,13 @@ export default function ConductorView() {
         <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '1.2rem', margin: 0, color: '#fbbf24' }}>Jegyvizsgálói Terminál</h1>
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Bejelentkezve: {admin?.name}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px' }}>
+              <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fbbf24', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>
+                {admin?.avatar_url ? <img src={admin.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
+              </div>
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{admin?.name}</span>
+              <button onClick={() => setView('profile')} style={{ background: 'none', border: 'none', color: '#fbbf24', fontSize: '0.75rem', cursor: 'pointer', marginLeft: '5px' }}>[Profil]</button>
+            </div>
           </div>
           <button onClick={logout} style={{ background: 'none', border: '1px solid #64748b', color: '#64748b', padding: '5px 10px', borderRadius: '5px', fontSize: '0.7rem' }}>Kijelentkezés</button>
         </header>

@@ -4,7 +4,7 @@ import { User, Lock, Camera, Save, CheckCircle } from 'lucide-react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { API_URL } from '../config';
 
-export default function Settings() {
+export default function Settings({ onClose }) {
   const { admin, updateAdmin } = useAdminAuth();
   const [profileData, setProfileData] = useState({
     name: admin?.name || '',
@@ -75,7 +75,11 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div className="stats-grid" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '1fr 1fr', 
+        gap: '2rem' 
+      }}>
         
         {/* Profile Card */}
         <section className="glass-panel" style={{ padding: '1.5rem' }}>
