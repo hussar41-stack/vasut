@@ -60,6 +60,7 @@ export default function PassesPage() {
       const session = await api.createCheckoutSession({
         type: 'PASS',
         passId: selectedPass.id,
+        userId: user.id,
         passengerName: user.name || user.email,
         quantity: 1,
         passData: {

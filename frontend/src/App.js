@@ -26,15 +26,45 @@ function AppInner() {
   const { user, isLoggedIn } = useAuth();
   const [showContact, setShowContact] = useState(false);
   const [siteInfo, setSiteInfo] = useState(null);
+  const [activeAlert, setActiveAlert] = useState(null);
 
   useEffect(() => {
     api.getSiteInfo()
       .then(data => setSiteInfo(data))
       .catch(err => console.error('Site info load error:', err));
+
+    // Riasztások lekérdezése
+    const checkAlerts = () => {
+      api.getActiveAlert().then(alert => setActiveAlert(alert));
+    };
+    checkAlerts();
+    const interval = setInterval(checkAlerts, 10000); // 10 másodpercenként csekkoljuk
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="layout">
+      {activeAlert && (
+        <div className={`global-alert-bar alert-${activeAlert.level}`} style={{
+          background: activeAlert.level === 'danger' ? '#ef4444' : activeAlert.level === 'warning' ? '#fbbf24' : '#38bdf8',
+          color: activeAlert.level === 'warning' ? '#000' : '#fff',
+          padding: '10px 20px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          fontSize: '0.9rem',
+          zIndex: 2000,
+          position: 'sticky',
+          top: 0,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px'
+        }}>
+          {activeAlert.level === 'danger' ? '🚨' : activeAlert.level === 'warning' ? '⚠️' : 'ℹ️'}
+          {activeAlert.message}
+        </div>
+      )}
       <nav className="navbar">
         <NavLink className="navbar-brand" to="/">
           <svg className="logo-icon-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

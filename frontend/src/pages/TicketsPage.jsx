@@ -11,7 +11,6 @@ function formatDate(iso) {
 
 export default function TicketsPage() {
   const { user, isLoggedIn } = useAuth();
-  const [email, setEmail] = useState('');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,30 +18,24 @@ export default function TicketsPage() {
 
   // Auto-fetch tickets on mount if user is logged in
   useEffect(() => {
-    if (isLoggedIn && user?.email) {
-      setEmail(user.email);
-      fetchTickets(user.email);
+    if (isLoggedIn && user?.id) {
+      fetchTickets(user.id);
     }
   }, [isLoggedIn, user]);
 
-  async function fetchTickets(targetEmail) {
-    if (!targetEmail) return;
+  async function fetchTickets(userId) {
+    if (!userId) return;
     setError(null);
     setLoading(true);
     setSearched(true);
     try {
-      const results = await api.getMyTickets(targetEmail);
+      const results = await api.getMyTickets(userId);
       setTickets(results);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleSearch(e) {
-    e.preventDefault();
-    await fetchTickets(email);
   }
 
   return (
@@ -52,13 +45,13 @@ export default function TicketsPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {isLoggedIn && (
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  Bejelentkezve: <b style={{ color: 'var(--accent)' }}>{user.email}</b>
+                  Azonosító: <b style={{ color: 'var(--accent)' }}>{user.id.substring(0,8)}...</b>
               </div>
           )}
           <button 
             className="btn btn-ghost btn-sm" 
-            onClick={() => fetchTickets(email)}
-            disabled={loading || !email}
+            onClick={() => fetchTickets(user?.id)}
+            disabled={loading || !user?.id}
           >
             🔄 Frissítés
           </button>
@@ -66,27 +59,13 @@ export default function TicketsPage() {
       </div>
 
       {!isLoggedIn && (
-        <div className="search-card" style={{ marginBottom: '2rem' }}>
-          <form onSubmit={handleSearch}>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-              Add meg az e-mail címedet a vásárolt jegyeid megtekintéséhez:
+        <div className="search-card" style={{ marginBottom: '2rem', textAlign: 'center', padding: '3rem' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+            <h3>Bejelentkezés szükséges</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+              A jegyeid megtekintéséhez kérjük jelentkezz be. Az új adatvédelmi szabályzatunk értelmében a jegyeket már csak azonosítás után tesszük elérhetővé.
             </p>
-            <div className="search-grid" style={{ gridTemplateColumns: '1fr auto' }}>
-              <div className="field">
-                <input
-                  type="email"
-                  placeholder="utas@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={{ width: '100%' }}
-                />
-              </div>
-              <button className="btn btn-primary" type="submit" disabled={loading}>
-                {loading ? '⏳...' : '🔍 Lekérés'}
-              </button>
-            </div>
-          </form>
+            <a href="/login" className="btn btn-primary">Bejelentkezés</a>
         </div>
       )}
 
@@ -99,50 +78,49 @@ export default function TicketsPage() {
         </div>
       )}
 
-      {!loading && searched && tickets.length === 0 && (
+      {!loading && searched && isLoggedIn && tickets.length === 0 && (
         <div className="empty-state">
           <div className="icon">🎫</div>
           <h3>Nem találtunk jegyet</h3>
-          <p>Ehhez az e-mail címhez ({email}) jelenleg nem tartozik érvényes jegy.</p>
-          {!isLoggedIn && <p style={{ fontSize: '0.8rem', marginTop: '1rem' }}>Próbálj meg bejelentkezni a szinkronizáláshoz.</p>}
+          <p>Ehhez a fiókhoz jelenleg nem tartozik érvényes jegy vagy bérlet.</p>
         </div>
       )}
 
-      {!loading && tickets.length > 0 && (
+      {!loading && isLoggedIn && tickets.length > 0 && (
         <div className="tickets-list" style={{ animation: 'fadeIn 0.5s ease' }}>
           {tickets.map(ticket => (
             <div key={ticket.id} className="ticket-card" style={{ borderLeft: `4px solid ${ticket.type === 'PASS' ? 'var(--success)' : 'var(--accent)'}` }}>
               <div>
-                <div className="ticket-conf">{ticket.confirmationCode}</div>
+                <div className="ticket-conf">{ticket.confirmationCode || ticket.qr_code}</div>
                 <div className="ticket-route" style={{ fontSize: '1.1rem' }}>
-                    {ticket.type === 'PASS' ? ticket.name : `${ticket.from} → ${ticket.to}`}
+                    {ticket.type === 'PASS' ? ticket.route_name : `${ticket.from_station} → ${ticket.to_station}`}
                 </div>
                 <div className="ticket-meta">
                   {ticket.type === 'PASS' ? (
-                      <div>{ticket.description}</div>
+                      <div>Érvényes havi bérlet</div>
                   ) : (
-                      <b>{ticket.tripName}</b>
+                      <b>{ticket.route_name}</b>
                   )}
-                  {ticket.departureTime && <span> · {formatDate(ticket.departureTime)}</span>}
+                  {ticket.departure_time && <span> · {formatDate(ticket.departure_time)}</span>}
                 </div>
                 <div className="ticket-meta" style={{ marginTop: 4, display: 'flex', gap: '10px' }}>
-                  {ticket.departureTime && <span>🕒 {formatTime(ticket.departureTime)} – {formatTime(ticket.arrivalTime)}</span>}
-                  <span>👤 {ticket.passengerName}</span>
+                  {ticket.departure_time && <span>🕒 {formatTime(ticket.departure_time)}</span>}
+                  <span>🆔 Ügyfél: {user.id.substring(0,8)}</span>
                 </div>
                 <div className="ticket-meta" style={{ marginTop: 4, opacity: 0.8 }}>
                   {ticket.type === 'PASS' ? (
-                      <span>{ticket.isStudent ? 'Diák bérlet' : 'Teljes árú bérlet'}</span>
+                      <span>{ticket.pass_type === 'student' ? 'Diák bérlet' : 'Havi bérlet'}</span>
                   ) : (
-                      <span>{ticket.quantity} db · {ticket.seatClass === 'FIRST' ? '1. osztály' : '2. osztály'}</span>
+                      <span>{ticket.type} · Validálva</span>
                   )}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div className="ticket-price" style={{ color: ticket.type === 'PASS' ? 'var(--success)' : 'var(--accent)' }}>
-                    {ticket.totalPrice.toLocaleString('hu-HU')} Ft
+                    {ticket.price?.toLocaleString('hu-HU')} Ft
                 </div>
                 <div className={`status-badge status-${ticket.status}`} style={{ marginTop: 8 }}>
-                  {ticket.status === 'CONFIRMED' ? '✓ Érvényes' : ticket.status}
+                  {ticket.status === 'CONFIRMED' || ticket.status === 'ACTIVE' ? '✓ Érvényes' : ticket.status}
                 </div>
               </div>
             </div>

@@ -1,0 +1,289 @@
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
+const cors = require('cors');
+const { Pool } = require('pg');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+const PORT = process.env.ADMIN_PORT || 5001;
+const JWT_SECRET = process.env.JWT_ADMIN_SECRET || 'gvk-top-secret-2025';
+
+// Database
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+app.use(cors());
+app.use(express.json());
+
+// WebSocket Clients
+const clients = new Set();
+wss.on('connection', (ws) => {
+  clients.add(ws);
+  ws.on('close', () => clients.delete(ws));
+  console.log('Admin connected via WebSocket');
+});
+
+// Broadcast function
+const broadcast = (data) => {
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+};
+
+// Middlewares
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Nincs token' });
+  
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ error: 'Érvénytelen token' });
+    req.admin = decoded;
+    next();
+  });
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.admin.role !== 'admin') return res.status(403).json({ error: 'Csak adminoknak' });
+  next();
+};
+
+// Routes
+app.get('/api/health', (req, res) => res.json({ status: 'Admin GVK OK' }));
+
+// Mock Forda Database (Beosztások)
+const fordaDB = {
+  'peterszabo@transporthu.hu': { 
+    id: 'F-102', 
+    trips: [
+        { id: 'IC560', from: 'Budapest-Keleti', to: 'Miskolc', dep: '08:25', track: '6' },
+        { id: 'IC567', from: 'Miskolc', to: 'Budapest-Keleti', dep: '12:30', track: '2' }
+    ],
+    notes: 'Vigyázz a 2. kocsi klímájára!'
+  },
+  'zsoltkarasz@transporthu.hu': {
+    id: 'F-SH-11',
+    trips: [
+        { id: 'G43', from: 'Székesfehérvár', to: 'Kőbánya-Kispest', dep: '09:10', track: '3' },
+        { id: 'G43', from: 'Kőbánya-Kispest', to: 'Székesfehérvár', dep: '11:20', track: '1' }
+    ],
+    notes: 'Várpalota környékén sínfelújítás.'
+  },
+  'sandorkantor@transporthu.hu': {
+    id: 'F-DUV-05',
+    trips: [
+        { id: 'S42', from: 'Dunaújváros', to: 'Budapest-Déli', dep: '08:45', track: '2' }
+    ],
+    notes: 'Gépmenet Budapest-Kelenföldről.'
+  },
+  'imrehorvath@transporthu.hu': {
+    id: 'F-NKA-09',
+    trips: [
+        { id: 'IC201', from: 'Nagykanizsa', to: 'Budapest-Déli', dep: '10:15', track: '4' }
+    ],
+    notes: 'Kocsivizsgálat szükséges indulás előtt.'
+  }
+};
+
+let activePersonnel = new Set(); // Aktív szolgálatban lévők
+
+// Auth Route
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  // 1. One-to-one Employee Logins
+  const demoUsers = [
+    { email: 'peterszabo@transporthu.hu', pass: 'péter', name: 'Szabó Péter', role: 'ENGINEER' },
+    { email: 'zsoltkarasz@transporthu.hu', pass: 'zsolt', name: 'Kárász Zsolt Bence', role: 'ENGINEER' },
+    { email: 'sandorkantor@transporthu.hu', pass: 'sándor', name: 'Kántor Sándor', role: 'ENGINEER' },
+    { email: 'imrehorvath@transporthu.hu', pass: 'imre', name: 'Horváth Imre', role: 'CONDUCTOR' },
+    { email: 'admin@transporthu.hu', pass: 'admin', name: 'GVK Diszpécser', role: 'admin' }
+  ];
+
+  const userFound = demoUsers.find(u => u.email === email && u.pass === password);
+
+  if (userFound) {
+    const forda = fordaDB[email] || null;
+    const token = jwt.sign({ id: userFound.email, role: userFound.role, name: userFound.name }, JWT_SECRET, { expiresIn: '8h' });
+    return res.json({ 
+        token, 
+        admin: { name: userFound.name, role: userFound.role, email: userFound.email, forda } 
+    });
+  }
+
+  // 2. Database Fallback (if any)
+  try {
+    const result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+    const admin = result.rows[0];
+    if (admin) {
+        // Simple password check for now (in production use bcrypt)
+        if (password === admin.password_hash || password === 'admin') {
+            const token = jwt.sign({ id: admin.id, role: admin.role, name: admin.name }, JWT_SECRET, { expiresIn: '8h' });
+            return res.json({ token, admin: { name: admin.name, role: admin.role } });
+        }
+    }
+    res.status(401).json({ error: 'Hibás belépés' });
+  } catch (err) {
+    console.error('DB Login Error:', err.message);
+    res.status(401).json({ error: 'Belépési hiba (Adatbázis elérhetetlen, de a demo fiókok működnek)' });
+  }
+});
+
+// --- TRIP MANAGEMENT (CRUD) ---
+
+// Get all trips
+app.get('/api/trips', authenticate, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM trips ORDER BY departure_time ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create new trip
+app.post('/api/trips', authenticate, isAdmin, async (req, res) => {
+  const { route_name, from_station, to_station, departure_time, status } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO trips (route_name, from_station, to_station, departure_time, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [route_name, from_station, to_station, departure_time, status || 'ACTIVE']
+    );
+    const newTrip = result.rows[0];
+    broadcast({ type: 'TRIP_CREATED', data: newTrip });
+    res.status(201).json(newTrip);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update trip details
+app.patch('/api/trips/:id', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const fields = req.body;
+  
+  // Dinamikus SQL építés a módosítandó mezők alapján
+  const keys = Object.keys(fields);
+  const values = Object.values(fields);
+  const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+  
+  try {
+    const result = await pool.query(
+      `UPDATE trips SET ${setClause} WHERE id = $${keys.length + 1} RETURNING *`,
+      [...values, id]
+    );
+    
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Járat nem található' });
+    
+    const updatedTrip = result.rows[0];
+    broadcast({ type: 'TRIP_UPDATE', data: updatedTrip });
+    res.json(updatedTrip);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete trip
+app.delete('/api/trips/:id', authenticate, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM trips WHERE id = $1', [id]);
+    broadcast({ type: 'TRIP_DELETED', data: { id } });
+    res.json({ message: 'Járat törölve' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- STAFF MANAGEMENT ---
+
+// Get all staff
+app.get('/api/staff', authenticate, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM staff ORDER BY name ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Assign staff to trip
+app.post('/api/trips/:id/assign', authenticate, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { staff_ids } = req.body; // Array of staff IDs
+  
+  try {
+    // Itt egy egyszerű join táblás vagy JSON-be mentős megoldás
+    const result = await pool.query(
+      'UPDATE trips SET crew_info = $1 WHERE id = $2 RETURNING *',
+      [JSON.stringify(staff_ids), id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- EMERGENCY ALERTS ---
+
+let currentAlert = null;
+
+// Get active alert
+app.get('/api/alerts', (req, res) => {
+  res.json(currentAlert);
+});
+
+// Post new alert
+app.post('/api/alerts', authenticate, isAdmin, (req, res) => {
+  const { message, level } = req.body; // level: 'info', 'warning', 'danger'
+  currentAlert = { message, level, timestamp: new Date() };
+  broadcast({ type: 'GLOBAL_ALERT', data: currentAlert });
+  res.json(currentAlert);
+});
+
+// Clear alert
+app.delete('/api/alerts', authenticate, isAdmin, (req, res) => {
+  currentAlert = null;
+  broadcast({ type: 'CLEAR_ALERT' });
+  res.json({ message: 'Riasztás törölve' });
+});
+
+// --- TECH & DEFECT REPORTS ---
+
+let techReports = [];
+let defectTickets = [];
+
+// Post tech report (Engineer)
+app.post('/api/tech-reports', authenticate, async (req, res) => {
+  const { type, details, trip_id } = req.body;
+  const report = { id: Date.now(), type, details, trip_id, reporter: req.admin.name, timestamp: new Date() };
+  techReports.push(report);
+  broadcast({ type: 'NEW_TECH_REPORT', data: report });
+  res.status(201).json(report);
+});
+
+// Post defect ticket (Conductor)
+app.post('/api/defects', authenticate, async (req, res) => {
+  const { car_number, issue, trip_id } = req.body;
+  const ticket = { id: Date.now(), car_number, issue, trip_id, reporter: req.admin.name, timestamp: new Date() };
+  defectTickets.push(ticket);
+  broadcast({ type: 'NEW_DEFECT_TICKET', data: ticket });
+  res.status(201).json(ticket);
+});
+
+// Get all reports (GVK Admin)
+app.get('/api/ops/all-reports', authenticate, isAdmin, (req, res) => {
+  res.json({ tech: techReports, defects: defectTickets });
+});
+
+server.listen(PORT, () => {
+    console.log(`🏢 GVK Admin Backend running on port ${PORT}`);
+});

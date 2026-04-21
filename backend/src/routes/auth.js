@@ -2,12 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+const db = require('../db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'transporthu-secret-2025';
-
-// Mock users store (in a real app, this would be in a DB)
-const users = []; 
 
 /**
  * POST /api/auth/register
@@ -19,25 +16,27 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Név, e-mail és jelszó kötelező' });
     }
     
-    if (users.find(u => u.email === email)) {
+    // Ellenőrizzük, létezik-e már a felhasználó
+    const existing = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'Ez az e-mail cím már regisztrált' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = {
-      id: uuidv4(),
-      name,
-      email,
-      passwordHash,
-      createdAt: new Date().toISOString()
-    };
     
-    users.push(user);
+    // Mentés az adatbázisba
+    const result = await db.query(
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
+      [name, email, passwordHash]
+    );
+    
+    const user = result.rows[0];
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
     
-    res.status(201).json({ user: { id: user.id, name, email }, token });
+    res.status(201).json({ user, token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Register error:', err);
+    res.status(500).json({ error: 'Hiba a regisztráció során' });
   }
 });
 
@@ -47,16 +46,19 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = users.find(u => u.email === email);
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
     if (!user) return res.status(401).json({ error: 'Hibás e-mail vagy jelszó' });
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: 'Hibás e-mail vagy jelszó' });
 
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ user: { id: user.id, name: user.name, email }, token });
+    res.json({ user: { id: user.id, name: user.name, email: user.email }, token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Hiba a bejelentkezés során' });
   }
 });
 

@@ -66,8 +66,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  getMyTickets: (email) =>
-    request(`/tickets${email ? `?email=${encodeURIComponent(email)}` : ''}`),
+  getMyTickets: (userId) =>
+    request(`/tickets${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`),
   confirmPayment: (sessionId) =>
     request('/confirm-payment', { method: 'POST', body: JSON.stringify({ sessionId }) }),
+
+  // GVK Admin Riasztások
+  getActiveAlert: async () => {
+    try {
+      const gvkUrl = (process.env.REACT_APP_GVK_API_URL || 'http://localhost:5001').trim();
+      const res = await fetch(`${gvkUrl}/api/alerts`);
+      if (res.status === 204 || !res.ok) return null;
+      return res.json();
+    } catch (e) {
+      return null;
+    }
+  }
 };

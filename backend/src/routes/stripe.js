@@ -77,6 +77,7 @@ router.post('/create-checkout-session', async (req, res) => {
       ],
       metadata: {
         type: finalType,
+        userId: req.body.userId || '',
         passengerName,
         passengerEmail: passengerEmail || '',
         seatClass: seatClass || 'SECOND',
@@ -111,53 +112,43 @@ router.post('/confirm-payment', async (req, res) => {
         return res.status(400).json({ error: 'Payment not completed or session not found.' });
     }
 
-    const { type, passengerName, passengerEmail, seatClass, quantity, tripId, tripData, passId, passData } = session.metadata;
+    const { type, userId, tripId, tripData, passId, passData } = session.metadata;
     
-    const { v4: uuidv4 } = require('uuid');
-    const store = require('../data/inMemoryStore');
+    const db = require('../db');
 
     if (type === 'TICKET') {
         const parsedTrip = tripData ? JSON.parse(tripData) : {};
-        const ticket = {
-            id: uuidv4(),
-            type: 'TICKET',
-            tripId,
-            tripName: parsedTrip.routeName,
-            from: parsedTrip.fromName,
-            to: parsedTrip.toName,
-            departureTime: parsedTrip.departureTime,
-            arrivalTime: parsedTrip.arrivalTime,
-            passengerName,
-            passengerEmail,
-            seatClass,
-            quantity: parseInt(quantity, 10),
-            totalPrice: session.amount_total / 100,
-            purchasedAt: new Date().toISOString(),
-            status: 'CONFIRMED',
-            confirmationCode: `HU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        };
-        store.tickets.push(ticket);
-        return res.json({ success: true, ticket });
+        const confirmationCode = `HU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        
+        const result = await db.query(
+          `INSERT INTO tickets (
+            user_id, trip_id, route_name, from_station, to_station, 
+            departure_time, price, type, status, qr_code
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+          [
+            userId, tripId, parsedTrip.routeName, parsedTrip.fromName, parsedTrip.toName,
+            parsedTrip.departureTime, Math.round(session.amount_total / 100), 'TICKET', 'CONFIRMED', confirmationCode
+          ]
+        );
+        
+        return res.json({ success: true, ticket: result.rows[0] });
     }
 
     if (type === 'PASS') {
         const parsedPass = passData ? JSON.parse(passData) : {};
-        const pass = {
-            id: uuidv4(),
-            type: 'PASS',
-            passId,
-            name: parsedPass.name || 'Bérlet',
-            totalPrice: session.amount_total / 100,
-            description: parsedPass.description || '',
-            isStudent: parsedPass.isStudent,
-            passengerName,
-            passengerEmail,
-            purchasedAt: new Date().toISOString(),
-            status: 'CONFIRMED',
-            confirmationCode: `PASS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        };
-        store.tickets.push(pass); // We store both in 'tickets' for simplicity in this demo
-        return res.json({ success: true, pass });
+        const confirmationCode = `PASS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+        const result = await db.query(
+          `INSERT INTO tickets (
+            user_id, route_name, price, type, pass_type, status, qr_code
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+          [
+            userId, parsedPass.name || 'Bérlet', Math.round(session.amount_total / 100), 
+            'PASS', passId, 'CONFIRMED', confirmationCode
+          ]
+        );
+        
+        return res.json({ success: true, pass: result.rows[0] });
     }
 
     res.json({ success: true, message: 'Payment confirmed but no logic for this type yet' });

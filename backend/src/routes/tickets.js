@@ -1,91 +1,73 @@
 const express = require('express');
 const router = express.Router();
-const { v4: uuidv4 } = require('uuid');
-const store = require('../data/inMemoryStore');
+const db = require('../db');
 
-// POST /api/tickets - purchase ticket
-router.post('/', (req, res) => {
-  const { tripId, passengerName, passengerEmail, seatClass, quantity } = req.body;
-
-  if (!tripId || !passengerName || !passengerEmail) {
-    return res.status(400).json({ error: 'tripId, passengerName, passengerEmail are required' });
-  }
-
-  const trip = store.trips.find(t => t.id === tripId);
-  if (!trip) return res.status(404).json({ error: 'Trip not found' });
-
-  const qty = parseInt(quantity, 10) || 1;
-  if (qty < 1 || qty > 10) return res.status(400).json({ error: 'Quantity must be 1–10' });
-
-  const priceMultiplier = seatClass === 'FIRST' ? 1.5 : 1;
-  const totalPrice = Math.round(trip.basePrice * priceMultiplier * qty);
-
-  if (trip.availableSeats < qty) {
-    return res.status(409).json({ error: 'Not enough available seats' });
-  }
-
-  const ticket = {
-    id: uuidv4(),
-    tripId,
-    tripName: trip.routeName,
-    from: trip.fromName,
-    to: trip.toName,
-    departureTime: trip.departureTime,
-    arrivalTime: trip.arrivalTime,
-    passengerName,
-    passengerEmail,
-    seatClass: seatClass || 'SECOND',
-    quantity: qty,
-    totalPrice,
-    purchasedAt: new Date().toISOString(),
-    status: 'CONFIRMED',
-    confirmationCode: `HU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-  };
-
-  // reduce seats
-  const tripIdx = store.trips.findIndex(t => t.id === tripId);
-  store.trips[tripIdx].availableSeats -= qty;
-
-  store.tickets.push(ticket);
-  res.status(201).json(ticket);
-});
-
-// GET /api/tickets - list all (admin view)
-router.get('/', (req, res) => {
-  const { email } = req.query;
-  if (email) {
-    const userTickets = store.tickets.filter(t => t.passengerEmail === email);
+/**
+ * GET /api/tickets - list all (filtered by userId)
+ */
+router.get('/', async (req, res) => {
+  const { userId } = req.query;
+  try {
+    if (!userId) {
+      const result = await db.query('SELECT * FROM tickets ORDER BY purchase_date DESC');
+      return res.json(result.rows);
+    }
     
-    // If NO real tickets found, return a demo "Welcome" ticket
+    const result = await db.query(
+      'SELECT * FROM tickets WHERE user_id = $1 ORDER BY purchase_date DESC',
+      [userId]
+    );
+    
+    const userTickets = result.rows;
+    
+    // If NO real tickets found in DB, return a demo "Welcome" ticket
     if (userTickets.length === 0) {
       return res.json([{
         id: 'welcome-demo',
-        tripId: 'demo',
-        tripName: 'TransportHU Üdvözlő Jegy (v1.6.2)',
-        from: 'Kezdőállomás',
-        to: 'Célállomás',
-        departureTime: new Date().toISOString(),
-        arrivalTime: new Date(Date.now() + 7200000).toISOString(),
-        passengerName: 'Új Felhasználó',
-        passengerEmail: email,
-        seatClass: 'SECOND',
-        quantity: 1,
-        totalPrice: 0,
-        purchasedAt: new Date().toISOString(),
+        trip_id: 'demo',
+        route_name: 'TransportHU Üdvözlő Jegy (v1.8.0)',
+        from_station: 'Kezdőállomás',
+        to_station: 'Célállomás',
+        departure_time: new Date().toISOString(),
+        price: 0,
+        type: 'TICKET',
+        user_id: userId,
         status: 'CONFIRMED',
-        confirmationCode: 'WELCOME2024',
+        qr_code: 'WELCOME2024',
+        purchase_date: new Date().toISOString()
       }]);
     }
-    return res.json(userTickets);
+    
+    // Map DB columns to frontend expected camelCase names if necessary 
+    // or just return as is if the frontend handles snake_case
+    res.json(userTickets.map(t => ({
+      ...t,
+      // Mapping for compatibility
+      tripName: t.route_name,
+      from: t.from_station,
+      to: t.to_station,
+      totalPrice: t.price,
+      purchasedAt: t.purchase_date,
+      confirmationCode: t.qr_code
+    })));
+  } catch (err) {
+    console.error('Fetch tickets error:', err);
+    res.status(500).json({ error: 'Hiba a jegyek lekérésekor' });
   }
-  res.json(store.tickets);
 });
 
-// GET /api/tickets/:id
-router.get('/:id', (req, res) => {
-  const ticket = store.tickets.find(t => t.id === req.params.id);
-  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-  res.json(ticket);
+/**
+ * GET /api/tickets/:id
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM tickets WHERE id = $1', [req.params.id]);
+    const ticket = result.rows[0];
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(ticket);
+  } catch (err) {
+    res.status(500).json({ error: 'Hiba a jegy lekérésekor' });
+  }
 });
 
 module.exports = router;
