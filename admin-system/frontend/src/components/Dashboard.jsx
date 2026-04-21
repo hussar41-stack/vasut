@@ -10,6 +10,7 @@ import TripManager from './TripManager';
 import StaffManager from './StaffManager';
 import AlertManager from './AlertManager';
 import StaffScheduler from './StaffScheduler';
+import SettingsView from './Settings';
 
 export default function AdminDashboard() {
   const { admin, logout } = useAdminAuth();
@@ -69,6 +70,7 @@ export default function AdminDashboard() {
             { id: 'trips', icon: <Train size={20}/>, label: 'Járatkezelés' },
             { id: 'schedule', icon: <CalendarIcon size={20}/>, label: 'Vezénylés' },
             { id: 'staff', icon: <Users size={20}/>, label: 'Személyzet' },
+            { id: 'settings', icon: <Settings size={20}/>, label: 'Beállítások' },
             { id: 'map', icon: <MapIcon size={20}/>, label: 'Élő Forgalom' },
             { id: 'alert', icon: <AlertTriangle size={20}/>, label: 'Napló' },
           ].map(item => (
@@ -89,7 +91,17 @@ export default function AdminDashboard() {
         
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
           <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '15px' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>👤</div>
+            <div style={{ 
+                width: 32, height: 32, borderRadius: '50%', background: 'var(--accent)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem',
+                overflow: 'hidden' 
+            }}>
+              {admin?.avatar_url ? (
+                  <img src={admin.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                  <span>👤</span>
+              )}
+            </div>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{admin?.name || 'Operátor'}</div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{admin?.role?.toUpperCase() || 'GVK'}</div>
@@ -245,6 +257,7 @@ export default function AdminDashboard() {
         {activeView === 'trips' && <TripManager />}
         {activeView === 'schedule' && <StaffScheduler />}
         {activeView === 'staff' && <StaffManager />}
+        {activeView === 'settings' && <SettingsView />}
         {activeView === 'alert' && <AlertManager />}
       </main>
     </div>

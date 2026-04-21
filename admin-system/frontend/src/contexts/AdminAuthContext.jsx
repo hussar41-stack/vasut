@@ -32,14 +32,14 @@ export const AdminAuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    setAdmin(null);
+  const updateAdmin = (newData) => {
+    const updated = { ...admin, ...newData };
+    localStorage.setItem('adminData', JSON.stringify(updated));
+    setAdmin(updated);
   };
 
   return (
-    <AdminAuthContext.Provider value={{ admin, login, logout, loading }}>
+    <AdminAuthContext.Provider value={{ admin, login, logout, loading, updateAdmin }}>
       {children}
     </AdminAuthContext.Provider>
   );

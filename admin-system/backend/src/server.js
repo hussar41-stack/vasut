@@ -96,10 +96,27 @@ const fordaDB = {
 let activePersonnel = new Set(); // Aktív szolgálatban lévők
 
 // Auth Route
-app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  // 1. One-to-one Employee Logins
+  // 1. Database Login (Preferred)
+  try {
+    const table = email.includes('admin') ? 'admins' : 'staff';
+    const result = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
+    const user = result.rows[0];
+    
+    if (user) {
+        // Simple password check for demo (use bcrypt in production)
+        if (password === user.password_hash) {
+            const token = jwt.sign({ id: user.email, role: user.role, name: user.name, id_db: user.id }, JWT_SECRET, { expiresIn: '8h' });
+            return res.json({ 
+                token, 
+                admin: { name: user.name, role: user.role, email: user.email, avatar_url: user.avatar_url, forda: fordaDB[email] || null } 
+            });
+        }
+    }
+  } catch (err) {
+    console.error('DB Login Error:', err.message);
+  }
+
+  // 2. Hardcoded Fallback for safety during transition
   const demoUsers = [
     { email: 'peterszabo@transporthu.hu', pass: 'péter', name: 'Szabó Péter', role: 'ENGINEER' },
     { email: 'zsoltkarasz@transporthu.hu', pass: 'zsolt', name: 'Kárász Zsolt Bence', role: 'ENGINEER' },
@@ -119,21 +136,45 @@ app.post('/api/auth/login', async (req, res) => {
     });
   }
 
-  // 2. Database Fallback (if any)
+  res.status(401).json({ error: 'Hibás belépés vagy jelszó.' });
+});
+
+// --- PROFILE MANAGEMENT ---
+
+// Update profile info
+app.post('/api/auth/update-profile', authenticate, async (req, res) => {
+  const { name, avatar_url } = req.body;
+  const email = req.admin.id;
+  const table = email.includes('admin') ? 'admins' : 'staff';
+  
   try {
-    const result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
-    const admin = result.rows[0];
-    if (admin) {
-        // Simple password check for now (in production use bcrypt)
-        if (password === admin.password_hash || password === 'admin') {
-            const token = jwt.sign({ id: admin.id, role: admin.role, name: admin.name }, JWT_SECRET, { expiresIn: '8h' });
-            return res.json({ token, admin: { name: admin.name, role: admin.role } });
-        }
-    }
-    res.status(401).json({ error: 'Hibás belépés' });
+    const result = await pool.query(
+      `UPDATE ${table} SET name = COALESCE($1, name), avatar_url = COALESCE($2, avatar_url) WHERE email = $3 RETURNING *`,
+      [name, avatar_url, email]
+    );
+    res.json({ success: true, user: result.rows[0] });
   } catch (err) {
-    console.error('DB Login Error:', err.message);
-    res.status(401).json({ error: 'Belépési hiba (Adatbázis elérhetetlen, de a demo fiókok működnek)' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Change password
+app.post('/api/auth/change-password', authenticate, async (req, res) => {
+  const { old_password, new_password } = req.body;
+  const email = req.admin.id;
+  const table = email.includes('admin') ? 'admins' : 'staff';
+
+  try {
+    // Verify old password
+    const userRes = await pool.query(`SELECT password_hash FROM ${table} WHERE email = $1`, [email]);
+    if (!userRes.rows[0] || userRes.rows[0].password_hash !== old_password) {
+      return res.status(400).json({ error: 'A régi jelszó nem egyezik!' });
+    }
+
+    await pool.query(`UPDATE ${table} SET password_hash = $1 WHERE email = $2`, [new_password, email]);
+    res.json({ success: true, message: 'Jelszó sikeresen módosítva!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
