@@ -208,11 +208,7 @@ export default function ConductorView() {
           <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <MessageSquare size={18} color="#8D2582" /> GVK Kapcsolat
           </h3>
-          <DriverChat
-            vehicleId={admin?.vehicle_id || `DRV-${admin?.name?.split(' ')[1]?.toUpperCase() || 'KOND'}`}
-            driverName={admin?.name || 'Ismeretlen Kalauz'}
-            channel="bus"
-          />
+          <DriverChat />
         </div>
       </div>
     </div>

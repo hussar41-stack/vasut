@@ -53,7 +53,7 @@ export default function ChatManager() {
       const res = await axios.post(`${API_URL}/api/chat/messages`, {
         sender: 'GVK Diszpécser',
         sender_id: 'dispatcher',
-        recipient_id: activeContact.id,
+        recipient_id: String(activeContact.id),
         text: input,
         type: 'outgoing'
       });

@@ -2,29 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Send, MessageSquare, WifiOff } from 'lucide-react';
 import { API_URL } from '../config';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 
 /**
- * DriverChat - Járművezetői chat komponens
- * Csak a saját járathoz tartozó üzeneteket mutatja
- * 
- * Props:
- *   vehicleId   - pl. "BPI-007" (jármű azonosító)
- *   driverName  - pl. "Kovács János"
- *   channel     - pl. "bus" | "tram" | "metro"
+ * DriverChat - Járművezetői chat a GVK diszpécserrel
+ * A bejelentkezett sofőr ID-ja alapján szűr: csak a saját beszélgetését látja
  */
-export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
+export default function DriverChat() {
+  const { admin } = useAdminAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const bottomRef = useRef(null);
 
+  const myId = admin?.id?.toString() || admin?.email || '';
+  const myName = admin?.name || 'Járművezető';
+
   useEffect(() => {
-    if (!vehicleId) return;
+    if (!myId) return;
     fetchMessages();
-    // Poll every 5 seconds for new dispatcher replies
-    const interval = setInterval(fetchMessages, 5000);
+    const interval = setInterval(fetchMessages, 4000);
     return () => clearInterval(interval);
-  }, [vehicleId]);
+  }, [myId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,7 +31,7 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
 
   const fetchMessages = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/chat/driver-messages?vehicle_id=${vehicleId}`);
+      const res = await axios.get(`${API_URL}/api/chat/thread?partner_id=${myId}`);
       setMessages(res.data);
       setConnected(true);
     } catch (e) {
@@ -46,11 +45,11 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
 
     try {
       const res = await axios.post(`${API_URL}/api/chat/messages`, {
-        sender: driverName,
+        sender: myName,
+        sender_id: myId,
+        recipient_id: 'dispatcher',
         text: input,
-        channel: channel,
-        vehicle_id: vehicleId,
-        type: 'incoming'  // A sofőr üzenete "incoming" a diszpécser szemszögéből
+        type: 'incoming'
       });
       setMessages(prev => [...prev, res.data]);
       setInput('');
@@ -78,7 +77,7 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MessageSquare size={16} color="#8D2582" />
-          <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>GVK Kapcsolat</span>
+          <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>GVK Diszpécser</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem' }}>
           {connected ? (
@@ -92,7 +91,6 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
               <span style={{ color: '#ef4444' }}>NINCS KAPCSOLAT</span>
             </>
           )}
-          <span style={{ color: '#666', marginLeft: '5px' }}>{vehicleId}</span>
         </div>
       </div>
 
@@ -106,7 +104,7 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
             Nincs üzenet. Jelezz a diszpécsernek, ha segítségre van szükséged!
           </div>
         ) : messages.map(msg => {
-          const isOwn = msg.type === 'incoming';  // sofőr saját üzenete
+          const isOwn = msg.sender_id === myId;
           return (
             <div key={msg.id} style={{
               alignSelf: isOwn ? 'flex-end' : 'flex-start',
@@ -115,7 +113,7 @@ export default function DriverChat({ vehicleId, driverName, channel = 'bus' }) {
               padding: '8px 12px', borderRadius: '10px',
               border: isOwn ? '1px solid rgba(141,37,130,0.4)' : '1px solid #333'
             }}>
-              <div style={{ fontSize: '0.65rem', color: isOwn ? '#c13db4' : '#666', marginBottom: '3px' }}>
+              <div style={{ fontSize: '0.65rem', color: isOwn ? '#c13db4' : '#10b981', marginBottom: '3px' }}>
                 {isOwn ? 'Te' : 'GVK Diszpécser'} · {formatTime(msg.created_at)}
               </div>
               <div style={{ fontSize: '0.9rem', color: 'white' }}>{msg.text}</div>
