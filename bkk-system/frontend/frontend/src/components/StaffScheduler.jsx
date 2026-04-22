@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Save, User, Clock, FileText, Bus, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Save, User, Clock, FileText, Bus, Trash2, Download } from 'lucide-react';
 import { API_URL } from '../config';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const SHIFT_TYPES = [
   { id: 'reggeli', label: 'Reggeli műszak', start: '04:30', end: '12:30', color: '#fbbf24' },
@@ -138,6 +140,114 @@ export default function StaffScheduler() {
     return day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const monthName = currentDate.toLocaleString('hu-HU', { month: 'long', year: 'numeric' });
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+
+    // Header background
+    doc.setFillColor(141, 37, 130);
+    doc.rect(0, 0, pw, 32, 'F');
+
+    // Header text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BKK FUTÁR | GVK Vezénylés', 15, 15);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Havi Műszakbeosztás — ${monthName}`, 15, 23);
+    doc.text(`Létrehozva: ${new Date().toLocaleString('hu-HU')}`, pw - 15, 23, { align: 'right' });
+
+    // Staff info bar
+    doc.setFillColor(26, 26, 26);
+    doc.rect(0, 32, pw, 14, 'F');
+    doc.setTextColor(200, 200, 200);
+    doc.setFontSize(10);
+    doc.text(`Dolgozó: ${selectedStaff?.name || '—'}`, 15, 40);
+    doc.text(`Beosztás: ${selectedStaff?.role || '—'}`, 100, 40);
+    doc.text(`Telephely: ${selectedStaff?.location || '—'}`, 185, 40);
+
+    // Table data
+    const tableData = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const sched = schedules[day];
+      const dateStr = `${currentDate.getFullYear()}.${String(currentDate.getMonth() + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+      const dayOfWeek = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dayName = dayOfWeek.toLocaleString('hu-HU', { weekday: 'short' });
+      
+      if (sched) {
+        const st = SHIFT_TYPES.find(s => s.id === sched.shift_type);
+        tableData.push([
+          `${day}. (${dayName})`,
+          st ? st.label : '—',
+          sched.shift_type === 'szabad' ? '—' : `${sched.shift_start || ''} — ${sched.shift_end || ''}`,
+          sched.trip_ids ? sched.trip_ids.join(', ') : '—',
+          sched.notes || ''
+        ]);
+      } else {
+        tableData.push([`${day}. (${dayName})`, '—', '—', '—', '']);
+      }
+    }
+
+    doc.autoTable({
+      startY: 50,
+      head: [['Nap', 'Műszak típus', 'Időszak', 'Járat beosztás', 'Megjegyzés']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [141, 37, 130],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 7.5,
+        textColor: [30, 30, 30],
+        cellPadding: 3
+      },
+      alternateRowStyles: {
+        fillColor: [245, 240, 248]
+      },
+      columnStyles: {
+        0: { cellWidth: 30, fontStyle: 'bold' },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 35, halign: 'center' },
+        3: { cellWidth: 80 },
+        4: { cellWidth: 'auto' }
+      },
+      didParseCell: function(data) {
+        if (data.section === 'body') {
+          const type = data.row.raw[1];
+          if (type === 'Reggeli műszak') data.cell.styles.textColor = [180, 130, 0];
+          if (type === 'Délutáni műszak') data.cell.styles.textColor = [0, 120, 200];
+          if (type === 'Éjszakai műszak') data.cell.styles.textColor = [141, 37, 130];
+          if (type === 'Osztatlan műszak') data.cell.styles.textColor = [200, 50, 50];
+          if (type === 'Szabadnap') {
+            data.cell.styles.fillColor = [240, 240, 240];
+            data.cell.styles.textColor = [150, 150, 150];
+          }
+        }
+      },
+      margin: { left: 10, right: 10 }
+    });
+
+    // Footer
+    const finalY = doc.lastAutoTable.finalY || ph - 20;
+    doc.setFillColor(50, 50, 50);
+    doc.rect(0, ph - 10, pw, 10, 'F');
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(7);
+    doc.text('BKK FUTÁR GVK — Forgalomirányítási Központ | Ez a dokumentum bizalmasan kezelendő.', 15, ph - 4);
+    doc.text(`Oldal 1/1`, pw - 15, ph - 4, { align: 'right' });
+
+    // Download
+    const fileName = `BKK_Beosztas_${selectedStaff?.name?.replace(/\s/g, '_') || 'ismeretlen'}_${monthName.replace(/\s/g, '_')}.pdf`;
+    doc.save(fileName);
+  };
+
   return (
     <div className="fade-in">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -166,6 +276,10 @@ export default function StaffScheduler() {
             </span>
             <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 1))} style={iconBtnStyle}><ChevronRight size={18} /></button>
           </div>
+
+          <button onClick={generatePDF} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '8px', background: 'rgba(141,37,130,0.15)', border: '1px solid #8D2582', color: '#c13db4', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+            <Download size={16} /> PDF Letöltés
+          </button>
         </div>
       </header>
 
