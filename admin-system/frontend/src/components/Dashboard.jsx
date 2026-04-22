@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, Train, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Activity, Users, ShieldAlert, Calendar as CalendarIcon, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Train, AlertTriangle, Map as MapIcon, LogOut, Settings, Clock, Activity, Users, ShieldAlert, Calendar as CalendarIcon, Menu as MenuIcon, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { API_URL } from '../config';
@@ -70,9 +70,10 @@ export default function AdminDashboard() {
           <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>TRANSPORT<span style={{ color: 'var(--accent)' }}>GVK</span></span>
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
         </button>
       </header>
+
 
       {/* Sidebar / Mobile Menu */}
       <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ 
