@@ -16,8 +16,9 @@ export default function ChatManager() {
     global: [], bus: [], tram: [], metro: []
   });
 
-  const [replyTo, setReplyTo] = useState(null); // { vehicle_id, sender }
-  const [pollInterval, setPollInterval] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [input, setInput] = useState('');
+
 
   useEffect(() => {
     fetchMessages(activeChannel);
