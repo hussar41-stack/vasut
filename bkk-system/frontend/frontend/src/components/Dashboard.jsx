@@ -270,10 +270,6 @@ export default function AdminDashboard() {
                     </table>
                 </div>
               </div>
-dy>
-                    </table>
-                </div>
-              </div>
             </div>
 
             {/* Operational Reports List (New) */}
