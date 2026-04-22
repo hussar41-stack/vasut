@@ -183,14 +183,36 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/update-profile', authenticate, async (req, res) => {
   const { name, avatar_url } = req.body;
   const email = req.admin.id;
-  const table = email.includes('admin') ? 'admins' : 'staff';
   
   try {
-    const result = await pool.query(
+    // 1. Try updating the "users" table first
+    const userRes = await pool.query(
+      `UPDATE users SET name = COALESCE($1, name), avatar_url = COALESCE($2, avatar_url) WHERE email = $3 RETURNING *`,
+      [name, avatar_url, email]
+    );
+
+    // 2. Also update legacy tables if they exist (sync)
+    const table = email.includes('admin') ? 'admins' : 'staff';
+    await pool.query(
+      `UPDATE ${table} SET name = COALESCE($1, name), avatar_url = COALESCE($2, avatar_url) WHERE email = $3`,
+      [name, avatar_url, email]
+    ).catch(() => {}); // Ignore error if table doesn't exist
+
+    if (userRes.rows.length > 0) {
+      return res.json({ success: true, user: userRes.rows[0] });
+    }
+
+    // 3. Fallback to legacy only if not in "users"
+    const legacyRes = await pool.query(
       `UPDATE ${table} SET name = COALESCE($1, name), avatar_url = COALESCE($2, avatar_url) WHERE email = $3 RETURNING *`,
       [name, avatar_url, email]
     );
-    res.json({ success: true, user: result.rows[0] });
+    
+    if (legacyRes.rows.length > 0) {
+        res.json({ success: true, user: legacyRes.rows[0] });
+    } else {
+        res.status(404).json({ error: 'User not found' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -200,12 +222,28 @@ app.post('/api/auth/update-profile', authenticate, async (req, res) => {
 app.post('/api/auth/change-password', authenticate, async (req, res) => {
   const { old_password, new_password } = req.body;
   const email = req.admin.id;
-  const table = email.includes('admin') ? 'admins' : 'staff';
 
   try {
-    // Verify old password
-    const userRes = await pool.query(`SELECT password_hash FROM ${table} WHERE email = $1`, [email]);
-    if (!userRes.rows[0] || userRes.rows[0].password_hash !== old_password) {
+    // 1. Check "users" table first (bcrypt)
+    const userRes = await pool.query(`SELECT password FROM users WHERE email = $1`, [email]);
+    if (userRes.rows.length > 0) {
+        const isMatch = await bcrypt.compare(old_password, userRes.rows[0].password);
+        if (!isMatch) return res.status(400).json({ error: 'A régi jelszó nem egyezik!' });
+        
+        const hashed = await bcrypt.hash(new_password, 10);
+        await pool.query(`UPDATE users SET password = $1 WHERE email = $2`, [hashed, email]);
+        
+        // Sync legacy (optional, plain text if still using legacy)
+        const table = email.includes('admin') ? 'admins' : 'staff';
+        await pool.query(`UPDATE ${table} SET password_hash = $1 WHERE email = $2`, [new_password, email]).catch(() => {});
+
+        return res.json({ success: true, message: 'Jelszó sikeresen módosítva!' });
+    }
+
+    // 2. Legacy fallback (plain-text)
+    const table = email.includes('admin') ? 'admins' : 'staff';
+    const legacyRes = await pool.query(`SELECT password_hash FROM ${table} WHERE email = $1`, [email]);
+    if (!legacyRes.rows[0] || legacyRes.rows[0].password_hash !== old_password) {
       return res.status(400).json({ error: 'A régi jelszó nem egyezik!' });
     }
 
