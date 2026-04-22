@@ -92,129 +92,194 @@ export default function EngineerView() {
       </div>
     );
   }
+  const [openSection, setOpenSection] = useState('schedule');
+
+  const toggleSection = (section) => {
+    setOpenSection(prev => prev === section ? null : section);
+  };
 
   return (
-    <div className="fade-in" style={{ padding: '0', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
+    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white' }}>
       {/* Status Bar */}
       <div style={{ 
-          background: isOnDuty ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)', 
-          padding: '12px 1.5rem', borderBottom: '1px solid var(--border)',
+          background: isOnDuty ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
+          padding: '10px 1rem', borderBottom: '1px solid #222',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: isOnDuty ? 'var(--success)' : 'var(--danger)' }} />
-          <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-            {isOnDuty ? 'SZOLGÁLATBAN' : 'NINCS SZOLGÁLATBAN'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: isOnDuty ? '#22c55e' : '#ef4444', boxShadow: isOnDuty ? '0 0 8px #22c55e' : 'none' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>
+            {isOnDuty ? 'SZOLGÁLATBAN' : 'NEM AKTÍV'}
           </span>
         </div>
         <button 
           onClick={isOnDuty ? handleLogout : handleSignOn} 
-          className="neon-btn" 
-          style={{ padding: '6px 15px', fontSize: '0.75rem', background: isOnDuty ? '#ef4444' : '#8D2582' }}
+          style={{ padding: '6px 14px', fontSize: '0.7rem', fontWeight: 700, borderRadius: '6px', border: 'none', cursor: 'pointer', background: isOnDuty ? '#ef4444' : '#8D2582', color: 'white' }}
         >
-          {isOnDuty ? 'SZOLGÁLAT LEADÁSA' : 'SZOLGÁLAT FELVÉTELE'}
+          {isOnDuty ? 'LEADÁS' : 'FELVÉTEL'}
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header */}
+      <div style={{ padding: '1rem 1rem 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.2rem', margin: 0, color: '#8D2582' }}>Járművezetői Terminál</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#8D2582', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>
-                {admin?.avatar_url ? <img src={admin.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
-              </div>
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{admin?.name}</span>
-              <button onClick={() => setView('profile')} style={{ background: 'none', border: 'none', color: '#8D2582', fontSize: '0.75rem', cursor: 'pointer', marginLeft: '5px' }}>[Profil]</button>
+            <h1 style={{ fontSize: '1.1rem', margin: 0, color: '#8D2582' }}>Járművezetői Terminál</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#8D2582', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>👤</div>
+              <span style={{ fontSize: '0.75rem', color: '#666' }}>{admin?.name}</span>
+              <button onClick={() => setView('profile')} style={{ background: 'none', border: 'none', color: '#8D2582', fontSize: '0.7rem', cursor: 'pointer' }}>[Profil]</button>
             </div>
           </div>
-          <button onClick={logout} style={{ background: 'none', border: '1px solid #64748b', color: '#64748b', padding: '5px 10px', borderRadius: '5px', fontSize: '0.7rem' }}>Kijelentkezés</button>
-        </header>
+          <button onClick={logout} style={{ background: 'none', border: '1px solid #333', color: '#666', padding: '4px 10px', borderRadius: '5px', fontSize: '0.65rem', cursor: 'pointer' }}>Kijelentkezés</button>
+        </div>
+      </div>
 
-        {/* Smart Route Assignment Display */}
-        <div className="glass-panel" style={{ padding: '1.2rem', marginBottom: '1.5rem', borderLeft: '4px solid #8D2582' }}>
-          <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>RELEVÁNS MAI JÁRATOK ({admin?.location || 'Minden telephely'})</h3>
-          {schedule && schedule.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {schedule.map(trip => (
-                <div key={trip.id} style={{ 
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                    padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' 
-                }}>
-                  <div>
-                    <b style={{ color: '#8D2582', fontSize: '1rem' }}>{trip.train_number} járat</b> <br/>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                      {trip.departure_station} ➔ {trip.arrival_station}
-                    </span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-                      {new Date(trip.departure_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}
+      {/* ACCORDION SECTIONS */}
+      <div style={{ padding: '0 1rem 2rem' }}>
+
+        {/* === BEOSZTÁS === */}
+        <AccordionSection
+          title="Beosztásom"
+          icon="📅"
+          isOpen={openSection === 'schedule'}
+          onToggle={() => toggleSection('schedule')}
+          color="#8D2582"
+        >
+          <MyScheduleView />
+        </AccordionSection>
+
+        {/* === MAI JÁRATOK === */}
+        <AccordionSection
+          title="Mai járatok"
+          icon="🚌"
+          isOpen={openSection === 'routes'}
+          onToggle={() => toggleSection('routes')}
+          color="#009fe3"
+        >
+          <div style={{ padding: '12px' }}>
+            {schedule && schedule.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {schedule.map(trip => (
+                  <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: '#111', borderRadius: '8px', border: '1px solid #222' }}>
+                    <div>
+                      <b style={{ color: '#009fe3', fontSize: '0.9rem' }}>{trip.train_number}</b>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>{trip.departure_station} ➔ {trip.arrival_station}</div>
                     </div>
-                    <div style={{ 
-                        fontSize: '0.75rem', 
-                        color: trip.delay > 0 ? 'var(--danger)' : 'var(--success)',
-                        fontWeight: 600
-                    }}>
-                      {trip.delay > 0 ? `+${trip.delay} KÉSIK` : 'IDŐBEN'}
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{new Date(trip.departure_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div style={{ fontSize: '0.65rem', color: trip.delay > 0 ? '#ef4444' : '#22c55e', fontWeight: 600 }}>
+                        {trip.delay > 0 ? `+${trip.delay} KÉSIK` : 'IDŐBEN'}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.8rem', color: '#444', textAlign: 'center', padding: '1rem' }}>Nincs mára beosztott járat.</p>
+            )}
+          </div>
+        </AccordionSection>
+
+        {/* === TECHNIKAI ÁLLAPOT === */}
+        <AccordionSection
+          title="Technikai állapot"
+          icon="⚙️"
+          isOpen={openSection === 'tech'}
+          onToggle={() => toggleSection('tech')}
+          color="#22c55e"
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', padding: '12px', opacity: isOnDuty ? 1 : 0.4 }}>
+            {Object.entries(techStatus).map(([key, val]) => (
+              <div key={key} style={{ padding: '12px', background: '#111', borderRadius: '8px', border: '1px solid #222', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.6rem', color: '#555', textTransform: 'uppercase', marginBottom: '4px' }}>{key === 'traction' ? 'Vontatás' : key === 'brakes' ? 'Fék' : 'Bizt.ber.'}</div>
+                <div style={{ color: '#22c55e', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.8rem' }}>
+                  <CheckCircle size={12} /> {val}
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </AccordionSection>
+
+        {/* === ESEMÉNYJELENTÉS === */}
+        <AccordionSection
+          title="Esemény jelentése"
+          icon="⚠️"
+          isOpen={openSection === 'incident'}
+          onToggle={() => toggleSection('incident')}
+          color="#ef4444"
+          badge={activeIncident ? '1' : null}
+        >
+          <div style={{ padding: '12px', opacity: isOnDuty ? 1 : 0.4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button disabled={!isOnDuty} onClick={() => reportIncident('BIZT.BER. HIBA')} style={incidentBtnStyle('#ef4444')}>
+                <ShieldAlert size={18} /> Bizt.ber. hiba
+              </button>
+              <button disabled={!isOnDuty} onClick={() => reportIncident('JELZŐZAVAR')} style={incidentBtnStyle('#f59e0b')}>
+                <AlertTriangle size={18} /> Jelzőzavar
+              </button>
             </div>
-          ) : (
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincs mára beosztott vagy érintett járatod a telephelyeden.</p>
+            {activeIncident && (
+              <div style={{ marginTop: '10px', padding: '10px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444', fontSize: '0.8rem' }}>
+                <b style={{ color: '#ef4444' }}>AKTÍV:</b> {activeIncident.type}
+              </div>
+            )}
+            {!isOnDuty && <p style={{ fontSize: '0.7rem', color: '#555', marginTop: '8px', textAlign: 'center' }}>Csak szolgálatban elérhető</p>}
+          </div>
+        </AccordionSection>
+
+        {/* === GVK CHAT === */}
+        <AccordionSection
+          title="GVK Kapcsolat"
+          icon="💬"
+          isOpen={openSection === 'chat'}
+          onToggle={() => toggleSection('chat')}
+          color="#8D2582"
+        >
+          <div style={{ padding: '12px' }}>
+            <DriverChat />
+          </div>
+        </AccordionSection>
+
+      </div>
+    </div>
+  );
+}
+
+/* === ACCORDION COMPONENT === */
+function AccordionSection({ title, icon, isOpen, onToggle, color, badge, children }) {
+  return (
+    <div style={{ marginBottom: '8px', borderRadius: '12px', overflow: 'hidden', border: isOpen ? `1px solid ${color}40` : '1px solid #1a1a1a', transition: 'all 0.2s' }}>
+      <button onClick={onToggle} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 16px', background: isOpen ? `${color}12` : '#111',
+        border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{title}</span>
+          {badge && (
+            <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 800, padding: '1px 6px', borderRadius: '10px' }}>{badge}</span>
           )}
         </div>
-
-        {/* Tech Status Matrix */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '2rem', opacity: isOnDuty ? 1 : 0.5 }}>
-          {Object.entries(techStatus).map(([key, val]) => (
-            <div key={key} className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase' }}>{key === 'traction' ? 'Vontatás' : key === 'brakes' ? 'Fék' : 'Bizt.ber.'}</div>
-              <div style={{ color: 'var(--success)', fontWeight: 'bold', marginTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                <CheckCircle size={14} /> {val}
-              </div>
-            </div>
-          ))}
+        <div style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#555' }}>
+          <Activity size={16} />
         </div>
-
-        {/* Incident Reporting */}
-        <div style={{ opacity: isOnDuty ? 1 : 0.5 }}>
-          <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Esemény jelentése {!isOnDuty && '(Csak szolgálatban!)'}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <button disabled={!isOnDuty} onClick={() => reportIncident('BIZT.BER. HIBA')} style={incidentBtnStyle('#ef4444', !isOnDuty)}>
-              <ShieldAlert size={20} /> Bizt.ber. hiba
-            </button>
-            <button disabled={!isOnDuty} onClick={() => reportIncident('JELZŐZAVAR')} style={incidentBtnStyle('#f59e0b', !isOnDuty)}>
-              <AlertTriangle size={20} /> Jelzőzavar
-            </button>
-          </div>
-        </div>
-
-        {activeIncident && (
-          <div style={{ marginTop: '2rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444' }}>
-            <b style={{ color: '#ef4444' }}>AKTÍV ESEMÉNY:</b> {activeIncident.type}
-          </div>
-        )}
-
-        {/* Saját Beosztás */}
-        <MyScheduleView />
-
-        {/* GVK Diszpécser Chat */}
-        <div style={{ marginTop: '2rem' }}>
-          <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MessageSquare size={18} color="#8D2582" /> GVK Kapcsolat
-          </h3>
-          <DriverChat />
-        </div>
+      </button>
+      <div style={{
+        maxHeight: isOpen ? '800px' : '0',
+        overflow: 'hidden',
+        transition: 'max-height 0.3s ease',
+        background: '#0a0a0a'
+      }}>
+        {children}
       </div>
     </div>
   );
 }
 
 const incidentBtnStyle = (color) => ({
-  padding: '1.5rem 1rem', background: 'rgba(15, 23, 42, 0.6)', border: `1px solid ${color}40`,
-  borderRadius: '12px', color: 'white', display: 'flex', flexDirection: 'column',
-  alignItems: 'center', gap: '10px', fontSize: '0.85rem', cursor: 'pointer'
+  padding: '1rem', background: '#0a0a0a', border: `1px solid ${color}30`,
+  borderRadius: '10px', color: 'white', display: 'flex', flexDirection: 'column',
+  alignItems: 'center', gap: '6px', fontSize: '0.8rem', cursor: 'pointer'
 });

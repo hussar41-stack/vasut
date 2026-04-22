@@ -102,119 +102,101 @@ export default function ConductorView() {
     );
   }
 
+  const [openSection, setOpenSection] = useState('schedule');
+  const toggleSection = (s) => setOpenSection(prev => prev === s ? null : s);
+
   return (
-    <div className="fade-in" style={{ padding: '0', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
-      {/* Status Bar */}
-      <div style={{ 
-          background: isOnDuty ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)', 
-          padding: '12px 1.5rem', borderBottom: '1px solid var(--border)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: isOnDuty ? 'var(--success)' : 'var(--danger)' }} />
-          <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-            {isOnDuty ? 'SZOLGÁLATBAN' : 'NINCS SZOLGÁLATBAN'}
-          </span>
+    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white' }}>
+      <div style={{ background: isOnDuty ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', padding: '10px 1rem', borderBottom: '1px solid #222', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: isOnDuty ? '#22c55e' : '#ef4444', boxShadow: isOnDuty ? '0 0 8px #22c55e' : 'none' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{isOnDuty ? 'SZOLGÁLATBAN' : 'NEM AKTÍV'}</span>
         </div>
-        <button 
-          onClick={isOnDuty ? handleLogout : handleSignOn} 
-          style={statusBtnStyle(isOnDuty ? '#ef4444' : '#8D2582')}
-        >
-          {isOnDuty ? 'SZOLGÁLAT LEADÁSA' : 'SZOLGÁLAT FELVÉTELE'}
+        <button onClick={isOnDuty ? handleLogout : handleSignOn} style={{ padding: '6px 14px', fontSize: '0.7rem', fontWeight: 700, borderRadius: '6px', border: 'none', cursor: 'pointer', background: isOnDuty ? '#ef4444' : '#8D2582', color: 'white' }}>
+          {isOnDuty ? 'LEADÁS' : 'FELVÉTEL'}
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '1rem 1rem 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.2rem', margin: 0, color: '#8D2582' }}>Jegyvizsgálói Terminál</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#8D2582', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>
-                {admin?.avatar_url ? <img src={admin.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
-              </div>
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{admin?.name}</span>
-              <button onClick={() => setView('profile')} style={{ background: 'none', border: 'none', color: '#8D2582', fontSize: '0.75rem', cursor: 'pointer', marginLeft: '5px' }}>[Profil]</button>
+            <h1 style={{ fontSize: '1.1rem', margin: 0, color: '#8D2582' }}>Jegyvizsgálói Terminál</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#8D2582', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>👤</div>
+              <span style={{ fontSize: '0.75rem', color: '#666' }}>{admin?.name}</span>
+              <button onClick={() => setView('profile')} style={{ background: 'none', border: 'none', color: '#8D2582', fontSize: '0.7rem', cursor: 'pointer' }}>[Profil]</button>
             </div>
           </div>
-          <button onClick={logout} style={{ background: 'none', border: '1px solid #64748b', color: '#64748b', padding: '5px 10px', borderRadius: '5px', fontSize: '0.7rem' }}>Kijelentkezés</button>
-        </header>
-
-        {/* Smart Route Assignment Display */}
-        <div className="glass-panel" style={{ padding: '1.2rem', marginBottom: '1.5rem', borderLeft: '4px solid #8D2582' }}>
-          <h3 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>NAPI JÁRATOK ({admin?.location || 'Minden telephely'})</h3>
-          {schedule && schedule.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {schedule.map(trip => (
-                <div key={trip.id} style={{ 
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                    padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' 
-                }}>
-                  <div>
-                    <b style={{ color: '#8D2582', fontSize: '1rem' }}>{trip.train_number} járat</b> <br/>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                      {trip.departure_station} ➔ {trip.arrival_station}
-                    </span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-                      {new Date(trip.departure_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Nincs mára beosztott vagy érintett járatod a telephelyeden.</p>
-          )}
-        </div>
-
-        {/* Preparation Checklist */}
-        <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', opacity: isOnDuty ? 1 : 0.5 }}>
-          <h3 style={{ marginTop: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ClipboardCheck size={18} color="#8D2582" /> Indítási előkészítés {!isOnDuty && '(Csak szolgálatban!)'}
-          </h3>
-          <div style={{ marginTop: '1rem' }}>
-            {checklist.map(item => (
-              <div 
-                key={item.id} 
-                onClick={() => isOnDuty && toggleCheck(item.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: isOnDuty ? 'pointer' : 'default' }}
-              >
-                {item.done ? <CheckSquare color="#10b981" size={20} /> : <CheckSquare color="#64748b" size={20} opacity={0.3} />}
-                <span style={{ color: item.done ? '#fff' : '#64748b' }}>{item.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Hiba-jegy */}
-        <div className="glass-panel" style={{ padding: '1.5rem', opacity: isOnDuty ? 1 : 0.5 }}>
-          <h3 style={{ marginTop: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <AlertCircle size={18} color="#ef4444" /> Hiba-jegy felvétele {!isOnDuty && '(Csak szolgálatban!)'}
-          </h3>
-          <textarea 
-            disabled={!isOnDuty}
-            placeholder="Hiba leírása..."
-            value={issue}
-            onChange={e => setIssue(e.target.value)}
-            style={{ width: '100%', height: '80px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '12px', color: 'white', margin: '1rem 0' }}
-          />
-          <button disabled={!isOnDuty} onClick={reportDefect} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 'bold', cursor: isOnDuty ? 'pointer' : 'default', opacity: isOnDuty ? 1 : 0.5 }}>
-            MENTÉS ÉS KÜLDÉS
-          </button>
-        </div>
-
-        {/* Saját Beosztás */}
-        <MyScheduleView />
-
-        {/* GVK Diszpécser Chat */}
-        <div style={{ marginTop: '2rem' }}>
-          <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MessageSquare size={18} color="#8D2582" /> GVK Kapcsolat
-          </h3>
-          <DriverChat />
+          <button onClick={logout} style={{ background: 'none', border: '1px solid #333', color: '#666', padding: '4px 10px', borderRadius: '5px', fontSize: '0.65rem', cursor: 'pointer' }}>Kijelentkezés</button>
         </div>
       </div>
+
+      <div style={{ padding: '0 1rem 2rem' }}>
+
+        {/* BEOSZTÁS */}
+        <AccordionPanel title="Beosztásom" icon="📅" isOpen={openSection === 'schedule'} onToggle={() => toggleSection('schedule')} color="#8D2582">
+          <MyScheduleView />
+        </AccordionPanel>
+
+        {/* NAPI JÁRATOK */}
+        <AccordionPanel title="Napi járatok" icon="🚌" isOpen={openSection === 'routes'} onToggle={() => toggleSection('routes')} color="#009fe3">
+          <div style={{ padding: '12px' }}>
+            {schedule && schedule.length > 0 ? schedule.map(trip => (
+              <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#111', borderRadius: '8px', border: '1px solid #222', marginBottom: '6px' }}>
+                <div>
+                  <b style={{ color: '#009fe3', fontSize: '0.9rem' }}>{trip.train_number}</b>
+                  <div style={{ fontSize: '0.7rem', color: '#666' }}>{trip.departure_station} ➔ {trip.arrival_station}</div>
+                </div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{new Date(trip.departure_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+            )) : <p style={{ fontSize: '0.8rem', color: '#444', textAlign: 'center', padding: '1rem' }}>Nincs mára járat.</p>}
+          </div>
+        </AccordionPanel>
+
+        {/* ELLENŐRZÉSI LISTA */}
+        <AccordionPanel title="Indítási ellenőrzés" icon="✅" isOpen={openSection === 'check'} onToggle={() => toggleSection('check')} color="#10b981">
+          <div style={{ padding: '12px', opacity: isOnDuty ? 1 : 0.4 }}>
+            {checklist.map(item => (
+              <div key={item.id} onClick={() => isOnDuty && toggleCheck(item.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid #1a1a1a', cursor: isOnDuty ? 'pointer' : 'default' }}>
+                {item.done ? <CheckSquare color="#10b981" size={18} /> : <CheckSquare color="#333" size={18} />}
+                <span style={{ color: item.done ? '#fff' : '#555', fontSize: '0.85rem' }}>{item.text}</span>
+              </div>
+            ))}
+            {!isOnDuty && <p style={{ fontSize: '0.7rem', color: '#555', marginTop: '8px', textAlign: 'center' }}>Csak szolgálatban elérhető</p>}
+          </div>
+        </AccordionPanel>
+
+        {/* HIBA-JEGY */}
+        <AccordionPanel title="Hiba-jegy felvétele" icon="🔧" isOpen={openSection === 'defect'} onToggle={() => toggleSection('defect')} color="#ef4444">
+          <div style={{ padding: '12px', opacity: isOnDuty ? 1 : 0.4 }}>
+            <textarea disabled={!isOnDuty} placeholder="Hiba leírása..." value={issue} onChange={e => setIssue(e.target.value)}
+              style={{ width: '100%', height: '70px', background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '10px', color: 'white', fontSize: '0.85rem', resize: 'none' }} />
+            <button disabled={!isOnDuty} onClick={reportDefect} style={{ width: '100%', marginTop: '8px', padding: '10px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 'bold', cursor: isOnDuty ? 'pointer' : 'default', opacity: isOnDuty ? 1 : 0.5, fontSize: '0.8rem' }}>
+              KÜLDÉS
+            </button>
+          </div>
+        </AccordionPanel>
+
+        {/* GVK CHAT */}
+        <AccordionPanel title="GVK Kapcsolat" icon="💬" isOpen={openSection === 'chat'} onToggle={() => toggleSection('chat')} color="#8D2582">
+          <div style={{ padding: '12px' }}><DriverChat /></div>
+        </AccordionPanel>
+      </div>
+    </div>
+  );
+}
+
+function AccordionPanel({ title, icon, isOpen, onToggle, color, children }) {
+  return (
+    <div style={{ marginBottom: '8px', borderRadius: '12px', overflow: 'hidden', border: isOpen ? `1px solid ${color}40` : '1px solid #1a1a1a', transition: 'all 0.2s' }}>
+      <button onClick={onToggle} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: isOpen ? `${color}12` : '#111', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{title}</span>
+        </div>
+        <div style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#555' }}><Activity size={16} /></div>
+      </button>
+      <div style={{ maxHeight: isOpen ? '800px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease', background: '#0a0a0a' }}>{children}</div>
     </div>
   );
 }
