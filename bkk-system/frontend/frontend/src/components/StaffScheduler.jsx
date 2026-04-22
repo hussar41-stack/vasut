@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Save, User, Clock, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Save, User, Clock, FileText, Bus, Trash2 } from 'lucide-react';
 import { API_URL } from '../config';
+
+const SHIFT_TYPES = [
+  { id: 'reggeli', label: 'Reggeli műszak', start: '04:30', end: '12:30', color: '#fbbf24' },
+  { id: 'delutani', label: 'Délutáni műszak', start: '12:30', end: '20:30', color: '#009fe3' },
+  { id: 'ejszakai', label: 'Éjszakai műszak', start: '20:30', end: '04:30', color: '#8D2582' },
+  { id: 'osztatlan', label: 'Osztatlan műszak', start: '06:00', end: '18:00', color: '#ef4444' },
+  { id: 'szabad', label: 'Szabadnap', start: '', end: '', color: '#333' },
+];
+
+const BKK_LINES = [
+  '7-es busz', '7E busz', '9-es busz', '99-es busz', '30-as busz',
+  '4-6 villamos', '2-es villamos', '1-es villamos', '17-es villamos', '19-es villamos',
+  'M2 metró', 'M3 metró', 'M4 metró',
+  '70-es troli', '72-es troli', '74-es troli',
+  'H5 HÉV', 'H6 HÉV', 'H7 HÉV'
+];
 
 export default function StaffScheduler() {
   const [staff, setStaff] = useState([]);
@@ -9,29 +25,30 @@ export default function StaffScheduler() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedules, setSchedules] = useState({});
   const [editingDay, setEditingDay] = useState(null);
-  const [formData, setFormData] = useState({ start: '08:00', end: '16:00', notes: '', trips: '' });
-  const [suggestions, setSuggestions] = useState([]);
+  const [formData, setFormData] = useState({ shift_type: 'reggeli', start: '04:30', end: '12:30', notes: '', trips: '' });
+
+  useEffect(() => { fetchStaff(); }, []);
 
   useEffect(() => {
-    fetchStaff();
-  }, []);
-
-  useEffect(() => {
-    if (selectedStaff) {
-      fetchSchedules();
-      setSuggestions([]); // Clear old suggestions while loading
-    }
+    if (selectedStaff) fetchSchedules();
   }, [selectedStaff, currentDate]);
 
   const fetchStaff = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.get(`${API_URL}/api/staff`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStaff(res.rows || res.data || []);
-      if (res.data.length > 0) setSelectedStaff(res.data[0]);
-    } catch (e) { console.error(e); }
+      const res = await axios.get(`${API_URL}/api/chat/contacts`);
+      const staffList = res.data || [];
+      setStaff(staffList);
+      if (staffList.length > 0) setSelectedStaff(staffList[0]);
+    } catch (e) {
+      // Fallback ha a contacts nem érhető el
+      setStaff([
+        { id: 1, name: 'Kovács Péter', role: 'ENGINEER', email: 'peter@bkk.hu', location: 'Kelenföldi Garázs' },
+        { id: 2, name: 'Szabó Mária', role: 'ENGINEER', email: 'maria@bkk.hu', location: 'Baross Kocsiszín' },
+        { id: 3, name: 'Nagy László', role: 'ENGINEER', email: 'laszlo@bkk.hu', location: 'Kőér utca' },
+        { id: 4, name: 'Tóth Anna', role: 'CONDUCTOR', email: 'anna@bkk.hu', location: 'Deák tér' },
+        { id: 5, name: 'Varga Béla', role: 'ENGINEER', email: 'bela@bkk.hu', location: 'Pongrác Garázs' },
+      ]);
+    }
   };
 
   const fetchSchedules = async () => {
@@ -42,14 +59,13 @@ export default function StaffScheduler() {
       const res = await axios.get(`${API_URL}/api/staff-schedules?email=${selectedStaff.email}&month=${month}&year=${year}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       const schedMap = {};
-      res.data.forEach(s => {
+      (res.data || []).forEach(s => {
         const d = new Date(s.duty_date).getDate();
         schedMap[d] = s;
       });
       setSchedules(schedMap);
-    } catch (e) { console.error(e); }
+    } catch (e) { setSchedules({}); }
   };
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -58,30 +74,19 @@ export default function StaffScheduler() {
   const handleDayClick = (day) => {
     const existing = schedules[day] || {};
     setEditingDay(day);
+    const shiftType = SHIFT_TYPES.find(s => s.id === existing.shift_type) || SHIFT_TYPES[0];
     setFormData({
-      start: existing.shift_start || '08:00',
-      end: existing.shift_end || '16:00',
+      shift_type: existing.shift_type || 'reggeli',
+      start: existing.shift_start || shiftType.start,
+      end: existing.shift_end || shiftType.end,
       notes: existing.notes || '',
       trips: existing.trip_ids ? existing.trip_ids.join(', ') : ''
     });
-    fetchSuggestions(selectedStaff.email);
   };
 
-  const fetchSuggestions = async (email) => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.get(`${API_URL}/api/admin/staff-suggestions/${email}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSuggestions(res.data);
-    } catch (e) { console.error(e); }
-  };
-
-  const addTripToForm = (trainNum) => {
-    const current = formData.trips.split(',').map(t => t.trim()).filter(t => t);
-    if (!current.includes(trainNum)) {
-        setFormData({...formData, trips: [...current, trainNum].join(', ')});
-    }
+  const handleShiftTypeChange = (typeId) => {
+    const st = SHIFT_TYPES.find(s => s.id === typeId);
+    setFormData({ ...formData, shift_type: typeId, start: st.start, end: st.end });
   };
 
   const handleSave = async () => {
@@ -94,6 +99,7 @@ export default function StaffScheduler() {
         duty_date: dateStr,
         shift_start: formData.start,
         shift_end: formData.end,
+        shift_type: formData.shift_type,
         trip_ids: formData.trips.split(',').map(t => t.trim()).filter(t => t),
         notes: formData.notes
       }, {
@@ -105,60 +111,118 @@ export default function StaffScheduler() {
     } catch (e) { alert("Hiba a mentéskor!"); }
   };
 
+  const getRoleIcon = (role) => {
+    if (!role) return '👤';
+    const r = role.toUpperCase();
+    if (r.includes('ENGINEER')) return '🚌';
+    if (r.includes('CONDUCTOR')) return '👥';
+    return '👤';
+  };
+
+  const getShiftColor = (day) => {
+    const sched = schedules[day];
+    if (!sched) return 'transparent';
+    const st = SHIFT_TYPES.find(s => s.id === sched.shift_type);
+    return st ? st.color + '30' : 'rgba(141,37,130,0.15)';
+  };
+
+  const getShiftBorder = (day) => {
+    const sched = schedules[day];
+    if (!sched) return '1px solid #333';
+    const st = SHIFT_TYPES.find(s => s.id === sched.shift_type);
+    return `1px solid ${st ? st.color : '#8D2582'}`;
+  };
+
+  const today = new Date();
+  const isToday = (day) => {
+    return day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+  };
+
   return (
-    <div className="fade-in" style={{ padding: '2rem' }}>
-      <header className="calendar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="fade-in">
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Havi Vezénylés Tervező</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Személyzet beosztásának kezelése</p>
+          <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Vezénylés & Beosztás</h1>
+          <p style={{ color: '#666', fontSize: '0.85rem', margin: '5px 0 0' }}>BKK személyzet havi műszakbeosztása</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Személyzet választó */}
           <select 
-            value={selectedStaff?.email} 
+            value={selectedStaff?.email || ''} 
             onChange={(e) => setSelectedStaff(staff.find(s => s.email === e.target.value))}
-            style={selectStyle}
+            style={{ background: '#1a1a1a', color: 'white', border: '1px solid #333', padding: '10px 15px', borderRadius: '8px', outline: 'none', fontSize: '0.85rem' }}
           >
-            {staff.map(s => <option key={s.email} value={s.email}>{s.name} ({s.role})</option>)}
+            {staff.map(s => (
+              <option key={s.email} value={s.email}>{getRoleIcon(s.role)} {s.name} — {s.location || s.role}</option>
+            ))}
           </select>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(15, 23, 42, 0.5)', padding: '5px 15px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-            <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth()-1)))} style={iconBtnStyle}><ChevronLeft size={18} /></button>
-            <span style={{ fontWeight: 600, minWidth: '120px', textAlign: 'center' }}>
+          {/* Hónap váltó */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a1a', padding: '6px 16px', borderRadius: '8px', border: '1px solid #333' }}>
+            <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth()-1, 1))} style={iconBtnStyle}><ChevronLeft size={18} /></button>
+            <span style={{ fontWeight: 600, minWidth: '140px', textAlign: 'center', fontSize: '0.9rem' }}>
               {currentDate.toLocaleString('hu-HU', { month: 'long', year: 'numeric' }).toUpperCase()}
             </span>
-            <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth()+1)))} style={iconBtnStyle}><ChevronRight size={18} /></button>
+            <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 1))} style={iconBtnStyle}><ChevronRight size={18} /></button>
           </div>
         </div>
       </header>
 
-      <div className="map-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
-        {/* Calendar Grid */}
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', textAlign: 'center', marginBottom: '10px' }}>
-            {['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'].map(d => <div key={d} style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>{d}</div>)}
+      {/* Műszak típus jelmagyarázat */}
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {SHIFT_TYPES.map(st => (
+          <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#888' }}>
+            <div style={{ width: 10, height: 10, borderRadius: '3px', background: st.color }} />
+            {st.label}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
-            {[...Array(firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1)].map((_, i) => <div key={`empty-${i}`} />)}
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
+        {/* Naptár */}
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', border: '1px solid #333', padding: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center', marginBottom: '8px' }}>
+            {['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'].map(d => (
+              <div key={d} style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'bold', padding: '5px' }}>{d}</div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+            {[...Array(firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1)].map((_, i) => <div key={`e-${i}`} />)}
             {[...Array(daysInMonth)].map((_, i) => {
               const day = i + 1;
               const sched = schedules[day];
+              const shiftInfo = sched ? SHIFT_TYPES.find(s => s.id === sched.shift_type) : null;
               return (
                 <div 
                   key={day} 
                   onClick={() => handleDayClick(day)}
                   style={{
-                    height: '100px', padding: '8px', borderRadius: '12px', cursor: 'pointer',
-                    background: day === editingDay ? 'rgba(56, 189, 248, 0.2)' : 'rgba(15, 23, 42, 0.3)',
-                    border: day === editingDay ? '1px solid #8D2582' : '1px solid var(--border)',
-                    transition: 'all 0.2s'
+                    minHeight: '85px', padding: '8px', borderRadius: '10px', cursor: 'pointer',
+                    background: getShiftColor(day),
+                    border: day === editingDay ? '2px solid #8D2582' : getShiftBorder(day),
+                    position: 'relative',
+                    transition: 'all 0.15s'
                   }}
                 >
-                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '5px' }}>{day}</div>
-                  {sched && (
-                    <div style={{ fontSize: '0.7rem', color: '#8D2582' }}>
-                       <div style={{ fontWeight: 600 }}>{sched.shift_start} - {sched.shift_end}</div>
-                       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sched.trip_ids?.join(', ')}</div>
+                  <div style={{ 
+                    fontSize: '0.8rem', fontWeight: isToday(day) ? 'bold' : '500', 
+                    color: isToday(day) ? '#8D2582' : 'white',
+                    marginBottom: '4px'
+                  }}>
+                    {day}
+                    {isToday(day) && <span style={{ fontSize: '0.6rem', marginLeft: '3px', color: '#8D2582' }}>MA</span>}
+                  </div>
+                  {sched && shiftInfo && (
+                    <div style={{ fontSize: '0.65rem' }}>
+                      <div style={{ color: shiftInfo.color, fontWeight: 600, marginBottom: '2px' }}>
+                        {shiftInfo.id === 'szabad' ? '🏖 Szabad' : `${sched.shift_start}-${sched.shift_end}`}
+                      </div>
+                      {sched.trip_ids && sched.trip_ids.length > 0 && (
+                        <div style={{ color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.6rem' }}>
+                          {sched.trip_ids.join(', ')}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -167,64 +231,87 @@ export default function StaffScheduler() {
           </div>
         </div>
 
-        {/* Edit Panel */}
-        <div className="glass-panel" style={{ padding: '1.5rem', height: 'fit-content' }}>
+        {/* Szerkesztő panel */}
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', border: '1px solid #333', padding: '1.5rem', height: 'fit-content' }}>
           {editingDay ? (
             <>
-              <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <CalendarIcon size={20} color="#8D2582" /> {editingDay}. napi beosztás
+              <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem' }}>
+                <CalendarIcon size={18} color="#8D2582" /> 
+                {currentDate.toLocaleString('hu-HU', { month: 'long' })} {editingDay}. — {selectedStaff?.name}
               </h3>
+
+              {/* Műszak típus választó */}
               <div style={formGroup}>
-                <label style={labelStyle}><Clock size={14} /> Műszakidő</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input type="time" value={formData.start} onChange={e => setFormData({...formData, start: e.target.value})} style={inputStyle} />
-                  <input type="time" value={formData.end} onChange={e => setFormData({...formData, end: e.target.value})} style={inputStyle} />
+                <label style={labelStyle}><Clock size={14} /> Műszak típusa</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {SHIFT_TYPES.map(st => (
+                    <button
+                      key={st.id}
+                      onClick={() => handleShiftTypeChange(st.id)}
+                      style={{
+                        padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer',
+                        background: formData.shift_type === st.id ? st.color + '30' : 'transparent',
+                        border: formData.shift_type === st.id ? `1px solid ${st.color}` : '1px solid #333',
+                        color: formData.shift_type === st.id ? st.color : '#666'
+                      }}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div style={formGroup}>
-                <label style={labelStyle}><CalendarIcon size={14} /> Járatok (vesszővel elválasztva)</label>
-                <input type="text" placeholder="IC560, IC567" value={formData.trips} onChange={e => setFormData({...formData, trips: e.target.value})} style={inputStyle} />
-              </div>
-              <div style={formGroup}>
-                <label style={labelStyle}><FileText size={14} /> Megjegyzés</label>
-                <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} style={{...inputStyle, height: '80px', resize: 'none'}} />
-              </div>
-              <button 
-                onClick={handleSave} 
-                className="neon-btn" 
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '1rem' }}
-              >
-                <Save size={18} /> BEOSZTÁS MENTÉSE
-              </button>
 
-              {/* Smart Suggestions Panel */}
-              {suggestions.length > 0 && (
-                <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                   <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: '#8D2582', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                     Javasolt járatok ({selectedStaff?.location})
-                   </h4>
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {suggestions.map(s => (
-                        <div key={s.id} onClick={() => addTripToForm(s.train_number)} style={{
-                            padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
-                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
-                            border: '1px solid transparent', transition: 'all 0.2s'
-                        }} className="suggestion-item">
-                           <div>
-                              <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{s.train_number}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.departure_station} ➔ {s.arrival_station}</div>
-                           </div>
-                           <div style={{ background: '#8D2582', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>+</div>
-                        </div>
-                      ))}
-                   </div>
+              {/* Idő */}
+              {formData.shift_type !== 'szabad' && (
+                <div style={formGroup}>
+                  <label style={labelStyle}><Clock size={14} /> Pontos idő</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input type="time" value={formData.start} onChange={e => setFormData({...formData, start: e.target.value})} style={inputStyle} />
+                    <span style={{ color: '#666', alignSelf: 'center' }}>–</span>
+                    <input type="time" value={formData.end} onChange={e => setFormData({...formData, end: e.target.value})} style={inputStyle} />
+                  </div>
                 </div>
               )}
+
+              {/* Járat hozzárendelés */}
+              {formData.shift_type !== 'szabad' && (
+                <div style={formGroup}>
+                  <label style={labelStyle}><Bus size={14} /> Járat beosztás</label>
+                  <input type="text" placeholder="pl. 7-es busz, 4-6 villamos" value={formData.trips} onChange={e => setFormData({...formData, trips: e.target.value})} style={inputStyle} />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '8px' }}>
+                    {BKK_LINES.slice(0, 8).map(line => (
+                      <button 
+                        key={line}
+                        onClick={() => {
+                          const current = formData.trips.split(',').map(t => t.trim()).filter(t => t);
+                          if (!current.includes(line)) setFormData({...formData, trips: [...current, line].join(', ')});
+                        }}
+                        style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.65rem', cursor: 'pointer', background: '#111', border: '1px solid #333', color: '#888' }}
+                      >
+                        + {line}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Megjegyzés */}
+              <div style={formGroup}>
+                <label style={labelStyle}><FileText size={14} /> Megjegyzés</label>
+                <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Pl. csere kérés, képzés, stb." style={{...inputStyle, height: '60px', resize: 'none'}} />
+              </div>
+
+              <button onClick={handleSave} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#8D2582', color: 'white', border: 'none', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Save size={16} /> BEOSZTÁS MENTÉSE
+              </button>
             </>
           ) : (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
-              <User size={40} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-              <p>Válassz egy napot a naptárban a beosztás szerkesztéséhez!</p>
+            <div style={{ textAlign: 'center', color: '#444', padding: '3rem 1rem' }}>
+              <CalendarIcon size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+              <p style={{ margin: 0, fontSize: '0.9rem' }}>Válassz egy napot a beosztás szerkesztéséhez</p>
+              <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#333' }}>
+                {selectedStaff ? `${selectedStaff.name} — ${selectedStaff.location || selectedStaff.role}` : 'Nincs kiválasztva személyzet'}
+              </p>
             </div>
           )}
         </div>
@@ -233,16 +320,10 @@ export default function StaffScheduler() {
   );
 }
 
-const selectStyle = {
-  background: 'rgba(15, 23, 42, 0.8)', color: 'white', border: '1px solid var(--border)',
-  padding: '8px 15px', borderRadius: '10px', outline: 'none'
-};
-
-const iconBtnStyle = { background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '5px' };
-
-const formGroup = { marginBottom: '1.5rem' };
-const labelStyle = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' };
+const iconBtnStyle = { background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' };
+const formGroup = { marginBottom: '1.2rem' };
+const labelStyle = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#666', marginBottom: '8px' };
 const inputStyle = {
-  width: '100%', background: 'rgba(15, 23, 42, 0.5)', border: '1px solid var(--border)',
-  borderRadius: '8px', padding: '10px', color: 'white', outline: 'none'
+  width: '100%', background: '#111', border: '1px solid #333',
+  borderRadius: '6px', padding: '8px 10px', color: 'white', outline: 'none', fontSize: '0.85rem'
 };
