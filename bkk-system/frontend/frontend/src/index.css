@@ -21,7 +21,11 @@ body {
 
 * {
   box-sizing: border-box;
-  transition: all 0.2s ease;
+}
+
+html, body {
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Glassmorphism Classes */

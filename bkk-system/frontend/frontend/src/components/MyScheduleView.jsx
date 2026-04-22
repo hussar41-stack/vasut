@@ -179,7 +179,7 @@ export default function MyScheduleView() {
   };
 
   return (
-    <div style={{ marginTop: '2rem' }}>
+    <div style={{ marginTop: '0.5rem', touchAction: 'pan-y' }}>
       {/* --- HEADER BAR --- */}
       <div style={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
