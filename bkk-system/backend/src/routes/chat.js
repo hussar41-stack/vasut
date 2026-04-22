@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Ensure table exists on startup
+// Ensure table exists and has the vehicle_id column
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
@@ -13,7 +13,12 @@ db.query(`
     type TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`).catch(err => console.error('Error creating messages table:', err));
+`).then(() => {
+  // Safely add vehicle_id column if it doesn't exist yet (old schema migration)
+  return db.query(`
+    ALTER TABLE messages ADD COLUMN IF NOT EXISTS vehicle_id TEXT
+  `);
+}).catch(err => console.error('DB init error:', err));
 
 /**
  * GET /api/chat/messages?channel=bus
