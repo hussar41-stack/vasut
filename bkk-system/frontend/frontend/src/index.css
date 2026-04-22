@@ -15,7 +15,8 @@ body {
   font-family: 'Inter', -apple-system, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-primary);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 * {

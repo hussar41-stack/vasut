@@ -313,7 +313,7 @@ export default function MyScheduleView() {
 
       {/* --- LIST VIEW --- */}
       {viewMode === 'list' && (
-        <div style={{ background: '#0d0d15', borderRadius: '0 0 14px 14px', maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ background: '#0d0d15', borderRadius: '0 0 14px 14px' }}>
           {[...Array(daysInMonth)].map((_, i) => {
             const day = i + 1;
             const sched = schedules[day];

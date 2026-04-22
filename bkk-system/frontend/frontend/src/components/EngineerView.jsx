@@ -99,7 +99,7 @@ export default function EngineerView() {
   };
 
   return (
-    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white' }}>
+    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       {/* Status Bar */}
       <div style={{ 
           background: isOnDuty ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
@@ -267,9 +267,7 @@ function AccordionSection({ title, icon, isOpen, onToggle, color, badge, childre
         </div>
       </button>
       <div style={{
-        maxHeight: isOpen ? '800px' : '0',
-        overflow: 'hidden',
-        transition: 'max-height 0.3s ease',
+        display: isOpen ? 'block' : 'none',
         background: '#0a0a0a'
       }}>
         {children}

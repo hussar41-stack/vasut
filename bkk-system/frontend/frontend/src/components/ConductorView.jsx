@@ -106,7 +106,7 @@ export default function ConductorView() {
   const toggleSection = (s) => setOpenSection(prev => prev === s ? null : s);
 
   return (
-    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white' }}>
+    <div className="fade-in" style={{ padding: '0', background: '#0a0a0a', minHeight: '100vh', color: 'white', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <div style={{ background: isOnDuty ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', padding: '10px 1rem', borderBottom: '1px solid #222', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: isOnDuty ? '#22c55e' : '#ef4444', boxShadow: isOnDuty ? '0 0 8px #22c55e' : 'none' }} />
@@ -196,7 +196,7 @@ function AccordionPanel({ title, icon, isOpen, onToggle, color, children }) {
         </div>
         <div style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#555' }}><Activity size={16} /></div>
       </button>
-      <div style={{ maxHeight: isOpen ? '800px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease', background: '#0a0a0a' }}>{children}</div>
+      <div style={{ display: isOpen ? 'block' : 'none', background: '#0a0a0a' }}>{children}</div>
     </div>
   );
 }
