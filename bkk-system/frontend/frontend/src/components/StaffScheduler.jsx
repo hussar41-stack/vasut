@@ -163,11 +163,28 @@ export default function StaffScheduler() {
     doc.text(`Kiállítás: ${now.toLocaleDateString('hu-HU')} ${now.toLocaleTimeString('hu-HU', {hour:'2-digit',minute:'2-digit'})}`, pw - 15, 19, { align: 'right' });
     doc.text(`Érvényesség: ${monthName}`, pw - 15, 26, { align: 'right' });
 
+    // === HOURS CALCULATION ===
+    let totalHours = 0;
+    const wDays = Object.values(schedules).filter(s => s.shift_type && s.shift_type !== 'szabad').length;
+    Object.values(schedules).forEach(s => {
+      if (s.shift_type !== 'szabad' && s.shift_start && s.shift_end) {
+        const [sh, sm] = s.shift_start.split(':').map(Number);
+        const [eh, em] = s.shift_end.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60;
+        totalHours += diff / 60;
+      }
+    });
+    const mandatoryH = wDays * 8;
+    const overtimeH = Math.max(0, totalHours - mandatoryH);
+    const tH = Math.floor(totalHours);
+    const tM = Math.round((totalHours - tH) * 60);
+
     // === EMPLOYEE INFO BOX ===
     doc.setFillColor(248, 248, 250);
-    doc.rect(10, 36, pw - 20, 14, 'F');
+    doc.rect(10, 36, pw - 20, 20, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(10, 36, pw - 20, 14, 'S');
+    doc.rect(10, 36, pw - 20, 20, 'S');
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
@@ -190,6 +207,10 @@ export default function StaffScheduler() {
     doc.text('Készítette:', 90, 47);
     doc.setFont('helvetica', 'normal');
     doc.text('GVK Forgalomirányítási Diszpécser', 115, 47);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Óraszám:', 14, 52);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Beosztott: ${tH} óra ${tM} perc  |  Kötelező (${wDays}×8h): ${mandatoryH} óra  |  Túlóra: ${overtimeH.toFixed(1)} óra`, 40, 52);
 
     // === TABLE ===
     const tableData = [];
@@ -213,7 +234,7 @@ export default function StaffScheduler() {
     }
 
     doc.autoTable({
-      startY: 54,
+      startY: 60,
       head: [['Nap', 'Műszak típus', 'Időszak', 'Járat beosztás', 'Megjegyzés']],
       body: tableData,
       theme: 'grid',

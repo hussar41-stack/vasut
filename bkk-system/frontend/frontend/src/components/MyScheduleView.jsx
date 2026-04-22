@@ -77,11 +77,27 @@ export default function MyScheduleView() {
     doc.text(`Kiállítás: ${now.toLocaleDateString('hu-HU')} ${now.toLocaleTimeString('hu-HU', {hour:'2-digit',minute:'2-digit'})}`, pw - 12, 21, { align: 'right' });
     doc.text(`Érvényesség: ${monthName}`, pw - 12, 28, { align: 'right' });
 
+    // === HOURS CALCULATION ===
+    let totalHours = 0;
+    Object.values(schedules).forEach(s => {
+      if (s.shift_type !== 'szabad' && s.shift_start && s.shift_end) {
+        const [sh, sm] = s.shift_start.split(':').map(Number);
+        const [eh, em] = s.shift_end.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60; // éjszakai műszak
+        totalHours += diff / 60;
+      }
+    });
+    const mandatoryHours = workDays * 8;
+    const overtime = Math.max(0, totalHours - mandatoryHours);
+    const totalH = Math.floor(totalHours);
+    const totalM = Math.round((totalHours - totalH) * 60);
+
     // === EMPLOYEE INFO BOX ===
     doc.setFillColor(248, 248, 250);
-    doc.rect(8, 39, pw - 16, 20, 'F');
+    doc.rect(8, 39, pw - 16, 26, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(8, 39, pw - 16, 20, 'S');
+    doc.rect(8, 39, pw - 16, 26, 'S');
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
@@ -92,6 +108,10 @@ export default function MyScheduleView() {
     doc.text(`Telephely: ${admin?.location || '—'}`, 140, 51);
     doc.text(`E-mail: ${admin?.email || '—'}`, 12, 56);
     doc.text(`Munkanapok: ${workDays}  |  Szabadnapok: ${freeDays}  |  Nyitott: ${daysInMonth - workDays - freeDays}`, 80, 56);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Óraszám kimutatás:', 12, 62);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Beosztott: ${totalH} óra ${totalM} perc  |  Kötelező (${workDays}×8h): ${mandatoryHours} óra  |  Túlóra: ${overtime.toFixed(1)} óra`, 55, 62);
 
     // === TABLE ===
     const tableData = [];
@@ -116,7 +136,7 @@ export default function MyScheduleView() {
     }
 
     doc.autoTable({
-      startY: 63,
+      startY: 69,
       head: [['Nap', 'Hét napja', 'Műszak típus', 'Időszak', 'Járat beosztás', 'Megjegyzés']],
       body: tableData,
       theme: 'grid',
