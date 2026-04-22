@@ -70,7 +70,7 @@ export default function AdminDashboard() {
           <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>TRANSPORT<span style={{ color: 'var(--accent)' }}>GVK</span></span>
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-          {mobileMenuOpen ? <X size={24} /> : <span style={{ fontSize: '24px' }}>☰</span>}
+          {mobileMenuOpen ? <span>✕</span> : <span>☰</span>}
         </button>
       </header>
 
