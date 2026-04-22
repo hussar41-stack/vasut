@@ -2,24 +2,28 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Ensure table exists
+// Ensure table exists on startup
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
     sender TEXT,
     text TEXT,
     channel TEXT,
+    vehicle_id TEXT,
     type TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `).catch(err => console.error('Error creating messages table:', err));
 
-// GET /api/chat/messages?channel=bus
+/**
+ * GET /api/chat/messages?channel=bus
+ * Diszpécser: az egész csatornát látja
+ */
 router.get('/messages', async (req, res) => {
   const { channel } = req.query;
   try {
     const result = await db.query(
-      'SELECT * FROM messages WHERE channel = $1 ORDER BY created_at ASC LIMIT 100',
+      'SELECT * FROM messages WHERE channel = $1 ORDER BY created_at ASC LIMIT 200',
       [channel || 'global']
     );
     res.json(result.rows);
@@ -29,13 +33,36 @@ router.get('/messages', async (req, res) => {
   }
 });
 
-// POST /api/chat/messages
-router.post('/messages', async (req, res) => {
-  const { sender, text, channel, type } = req.body;
+/**
+ * GET /api/chat/driver-messages?vehicle_id=BPI-007
+ * Járművezető: CSAK a saját jármű üzeneteit látja
+ */
+router.get('/driver-messages', async (req, res) => {
+  const { vehicle_id } = req.query;
+  if (!vehicle_id) return res.status(400).json({ error: 'vehicle_id kötelező' });
+
   try {
     const result = await db.query(
-      'INSERT INTO messages (sender, text, channel, type) VALUES ($1, $2, $3, $4) RETURNING *',
-      [sender, text, channel || 'global', type || 'incoming']
+      'SELECT * FROM messages WHERE vehicle_id = $1 ORDER BY created_at ASC LIMIT 100',
+      [vehicle_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Driver chat fetch error:', err);
+    res.status(500).json({ error: 'Hiba az üzenetek betöltésekor' });
+  }
+});
+
+/**
+ * POST /api/chat/messages
+ * Üzenet küldése (diszpécser vagy sofőr)
+ */
+router.post('/messages', async (req, res) => {
+  const { sender, text, channel, vehicle_id, type } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO messages (sender, text, channel, vehicle_id, type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [sender, text, channel || 'global', vehicle_id || null, type || 'incoming']
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

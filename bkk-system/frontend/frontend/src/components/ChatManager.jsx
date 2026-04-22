@@ -16,10 +16,13 @@ export default function ChatManager() {
     global: [], bus: [], tram: [], metro: []
   });
 
-  const [input, setInput] = useState('');
+  const [replyTo, setReplyTo] = useState(null); // { vehicle_id, sender }
+  const [pollInterval, setPollInterval] = useState(null);
 
   useEffect(() => {
     fetchMessages(activeChannel);
+    const interval = setInterval(() => fetchMessages(activeChannel), 5000);
+    return () => clearInterval(interval);
   }, [activeChannel]);
 
   const fetchMessages = async (channelId) => {
@@ -39,6 +42,7 @@ export default function ChatManager() {
       sender: 'GVK Diszpécser',
       text: input,
       channel: activeChannel,
+      vehicle_id: replyTo?.vehicle_id || null,  // jármű szállá kerül a válasz
       type: 'outgoing'
     };
 
@@ -49,6 +53,7 @@ export default function ChatManager() {
         [activeChannel]: [...(prev[activeChannel] || []), res.data]
       }));
       setInput('');
+      setReplyTo(null);
     } catch (e) {
       alert('Hiba az üzenet küldésekor!');
     }
@@ -102,33 +107,58 @@ export default function ChatManager() {
 
         <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#0e0e0e' }}>
           {(messages[activeChannel] || []).length === 0 ? (
-             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: '0.9rem', fontStyle: 'italic' }}>
+             <div style={{ textAlign: 'center', color: '#333', fontSize: '0.9rem', fontStyle: 'italic', marginTop: '3rem' }}>
                Nincs üzenet ebben a csatornában.
              </div>
           ) : (
-            (messages[activeChannel] || []).map(msg => (
-              <div key={msg.id} style={{ 
-                alignSelf: msg.type === 'outgoing' ? 'flex-end' : 'flex-start',
-                maxWidth: '70%',
-                background: msg.type === 'outgoing' ? 'rgba(141, 37, 130, 0.1)' : '#1a1a1a',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: msg.type === 'outgoing' ? '1px solid #8D2582' : '1px solid #333'
-              }}>
-                <div style={{ fontSize: '0.7rem', color: msg.type === 'outgoing' ? '#c13db4' : '#666', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 'bold' }}>{msg.sender}</span>
-                  <span style={{ marginLeft: '10px' }}>{msg.time}</span>
+            (messages[activeChannel] || []).map(msg => {
+              const isDispatcher = msg.type === 'outgoing';
+              const time = msg.created_at
+                ? new Date(msg.created_at).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })
+                : msg.time || '';
+              return (
+                <div key={msg.id}>
+                  <div style={{ 
+                    alignSelf: isDispatcher ? 'flex-end' : 'flex-start',
+                    maxWidth: '70%',
+                    marginLeft: isDispatcher ? 'auto' : undefined,
+                    background: isDispatcher ? 'rgba(141, 37, 130, 0.1)' : '#1a1a1a',
+                    padding: '12px 16px', borderRadius: '12px',
+                    border: isDispatcher ? '1px solid #8D2582' : '1px solid #333'
+                  }}>
+                    <div style={{ fontSize: '0.7rem', color: isDispatcher ? '#c13db4' : '#666', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                      <span style={{ fontWeight: 'bold' }}>{msg.sender}</span>
+                      <span>{time}</span>
+                    </div>
+                    {msg.vehicle_id && !isDispatcher && (
+                      <div style={{ fontSize: '0.65rem', color: '#666', marginBottom: '4px' }}>Jármű: {msg.vehicle_id}</div>
+                    )}
+                    <div style={{ color: 'white', fontSize: '0.9rem' }}>{msg.text}</div>
+                    {!isDispatcher && (
+                      <button
+                        onClick={() => setReplyTo({ vehicle_id: msg.vehicle_id, sender: msg.sender })}
+                        style={{ marginTop: '6px', background: 'none', border: '1px solid #333', borderRadius: '4px', color: '#666', fontSize: '0.7rem', padding: '3px 8px', cursor: 'pointer' }}
+                      >
+                        ↩ Válasz {msg.vehicle_id ? `(${msg.vehicle_id})` : ''}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div style={{ color: 'white', fontSize: '0.9rem' }}>{msg.text}</div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
+        {replyTo && (
+          <div style={{ padding: '8px 1.5rem', background: '#111', borderTop: '1px solid #333', fontSize: '0.75rem', color: '#8D2582', display: 'flex', justifyContent: 'space-between' }}>
+            <span>↩ Válasz ide: <b>{replyTo.sender}</b> ({replyTo.vehicle_id})</span>
+            <button onClick={() => setReplyTo(null)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>✕</button>
+          </div>
+        )}
         <form onSubmit={handleSend} style={{ padding: '1.5rem', background: '#1a1a1a', borderTop: '1px solid #333', display: 'flex', gap: '12px' }}>
           <input 
             type="text" 
-            placeholder={`Üzenet a ${channels.find(c => c.id === activeChannel)?.name} részére...`}
+            placeholder={replyTo ? `Válasz: ${replyTo.vehicle_id}...` : `Üzenet a ${channels.find(c => c.id === activeChannel)?.name} részére...`}
             value={input}
             onChange={e => setInput(e.target.value)}
             style={{ flex: 1, background: '#111', border: '1px solid #333', borderRadius: '8px', padding: '12px', color: 'white', outline: 'none' }}

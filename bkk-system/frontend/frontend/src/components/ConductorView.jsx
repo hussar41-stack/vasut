@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardCheck, Wrench, AlertCircle, Users, CheckSquare, Square, Activity, ChevronLeft } from 'lucide-react';
+import { ClipboardCheck, Wrench, AlertCircle, Users, CheckSquare, Square, Activity, ChevronLeft, MessageSquare } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import SettingsView from './Settings';
+import DriverChat from './DriverChat';
 
 export default function ConductorView() {
   const { admin, logout } = useAdminAuth();
@@ -200,6 +201,18 @@ export default function ConductorView() {
           <button disabled={!isOnDuty} onClick={reportDefect} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 'bold', cursor: isOnDuty ? 'pointer' : 'default', opacity: isOnDuty ? 1 : 0.5 }}>
             MENTÉS ÉS KÜLDÉS
           </button>
+        </div>
+
+        {/* GVK Diszpécser Chat - csak saját jármű szála */}
+        <div style={{ marginTop: '2rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MessageSquare size={18} color="#8D2582" /> GVK Kapcsolat
+          </h3>
+          <DriverChat
+            vehicleId={admin?.vehicle_id || `DRV-${admin?.name?.split(' ')[1]?.toUpperCase() || 'KOND'}`}
+            driverName={admin?.name || 'Ismeretlen Kalauz'}
+            channel="bus"
+          />
         </div>
       </div>
     </div>
