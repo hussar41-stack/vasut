@@ -6,6 +6,8 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 
+const bcrypt = require('bcryptjs');
+
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -52,7 +54,7 @@ const authenticate = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.admin.role !== 'admin') return res.status(403).json({ error: 'Csak adminoknak' });
+  if (req.admin.role !== 'admin' && req.admin.role !== 'ADMIN') return res.status(403).json({ error: 'Csak adminoknak' });
   next();
 };
 
@@ -106,7 +108,9 @@ app.post('/api/auth/login', async (req, res) => {
     { email: 'totheszter@transporthu.hu', pass: 'eszter', name: 'Tóth Eszter', role: 'ENGINEER' },
     { email: 'molnaradam@transporthu.hu', pass: 'ádám', name: 'Molnár Ádám', role: 'CONDUCTOR' },
     { email: 'mav.admin@gvk.hu', pass: 'admin', name: 'MÁV Adminisztrátor', role: 'admin' },
-    { email: 'bkk.admin@gvk.hu', pass: 'admin', name: 'BKK Adminisztrátor', role: 'admin' }
+    { email: 'bkk.admin@gvk.hu', pass: 'admin', name: 'BKK Adminisztrátor', role: 'admin' },
+    { email: 'bkk.admin@gvk', pass: 'admin', name: 'BKK Adminisztrátor', role: 'admin' }, // Flexible for common typo
+    { email: 'mav.admin@gvk', pass: 'admin', name: 'MÁV Adminisztrátor', role: 'admin' }  // Added for consistency
   ];
 
   const userFound = demoUsers.find(u => u.email === email && u.pass === password);
@@ -120,15 +124,49 @@ app.post('/api/auth/login', async (req, res) => {
 
   // Database check as secondary
   try {
+    // 1. Try "users" table first (New unified system with bcrypt)
+    const userRes = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userRes.rows.length > 0) {
+      const user = userRes.rows[0];
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (isPasswordCorrect) {
+        const token = jwt.sign(
+          { id: user.email, role: user.role.toLowerCase(), name: user.name, id_db: user.id }, 
+          JWT_SECRET, 
+          { expiresIn: '8h' }
+        );
+        return res.json({ 
+          token, 
+          admin: { 
+            name: user.name, 
+            role: user.role.toLowerCase(), 
+            email: user.email, 
+            forda: fordaDB[email] || null 
+          } 
+        });
+      }
+    }
+
+    // 2. Legacy check: "admins" or "staff" (Plain text hash)
     const table = email.includes('admin') ? 'admins' : 'staff';
-    const result = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
-    const user = result.rows[0];
+    const legacyRes = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
+    const legacyUser = legacyRes.rows[0];
     
-    if (user && user.password_hash === password) {
-        const token = jwt.sign({ id: user.email, role: user.role, name: user.name, id_db: user.id }, JWT_SECRET, { expiresIn: '8h' });
+    if (legacyUser && legacyUser.password_hash === password) {
+        const token = jwt.sign(
+          { id: legacyUser.email, role: legacyUser.role, name: legacyUser.name, id_db: legacyUser.id }, 
+          JWT_SECRET, 
+          { expiresIn: '8h' }
+        );
         return res.json({ 
             token, 
-            admin: { name: user.name, role: user.role, email: user.email, avatar_url: user.avatar_url, forda: fordaDB[email] || null } 
+            admin: { 
+              name: legacyUser.name, 
+              role: legacyUser.role, 
+              email: legacyUser.email, 
+              avatar_url: legacyUser.avatar_url, 
+              forda: fordaDB[email] || null 
+            } 
         });
     }
   } catch (err) {
@@ -137,6 +175,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   res.status(401).json({ error: 'Hibás belépés vagy jelszó.' });
 });
+
 
 // --- PROFILE MANAGEMENT ---
 

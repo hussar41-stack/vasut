@@ -26,14 +26,14 @@ router.post('/register', async (req, res) => {
     
     // Mentés az adatbázisba
     const result = await db.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, passwordHash]
+      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
+      [name, email, passwordHash, 'USER']
     );
     
     const user = result.rows[0];
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     
-    res.status(201).json({ user, token });
+    res.status(201).json({ user, admin: user, token });
   } catch (err) {
     console.error('Register error:', err);
     res.status(500).json({ error: 'Hiba a regisztráció során' });
@@ -54,8 +54,12 @@ router.post('/login', async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: 'Hibás e-mail vagy jelszó' });
 
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ user: { id: user.id, name: user.name, email: user.email }, token });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ 
+      user: { id: user.id, name: user.name, email: user.email, role: user.role }, 
+      admin: { id: user.id, name: user.name, email: user.email, role: user.role },
+      token 
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Hiba a bejelentkezés során' });
