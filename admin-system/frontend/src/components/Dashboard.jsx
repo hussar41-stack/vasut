@@ -60,14 +60,14 @@ export default function AdminDashboard() {
       <header className="mobile-only-header" style={{
           display: window.innerWidth <= 768 ? 'flex' : 'none',
           alignItems: 'center', justifyContent: 'space-between',
-          padding: '1rem', background: 'rgba(15, 23, 42, 0.95)',
-          borderBottom: '1px solid var(--border)', zIndex: 1000
+          padding: '1rem', background: '#111',
+          borderBottom: '2px solid #2563eb', zIndex: 1000
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: 30, height: 30, background: 'var(--accent)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 30, height: 30, background: '#2563eb', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Train size={18} color="white" />
           </div>
-          <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>TRANSPORT<span style={{ color: 'var(--accent)' }}>GVK</span></span>
+          <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'white' }}>MÁV<span style={{ color: '#2563eb' }}>GVK</span></span>
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
           {mobileMenuOpen ? <span>✕</span> : <span>☰</span>}
@@ -77,28 +77,28 @@ export default function AdminDashboard() {
 
       {/* Sidebar / Mobile Menu */}
       <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ 
-          width: 280, background: 'rgba(15, 23, 42, 0.95)', 
-          borderRight: '1px solid var(--border)', padding: '2rem', 
+          width: 280, background: '#0a0a0a', 
+          borderRight: '1px solid #222', padding: '2rem', 
           display: 'flex', flexDirection: 'column',
           transition: 'all 0.3s ease'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '3rem' }}>
-          <div style={{ width: 40, height: 40, background: 'var(--accent)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px var(--accent-glow)' }}>
+          <div style={{ width: 40, height: 40, background: '#2563eb', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(37, 99, 235, 0.4)' }}>
              <Train color="white" size={24} />
           </div>
           <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', letterSpacing: '1px' }}>
-            TRANSPORT<span style={{ color: 'var(--accent)' }}>GVK</span>
+            MÁV<span style={{ color: '#2563eb' }}>GVK</span>
           </div>
         </div>
         <nav style={{ flex: 1 }}>
           {[
-            { id: 'dash', icon: <LayoutDashboard size={20}/>, label: 'Vezérlőpult' },
-            { id: 'trips', icon: <Train size={20}/>, label: 'Járatkezelés' },
-            { id: 'schedule', icon: <CalendarIcon size={20}/>, label: 'Vezénylés' },
-            { id: 'staff', icon: <Users size={20}/>, label: 'Személyzet' },
+            { id: 'dash', icon: <LayoutDashboard size={20}/>, label: 'GVK Operatív Ir.' },
+            { id: 'trips', icon: <Train size={20}/>, label: 'Vonatforgalom' },
+            { id: 'schedule', icon: <CalendarIcon size={20}/>, label: 'Személyzeti Vezénylés' },
+            { id: 'staff', icon: <Users size={20}/>, label: 'Vasúti Személyzet' },
             { id: 'settings', icon: <Settings size={20}/>, label: 'Beállítások' },
-            { id: 'map', icon: <MapIcon size={20}/>, label: 'Élő Forgalom' },
-            { id: 'alert', icon: <AlertTriangle size={20}/>, label: 'Napló' },
+            { id: 'map', icon: <MapIcon size={20}/>, label: 'Élő Hálózati Térkép' },
+            { id: 'alert', icon: <AlertTriangle size={20}/>, label: 'Eseménynapló' },
           ].map(item => (
             <div key={item.id} 
                 onClick={() => {
@@ -108,8 +108,8 @@ export default function AdminDashboard() {
                 style={{ 
                     display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px', 
                     borderRadius: '12px', cursor: 'pointer', marginBottom: '10px',
-                    background: activeView === item.id ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                    color: activeView === item.id ? 'var(--accent)' : 'var(--text-muted)',
+                    background: activeView === item.id ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                    color: activeView === item.id ? '#60a5fa' : '#666',
                     fontWeight: activeView === item.id ? 600 : 400
                 }}
             >
@@ -118,10 +118,10 @@ export default function AdminDashboard() {
           ))}
         </nav>
         
-        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
-          <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '15px' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #222' }}>
+          <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '15px', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ 
-                width: 32, height: 32, borderRadius: '50%', background: 'var(--accent)', 
+                width: 32, height: 32, borderRadius: '50%', background: '#2563eb', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem',
                 overflow: 'hidden' 
             }}>
@@ -132,14 +132,14 @@ export default function AdminDashboard() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{admin?.name || 'Operátor'}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{admin?.role?.toUpperCase() || 'GVK'}</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>{admin?.name || 'GVK Operátor'}</div>
+              <div style={{ fontSize: '0.7rem', color: '#666' }}>{admin?.role?.toUpperCase() || 'MÁV GVK'}</div>
             </div>
           </div>
-          <button onClick={logout} className="neon-btn" style={{ 
-            width: '100%', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', 
-            color: 'var(--danger)', border: '1px solid var(--danger)', display: 'flex', 
-            alignItems: 'center', justifyContent: 'center', gap: '8px' 
+          <button onClick={logout} style={{ 
+            width: '100%', padding: '10px', background: 'transparent', 
+            color: '#ef4444', border: '1px solid #ef4444', borderRadius: '8px', display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
           }}>
             <LogOut size={16}/> Kilépés
           </button>
@@ -151,25 +151,25 @@ export default function AdminDashboard() {
         {activeView === 'dash' && (
           <>
             <header className="calendar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Vezérlőpult Áttekintés</h1>
-              <div style={{ color: '#4a5568' }}>{new Date().toLocaleString('hu-HU')}</div>
+              <h1 style={{ fontSize: '1.5rem', margin: 0, color: 'white' }}>MÁV Operatív Irányítóközpont</h1>
+              <div style={{ color: '#666' }}>{new Date().toLocaleString('hu-HU')}</div>
             </header>
 
             {/* Stats Cards */}
             <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div className="glass-panel fade-in" style={{ padding: '1.5rem' }}>
-                <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>Aktív vonatok</div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent)', textShadow: '0 0 10px var(--accent-glow)' }}>{stats.activeTrips}</div>
+              <div className="glass-panel fade-in" style={{ padding: '1.5rem', background: '#111', borderRadius: '12px' }}>
+                <div style={{ color: '#666', marginBottom: '8px' }}>Aktív vonatok</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.activeTrips}</div>
               </div>
-              <div className="glass-panel fade-in" style={{ padding: '1.5rem', animationDelay: '0.1s' }}>
-                <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>Személyzet szolg.</div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--success)' }}>24 <span style={{fontSize: '1rem', color: 'var(--text-muted)' }}>fő</span></div>
+              <div className="glass-panel fade-in" style={{ padding: '1.5rem', animationDelay: '0.1s', background: '#111', borderRadius: '12px' }}>
+                <div style={{ color: '#666', marginBottom: '8px' }}>Vezényelt mozdonyvezetők</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#10b981' }}>112</div>
               </div>
-              <div className="glass-panel fade-in" style={{ padding: '1.5rem', animationDelay: '0.2s' }}>
-                <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>Rendszer Állapot</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 10px var(--success)' }}></div>
-                  {stats.systemHealth}
+              <div className="glass-panel fade-in" style={{ padding: '1.5rem', animationDelay: '0.2s', background: '#111', borderRadius: '12px' }}>
+                <div style={{ color: '#666', marginBottom: '8px' }}>Pályavasút Állapot</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }}></div>
+                  MŰKÖDŐKÉPES
                 </div>
               </div>
             </div>
@@ -178,65 +178,72 @@ export default function AdminDashboard() {
             <div className="map-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }}>
               
               {/* Map Column */}
-              <div className="glass-panel fade-in" style={{ animationDelay: '0.3s', height: '500px', overflow: 'hidden', padding: '10px' }}>
+              <div className="glass-panel fade-in" style={{ animationDelay: '0.3s', height: '500px', overflow: 'hidden', padding: '10px', background: '#111', borderRadius: '12px' }}>
                 <div style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Activity size={16} color="var(--accent)" /> Élő Forgalmi Helyzet
+                    <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+                        <Activity size={16} color="#2563eb" /> Élő Vonatkövetés (GPS)
                     </h3>
-                    <span className="badge" style={{ fontSize: '0.7rem', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '10px' }}>LOGS: {new Date().toLocaleTimeString()}</span>
+                    <span style={{ fontSize: '0.7rem', color: '#666' }}>LOGS: {new Date().toLocaleTimeString()}</span>
                 </div>
                 {mapReady ? (
-                  <MapContainer center={[47.4979, 19.0402]} zoom={11} style={{ height: 'calc(100% - 45px)', borderRadius: '12px' }}>
+                  <MapContainer center={[47.4979, 19.0402]} zoom={8} style={{ height: 'calc(100% - 45px)', borderRadius: '12px' }}>
                     <TileLayer
                       url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                      attribution='&copy; MÁV-START Zrt.'
                     />
                     {/* Demo Vonat Marker */}
                     <Marker position={[47.500, 19.030]} icon={getTrainIcon()}>
                       <Popup className="dark-popup">
                         <div style={{ color: 'white' }}>
-                          <b style={{ color: 'var(--accent)' }}>EC 142 (Lehár)</b><br/>
+                          <b style={{ color: '#2563eb' }}>EC 142 (Lehár)</b><br/>
                           <b>Személyzet:</b> Kovács J., Szabó M.<br/>
                           <b>Késés:</b> +5 perc<br/>
-                          <button style={{ marginTop: 8, padding: '5px 12px', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontSize: '0.8rem' }}>Módosítás</button>
+                          <button style={{ marginTop: 8, padding: '5px 12px', background: '#2563eb', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontSize: '0.8rem' }}>Műveleti lap</button>
                         </div>
                       </Popup>
                     </Marker>
                   </MapContainer>
                 ) : (
-                  <div style={{ height: 'calc(100% - 45px)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  <div style={{ height: 'calc(100% - 45px)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444' }}>
                     Térkép inicializálása...
                   </div>
                 )}
               </div>
 
               {/* Action Table Column */}
-              <div className="glass-panel fade-in" style={{ animationDelay: '0.4s', overflow: 'hidden' }}>
-                <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Clock size={18} color="var(--accent)" /> Forgalmi Napló
+              <div className="glass-panel fade-in" style={{ animationDelay: '0.4s', overflow: 'hidden', background: '#111', borderRadius: '12px' }}>
+                <div style={{ padding: '1.5rem', borderBottom: '1px solid #222', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+                      <Clock size={18} color="#2563eb" /> Forgalmi Napló (Vonatok)
                   </h3>
                 </div>
                 <div style={{ height: 'calc(100% - 70px)', overflowY: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead style={{ background: 'rgba(15, 23, 42, 0.4)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-muted)', position: 'sticky', top: 0 }}>
+                      <thead style={{ background: '#0a0a0a', textAlign: 'left', fontSize: '0.85rem', color: '#444', position: 'sticky', top: 0 }}>
                         <tr>
-                          <th style={thStyle}>JÁRAT</th>
-                          <th style={thStyle}>STÁTUSZ</th>
-                          <th style={thStyle}>MŰVELET</th>
+                          <th style={{ ...thStyle, color: '#444' }}>VONATSZÁM</th>
+                          <th style={{ ...thStyle, color: '#444' }}>STÁTUSZ</th>
+                          <th style={{ ...thStyle, color: '#444' }}>RÉSZLETEK</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {[1,2,3,4,5,6].map(i => (
-                          <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                            <td style={tdStyle}><b style={{ color: 'var(--accent)' }}>EC 14{i}</b></td>
+                        {[
+                          { num: 'EC 142', delay: 5, type: 'EC' },
+                          { num: 'IC 501', delay: 0, type: 'IC' },
+                          { num: 'S 42', delay: 15, type: 'S' },
+                          { num: 'RJ 60', delay: 0, type: 'RJ' },
+                          { num: 'IC 202', delay: 2, type: 'IC' },
+                          { num: 'G43', delay: 0, type: 'G' }
+                        ].map((train, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #222' }}>
+                            <td style={tdStyle}><b style={{ color: '#2563eb' }}>{train.num}</b></td>
                             <td style={tdStyle}>
-                              <span style={{ color: i === 2 ? 'var(--danger)' : 'var(--success)', fontSize: '0.85rem' }}>
-                                 {i === 2 ? '+15p' : 'OK'}
+                              <span style={{ color: train.delay > 0 ? '#ef4444' : '#10b981', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                 {train.delay > 0 ? `+${train.delay}'` : 'OK'}
                               </span>
                             </td>
                             <td style={tdStyle}>
-                              <button style={{ color: 'var(--text-muted)', border: 'none', background: 'none', cursor: 'pointer' }}>👁️</button>
+                              <button style={{ color: '#444', border: 'none', background: 'none', cursor: 'pointer' }}>👁️</button>
                             </td>
                           </tr>
                         ))}
