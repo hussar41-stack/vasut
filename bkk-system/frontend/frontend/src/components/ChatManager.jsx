@@ -1,47 +1,57 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Send, User, MessageSquare, Clock, Bus, Train, Smartphone, Users, Radio } from 'lucide-react';
+import { API_URL } from '../config';
 
 export default function ChatManager() {
   const [activeChannel, setActiveChannel] = useState('global');
   const [channels, setChannels] = useState([
     { id: 'global', name: '📢 Központi Csatorna', color: '#8D2582', icon: <Radio size={18}/>, unread: 0 },
-    { id: 'bus', name: '🚌 Autóbusz Ágazat', color: '#009fe3', icon: <Bus size={18}/>, unread: 2 },
-    { id: 'tram', name: '🚃 Villamos Ágazat', color: '#fbbf24', icon: <Train size={18}/>, unread: 1 },
+    { id: 'bus', name: '🚌 Autóbusz Ágazat', color: '#009fe3', icon: <Bus size={18}/>, unread: 0 },
+    { id: 'tram', name: '🚃 Villamos Ágazat', color: '#fbbf24', icon: <Train size={18}/>, unread: 0 },
     { id: 'metro', name: '🚇 Metró Üzemegység', color: '#ef4444', icon: <Smartphone size={18}/>, unread: 0 },
   ]);
 
   const [messages, setMessages] = useState({
-    global: [
-      { id: 1, sender: 'Szerver', text: 'Műszakváltás sikeres. Jó munkát!', time: '14:00', type: 'system' }
-    ],
-    bus: [
-      { id: 101, sender: 'Kovács János (7-es busz)', text: 'BPI-007: Forgalmi akadály a Blaha Lujza térnél.', time: '16:45', type: 'incoming' }
-    ],
-    tram: [
-      { id: 201, sender: 'Szabó Mária (4-6 villamos)', text: '#2014: Műszaki hiba a fékrendszerben a Corvin-negyednél.', time: '17:02', type: 'incoming' }
-    ],
-    metro: []
+    global: [], bus: [], tram: [], metro: []
   });
 
   const [input, setInput] = useState('');
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    fetchMessages(activeChannel);
+  }, [activeChannel]);
+
+  const fetchMessages = async (channelId) => {
+    try {
+      const res = await axios.get(`${API_URL}/api/chat/messages?channel=${channelId}`);
+      setMessages(prev => ({ ...prev, [channelId]: res.data }));
+    } catch (e) {
+      console.error('Error fetching chat:', e);
+    }
+  };
+
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     
-    const newMessage = {
-      id: Date.now(),
+    const payload = {
       sender: 'GVK Diszpécser',
       text: input,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      channel: activeChannel,
       type: 'outgoing'
     };
-    
-    setMessages({
-      ...messages,
-      [activeChannel]: [...(messages[activeChannel] || []), newMessage]
-    });
-    setInput('');
+
+    try {
+      const res = await axios.post(`${API_URL}/api/chat/messages`, payload);
+      setMessages(prev => ({
+        ...prev,
+        [activeChannel]: [...(prev[activeChannel] || []), res.data]
+      }));
+      setInput('');
+    } catch (e) {
+      alert('Hiba az üzenet küldésekor!');
+    }
   };
 
   return (
