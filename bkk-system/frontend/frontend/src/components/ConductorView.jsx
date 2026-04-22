@@ -5,6 +5,7 @@ import { API_URL } from '../config';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import SettingsView from './Settings';
 import DriverChat from './DriverChat';
+import MyScheduleView from './MyScheduleView';
 
 export default function ConductorView() {
   const { admin, logout } = useAdminAuth();
@@ -203,7 +204,10 @@ export default function ConductorView() {
           </button>
         </div>
 
-        {/* GVK Diszpécser Chat - csak saját jármű szála */}
+        {/* Saját Beosztás */}
+        <MyScheduleView />
+
+        {/* GVK Diszpécser Chat */}
         <div style={{ marginTop: '2rem' }}>
           <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <MessageSquare size={18} color="#8D2582" /> GVK Kapcsolat
