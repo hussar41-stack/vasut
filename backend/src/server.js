@@ -11,6 +11,7 @@ const newsRouter       = require('./routes/news');
 const authRouter       = require('./routes/auth');
 const liveRouter       = require('./routes/live');
 const stripeRouter     = require('./routes/stripe');
+const chatRouter       = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -34,6 +35,7 @@ app.use('/api/search',      realSearchRouter); // Changed from /real-search to /
 app.use('/api/news',        newsRouter);
 app.use('/api/auth',        authRouter);
 app.use('/api/live',        liveRouter);
+app.use('/api/chat',        chatRouter);
 app.use('/api',             stripeRouter); // Stripe handles /create-checkout-session at root of /api
 app.use('/api',             realSearchRouter); // Also handle /ai-analyze if it's there
 
