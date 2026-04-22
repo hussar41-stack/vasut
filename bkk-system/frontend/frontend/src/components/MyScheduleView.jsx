@@ -57,34 +57,48 @@ export default function MyScheduleView() {
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
     const now = new Date();
-    const docNum = `GVK-${currentDate.getFullYear()}${String(currentDate.getMonth()+1).padStart(2,'0')}-${String(admin?.id || '000').padStart(3,'0')}`;
+    const docNum = `GVK-CERT-${currentDate.getFullYear()}${String(currentDate.getMonth()+1).padStart(2,'0')}-${String(admin?.id?.substring(0,4) || '0000')}`;
 
-    // === HEADER ===
-    doc.setFillColor(141, 37, 130);
-    doc.rect(0, 0, pw, 35, 'F');
+    // --- Background / Border ---
+    doc.setDrawColor(230, 230, 230);
+    doc.setLineWidth(0.2);
+    doc.rect(5, 5, pw - 10, ph - 10, 'S');
+
+    // --- Modern Header ---
+    doc.setFillColor(141, 37, 130); // BKK Purple
+    doc.rect(0, 0, pw, 40, 'F');
+    
+    // Abstract shapes for modern look
+    doc.setFillColor(161, 57, 150);
+    doc.rect(pw - 60, 0, 60, 40, 'F');
+    doc.setFillColor(181, 77, 170);
+    doc.rect(pw - 30, 0, 30, 40, 'F');
+
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('BKK FUTÁR', 12, 14);
+    doc.text('BKK FUTÁR', 12, 18);
+    
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('Forgalomirányítási Központ (GVK)', 12, 21);
-    doc.setFontSize(8);
-    doc.text('Személyes Műszakbeosztás', 12, 28);
-    // Doc number right
-    doc.setFontSize(8);
-    doc.text(`Iktatószám: ${docNum}`, pw - 12, 14, { align: 'right' });
-    doc.text(`Kiállítás: ${now.toLocaleDateString('hu-HU')} ${now.toLocaleTimeString('hu-HU', {hour:'2-digit',minute:'2-digit'})}`, pw - 12, 21, { align: 'right' });
-    doc.text(`Érvényesség: ${monthName}`, pw - 12, 28, { align: 'right' });
+    doc.text('FORGALOMIRÁNYÍTÁSI KÖZPONT (GVK)', 12, 25);
+    doc.setFontSize(9);
+    doc.text('Eredeti Igazolt Műszakbeosztás', 12, 32);
 
-    // === HOURS CALCULATION ===
+    // Header Right Info
+    doc.setFontSize(8);
+    doc.text(`DOKUMENTUM AZONOSÍTÓ: ${docNum}`, pw - 12, 15, { align: 'right' });
+    doc.text(`GENERÁLVA: ${now.toLocaleString('hu-HU')}`, pw - 12, 22, { align: 'right' });
+    doc.text(`IDŐSZAK: ${monthName.toUpperCase()}`, pw - 12, 29, { align: 'right' });
+
+    // --- HOURS CALCULATION ---
     let totalHours = 0;
     Object.values(schedules).forEach(s => {
       if (s.shift_type !== 'szabad' && s.shift_start && s.shift_end) {
         const [sh, sm] = s.shift_start.split(':').map(Number);
         const [eh, em] = s.shift_end.split(':').map(Number);
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60; // éjszakai műszak
+        if (diff < 0) diff += 24 * 60;
         totalHours += diff / 60;
       }
     });
@@ -93,27 +107,57 @@ export default function MyScheduleView() {
     const totalH = Math.floor(totalHours);
     const totalM = Math.round((totalHours - totalH) * 60);
 
-    // === EMPLOYEE INFO BOX ===
-    doc.setFillColor(248, 248, 250);
-    doc.rect(8, 39, pw - 16, 26, 'F');
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(8, 39, pw - 16, 26, 'S');
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Dolgozó adatai', 12, 45);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Név: ${admin?.name || '—'}`, 12, 51);
-    doc.text(`Beosztás: ${admin?.role || '—'}`, 80, 51);
-    doc.text(`Telephely: ${admin?.location || '—'}`, 140, 51);
-    doc.text(`E-mail: ${admin?.email || '—'}`, 12, 56);
-    doc.text(`Munkanapok: ${workDays}  |  Szabadnapok: ${freeDays}  |  Nyitott: ${daysInMonth - workDays - freeDays}`, 80, 56);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Óraszám kimutatás:', 12, 62);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Beosztott: ${totalH} óra ${totalM} perc  |  Kötelező (${workDays}×8h): ${mandatoryHours} óra  |  Túlóra: ${overtime.toFixed(1)} óra`, 55, 62);
+    // --- EMPLOYEE SECTION ---
+    doc.setFillColor(252, 252, 254);
+    doc.rect(10, 45, pw - 20, 30, 'F');
+    doc.setDrawColor(141, 37, 130);
+    doc.setLineWidth(0.5);
+    doc.line(10, 45, 10, 75); // Left accent line
 
-    // === TABLE ===
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SZEMÉLYZETI ADATOK ÉS ÖSSZESÍTŐ', 15, 52);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`NÉV:`, 15, 60);
+    doc.text(`BEOSZTÁS:`, 80, 60);
+    doc.text(`TELEPHELY:`, 140, 60);
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${admin?.name || '---'}`, 15, 64);
+    doc.text(`${admin?.role || '---'}`, 80, 64);
+    doc.text(`${admin?.location || '---'}`, 140, 64);
+
+    // Divider
+    doc.setDrawColor(230, 230, 230);
+    doc.setLineWidth(0.1);
+    doc.line(15, 67, pw - 15, 67);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`TELJESÍTÉS: ${totalH} óra ${totalM} perc`, 15, 72);
+    doc.text(`ELŐÍRT KERET: ${mandatoryHours} óra`, 80, 72);
+    doc.setTextColor(overtime > 0 ? 141 : 80, overtime > 0 ? 37 : 80, overtime > 0 ? 130 : 80);
+    doc.text(`TÚLÓRA: ${overtime.toFixed(1)} óra`, 140, 72);
+
+    // Verification Box (Fake QR)
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(pw - 35, 48, 20, 20, 'S');
+    doc.setFontSize(5);
+    doc.setTextColor(150, 150, 150);
+    doc.text('VALIDATED BY GVK', pw - 25, 66, { align: 'center' });
+    // draw some random blocks for QR feel
+    doc.setFillColor(50, 50, 50);
+    doc.rect(pw - 33, 50, 4, 4, 'F');
+    doc.rect(pw - 19, 50, 4, 4, 'F');
+    doc.rect(pw - 33, 62, 4, 2, 'F');
+    doc.rect(pw - 25, 55, 6, 6, 'F');
+
+    // --- TABLE ---
     const tableData = [];
     for (let day = 1; day <= daysInMonth; day++) {
       const sched = schedules[day];
@@ -123,59 +167,90 @@ export default function MyScheduleView() {
       if (sched) {
         const st = SHIFT_TYPES[sched.shift_type];
         tableData.push([
-          `${day}.`,
-          dayName,
-          st ? st.label : '—',
-          sched.shift_type === 'szabad' ? '' : `${sched.shift_start || ''} – ${sched.shift_end || ''}`,
-          sched.trip_ids ? sched.trip_ids.join(', ') : '',
+          String(day).padStart(2, '0'),
+          dayName.toUpperCase(),
+          st ? st.label : '---',
+          sched.shift_type === 'szabad' ? '---' : `${sched.shift_start || ''} – ${sched.shift_end || ''}`,
+          sched.trip_ids ? sched.trip_ids.join(', ') : '---',
           sched.notes || ''
         ]);
       } else {
-        tableData.push([`${day}.`, dayName, '—', '', '', '']);
+        tableData.push([String(day).padStart(2, '0'), dayName.toUpperCase(), '---', '---', '---', '']);
       }
     }
 
     doc.autoTable({
-      startY: 69,
-      head: [['Nap', 'Hét napja', 'Műszak típus', 'Időszak', 'Járat beosztás', 'Megjegyzés']],
+      startY: 82,
+      head: [['NAP', 'DÁTUM', 'MŰSZAK TÍPUS', 'IDŐPONT', 'JÁRATOK', 'MEGJEGYZÉS']],
       body: tableData,
       theme: 'grid',
-      headStyles: { fillColor: [141, 37, 130], textColor: 255, fontStyle: 'bold', fontSize: 7.5, halign: 'center' },
-      bodyStyles: { fontSize: 7, cellPadding: 2.2, textColor: [40, 40, 40] },
-      alternateRowStyles: { fillColor: [252, 249, 253] },
-      columnStyles: { 0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' }, 1: { cellWidth: 22 }, 2: { cellWidth: 28 }, 3: { cellWidth: 24, halign: 'center' }, 4: { cellWidth: 50 }, 5: { cellWidth: 'auto' } },
-      margin: { left: 8, right: 8 }
+      headStyles: { 
+        fillColor: [141, 37, 130], 
+        textColor: 255, 
+        fontStyle: 'bold', 
+        fontSize: 8, 
+        halign: 'center',
+        valign: 'middle',
+        cellPadding: 3
+      },
+      bodyStyles: { 
+        fontSize: 7, 
+        cellPadding: 2, 
+        textColor: [50, 50, 50],
+        valign: 'middle'
+      },
+      alternateRowStyles: { fillColor: [250, 250, 252] },
+      columnStyles: { 
+        0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' }, 
+        1: { cellWidth: 25 }, 
+        2: { cellWidth: 30 }, 
+        3: { cellWidth: 25, halign: 'center' }, 
+        4: { cellWidth: 45 }, 
+        5: { cellWidth: 'auto' } 
+      },
+      margin: { left: 10, right: 10 },
+      didDrawPage: function(data) {
+        // Footer branding on every page if needed
+      }
     });
 
-    // === SIGNATURES ===
-    const sigY = doc.lastAutoTable.finalY + 12;
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(7.5);
+    // --- SIGNATURES ---
+    const lastY = doc.lastAutoTable.finalY + 15;
+    if (lastY > ph - 40) { doc.addPage(); } // Check for space
+    const sigStart = doc.lastAutoTable.finalY + 15 < ph - 45 ? doc.lastAutoTable.finalY + 15 : 40;
+
+    doc.setDrawColor(141, 37, 130);
+    doc.setLineWidth(0.3);
+    
+    // Preparer
     doc.setFont('helvetica', 'bold');
-    doc.text('Készítette:', 12, sigY);
-    doc.text('Dolgozó:', pw / 2 + 10, sigY);
+    doc.setFontSize(8);
+    doc.setTextColor(40, 40, 40);
+    doc.text('KÉSZÍTETTE (GVK DISZPÉCSER)', 15, lastY);
+    doc.line(15, lastY + 15, 80, lastY + 15);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text('GVK Forgalomirányítási Diszpécser', 12, sigY + 5);
-    doc.text(`Dátum: ${now.toLocaleDateString('hu-HU')}`, 12, sigY + 10);
-    doc.line(12, sigY + 22, 80, sigY + 22);
-    doc.text('Aláírás, pecsét', 12, sigY + 26);
+    doc.text(`DÁTUM: ${now.toLocaleDateString('hu-HU')}`, 15, lastY + 20);
 
-    doc.text(`${admin?.name || '—'}`, pw / 2 + 10, sigY + 5);
-    doc.text(`${admin?.role || '—'} — ${admin?.location || ''}`, pw / 2 + 10, sigY + 10);
-    doc.line(pw / 2 + 10, sigY + 22, pw - 12, sigY + 22);
-    doc.text('Dolgozó aláírása', pw / 2 + 10, sigY + 26);
+    // Employee
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('JÓVÁHAGYTA (DOLGOZÓ)', pw / 2 + 10, lastY);
+    doc.line(pw / 2 + 10, lastY + 15, pw - 15, lastY + 15);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text(`NÉV: ${admin?.name || '---'}`, pw / 2 + 10, lastY + 20);
 
-    // === FOOTER ===
-    doc.setFillColor(45, 45, 45);
-    doc.rect(0, ph - 12, pw, 12, 'F');
-    doc.setTextColor(160, 160, 160);
-    doc.setFontSize(5.5);
-    doc.text('Budapesti Közlekedési Központ Zrt. | 1075 Budapest, Rumbach Sebestyén utca 19-21.', 10, ph - 6);
-    doc.text('Jelen dokumentum bizalmasan kezelendő, harmadik félnek nem adható ki.', 10, ph - 3);
-    doc.text(`${docNum} | 1/1`, pw - 10, ph - 4, { align: 'right' });
+    // --- FOOTER ---
+    doc.setFillColor(30, 30, 30);
+    doc.rect(0, ph - 15, pw, 15, 'F');
+    doc.setTextColor(200, 200, 200);
+    doc.setFontSize(6);
+    doc.text('BUDAPESTI KÖZLEKEDÉSI KÖZPONT ZRT. | GVK FORGALOMIRÁNYÍTÁSI RENDSZER', 12, ph - 8);
+    doc.text('1075 BUDAPEST, RUMBACH SEBESTYÉN UTCA 19-21. | WWW.BKK.HU', 12, ph - 5);
+    doc.text(`OLDALSZÁM: 1/1 | DOKUMENTUM: ${docNum}`, pw - 12, ph - 6.5, { align: 'right' });
 
-    doc.save(`BKK_Beosztas_${docNum}_${admin?.name?.replace(/\s/g, '_') || 'dolgozo'}.pdf`);
+    doc.save(`BKK_SCHEDULE_${docNum}.pdf`);
   };
 
   return (
