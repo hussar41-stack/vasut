@@ -77,4 +77,56 @@ router.get('/me', (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/update-profile
+ */
+router.post('/update-profile', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  
+  try {
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    const { name, avatar_url } = req.body;
+    
+    const result = await db.query(
+      'UPDATE users SET name = COALESCE($1, name), avatar_url = COALESCE($2, avatar_url) WHERE email = $3 RETURNING id, name, email, avatar_url',
+      [name, avatar_url, decoded.email]
+    );
+
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Hiba a profil frissítésekor' });
+  }
+});
+
+/**
+ * POST /api/auth/change-password
+ */
+router.post('/change-password', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  
+  try {
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    const { old_password, new_password } = req.body;
+    
+    const userRes = await db.query('SELECT password FROM users WHERE email = $1', [decoded.email]);
+    if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(old_password, userRes.rows[0].password);
+    if (!isMatch) return res.status(400).json({ error: 'A régi jelszó nem egyezik!' });
+
+    const hashed = await bcrypt.hash(new_password, 10);
+    await db.query('UPDATE users SET password = $1 WHERE email = $2', [hashed, decoded.email]);
+
+    res.json({ success: true, message: 'Jelszó sikeresen módosítva!' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Hiba a jelszó módosításakor' });
+  }
+});
+
 module.exports = router;
