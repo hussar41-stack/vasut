@@ -130,7 +130,7 @@ body {
 
 .search-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr;
   gap: 16px;
   align-items: flex-end;
   margin-bottom: 20px;
@@ -287,6 +287,97 @@ body {
   background: var(--bg-primary);
 }
 .footer-content { max-width: 1000px; margin: 0 auto; }
+
+.footer-links-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.footer-doc-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-doc-link:hover {
+  color: var(--accent);
+}
+.footer-link-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+}
+.footer-link-btn:hover, .footer-link-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.footer-sponsors {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.sponsor-card {
+  display: flex;
+  align-items: center; gap: 12px;
+  background: transparent; border: none;
+  padding: 10px 20px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-width: auto;
+}
+.sponsor-card:hover {
+  transform: translateY(-5px);
+}
+.sponsor-logo {
+  height: 40px; width: auto; object-fit: contain;
+  opacity: 0.8;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.sponsor-card:hover .sponsor-logo { 
+    transform: scale(1.1);
+    opacity: 1;
+}
+.mav-logo, .bkk-logo { filter: brightness(0) invert(1); }
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  text-align: center;
+}
+.footer-copy { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+.footer-version {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  margin-top: 6px;
+  font-family: monospace;
+}
+
 .footer-contact-info {
   background: var(--bg-secondary);
   border: 1px solid var(--border);

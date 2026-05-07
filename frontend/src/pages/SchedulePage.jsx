@@ -159,16 +159,17 @@ export default function SchedulePage() {
                 <label>Dátum</label>
                 <input type="date" required value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
               </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="field" style={{ width: '220px' }}>
+              <div className="field">
+                <label>Rendezés</label>
                 <select value={form.sortBy} onChange={e => setForm(f => ({ ...f, sortBy: e.target.value }))}>
                   <option value="departure">Legkorábbi indulás</option>
                   <option value="duration">Leggyorsabb út</option>
                   <option value="price">Legolcsóbb</option>
                 </select>
               </div>
-              <button className="btn btn-primary" type="submit" disabled={loading}>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+              <button className="btn btn-primary" type="submit" disabled={loading} style={{ minWidth: '200px' }}>
                 {loading ? 'Keresés folyamatban...' : 'Keresés indítása'}
               </button>
             </div>
