@@ -53,7 +53,7 @@ export default function SchedulePage() {
           .then(res => setAiAnalysis(res.analysis))
           .catch(err => {
              console.error('AI hiba:', err);
-             setAiAnalysis('🤖 Sajnálom, az AI asszisztens jelenleg túlterhelt (Rate Limit). Kérlek próbáld meg később!');
+             setAiAnalysis('🤖 Sajnálom, az AI asszisztens jelenleg túlterhelt. Kérlek próbáld meg később!');
           })
           .finally(() => setAiLoading(false));
       }
@@ -68,25 +68,24 @@ export default function SchedulePage() {
 
   const renderTrainBadge = (trip) => {
     let color = '#fff'; 
-    let bg = '#005bac'; 
-    if (trip.type === 'LOCAL') { bg = '#005bac'; }
-    if (trip.type === 'FAST')  { bg = '#00a3e0'; }
-    if (trip.type === 'IC')    { bg = '#7b1fa2'; }
-    if (trip.type === 'EC' || trip.type === 'RAILJET') { bg = '#c62828'; }
+    let bg = '#3b82f6'; 
+    if (trip.type === 'LOCAL') { bg = '#3b82f6'; }
+    if (trip.type === 'FAST')  { bg = '#0ea5e9'; }
+    if (trip.type === 'IC')    { bg = '#c084fc'; }
+    if (trip.type === 'EC' || trip.type === 'RAILJET') { bg = '#f43f5e'; }
 
     return (
       <span style={{
         backgroundColor: bg,
         color: color,
-        padding: '2px 6px',
-        borderRadius: '4px',
-        fontWeight: '900',
-        fontSize: '0.75rem',
+        padding: '4px 10px',
+        borderRadius: '8px',
+        fontWeight: '700',
+        fontSize: '0.85rem',
         display: 'inline-block',
         minWidth: '40px',
         textAlign: 'center',
-        marginRight: 6,
-        letterSpacing: '0.5px'
+        marginRight: 8,
       }}>
         {trip.routeName}
       </span>
@@ -128,7 +127,6 @@ export default function SchedulePage() {
   }, [ws]);
 
   const formatTime = (iso) => new Date(iso).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
-  const formatDate = (iso) => new Date(iso).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
   const getDuration = (start, end) => {
     const diff = new Date(end) - new Date(start);
     const hrs = Math.floor(diff / 3600000);
@@ -137,135 +135,128 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="schedule-page" style={{ overflowY: 'auto', minHeight: '100vh' }}>
+    <div className="schedule-page">
       <div className="search-card">
-        <h2>🔍 Menetrend keresés</h2>
+        <h2>
+          Utazástervező
+        </h2>
         <form onSubmit={handleSearch}>
-            <div className="network-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+            <div className="network-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               <button type="button" className={`btn btn-sm ${form.network === 'mav' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'mav', from: '', to: '' }))}>🚆 MÁV</button>
               <button type="button" className={`btn btn-sm ${form.network === 'bkk' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'bkk', from: '', to: '' }))}>🚌 BKK</button>
             </div>
             <div className="search-grid">
               <div className="field">
-                <label>Indulás</label>
-                <input id="search-from" list="stations-list" required value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} />
+                <label>Honnan</label>
+                <input id="search-from" list="stations-list" placeholder="Indulási állomás" required value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} />
               </div>
               <div className="field">
-                <label>Érkezés</label>
-                <input id="search-to" list="stations-list" required value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} />
+                <label>Hová</label>
+                <input id="search-to" list="stations-list" placeholder="Érkezési állomás" required value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} />
                 <datalist id="stations-list">{ALL_STATIONS.map(s => <option key={s} value={s} />)}</datalist>
               </div>
               <div className="field">
                 <label>Dátum</label>
                 <input type="date" required value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
               </div>
-              <div className="field">
-                <label>Rendezés</label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="field" style={{ width: '220px' }}>
                 <select value={form.sortBy} onChange={e => setForm(f => ({ ...f, sortBy: e.target.value }))}>
                   <option value="departure">Legkorábbi indulás</option>
                   <option value="duration">Leggyorsabb út</option>
-                  <option value="price">Legolcsóbb ár</option>
+                  <option value="price">Legolcsóbb</option>
                 </select>
               </div>
+              <button className="btn btn-primary" type="submit" disabled={loading}>
+                {loading ? 'Keresés folyamatban...' : 'Keresés indítása'}
+              </button>
             </div>
-            <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', marginTop: '16px' }}>{loading ? 'Keresés...' : '🔍 Keresés indítása'}</button>
         </form>
       </div>
 
       {error && <div className="error-banner">⚠️ {error}</div>}
 
       {loading ? (
-        <div className="loading-skeletons" style={{ marginTop: '20px' }}>
-          {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: '100px', marginBottom: '10px', borderRadius: '12px', background: 'var(--bg-secondary)', animation: 'pulse 1.5s infinite' }}></div>)}
+        <div className="loading-skeletons">
+          {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: '100px', marginBottom: '16px', borderRadius: '16px', background: 'var(--bg-secondary)', animation: 'pulse 1.5s infinite' }}></div>)}
         </div>
       ) : searched && (
-        <div className="results-container" style={{ marginTop: '20px' }}>
-          <div className="trips-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h2>Járatok ({trips.length})</h2>
-            <select value={discountType} onChange={e => setDiscountType(e.target.value)} className="discount-select">
+        <div className="results-container">
+          <div className="trips-header">
+            <h2>Találatok ({trips.length})</h2>
+            <select value={discountType} onChange={e => setDiscountType(e.target.value)} className="field" style={{ padding: '10px 16px', width: 'auto', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text-primary)' }}>
                 {Object.entries(DISCOUNTS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
             </select>
           </div>
 
           {(aiLoading || aiAnalysis) && (
-            <div className="ai-box" style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
-              <div style={{ fontWeight: 'bold', color: '#a78bfa' }}>🤖 AI Asszisztens</div>
-              <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem' }}>{aiLoading ? 'Elemzés folyamatban...' : aiAnalysis}</p>
+            <div className="ai-box" style={{ background: 'var(--accent-light)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '16px', borderRadius: '16px', margin: '0 0 20px 0' }}>
+              <div style={{ fontWeight: '700', color: 'var(--accent)', marginBottom: '4px' }}>🤖 AI Asszisztens</div>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{aiLoading ? 'Elemzés folyamatban...' : aiAnalysis}</p>
             </div>
           )}
 
           <div className="trips-list">
             {trips.map(trip => (
-              <div key={trip.id} className={`trip-card-v2 ${expandedTripId === trip.id ? 'active' : ''}`} style={{ 
-                background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', 
-                marginBottom: '12px', transition: 'all 0.3s ease' 
-              }}>
-                {/* Main Card Header (Visible always) */}
-                <div className="trip-summary" onClick={() => setExpandedTripId(expandedTripId === trip.id ? null : trip.id)} style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{formatTime(trip.departureTime)} - {formatTime(trip.arrivalTime)}</span>
-                      {trip.status === 'DELAYED' && <span style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600 }}>+{trip.delayMinutes}'</span>}
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      Utazási idő: {getDuration(trip.departureTime, trip.arrivalTime)} · Átszállás: 0
-                    </div>
+              <div key={trip.id} className={`trip-card-v2 ${expandedTripId === trip.id ? 'active' : ''}`}>
+                <div className="trip-summary" onClick={() => setExpandedTripId(expandedTripId === trip.id ? null : trip.id)}>
+                  
+                  <div className="trip-time-block">
+                    <span className="time">{formatTime(trip.departureTime)} — {formatTime(trip.arrivalTime)}</span>
+                    <span className="duration">{getDuration(trip.departureTime, trip.arrivalTime)} • 0 átszállás</span>
+                    {trip.status === 'DELAYED' && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', fontWeight: 700, marginLeft: '8px', background: 'var(--danger-light)', padding: '4px 10px', borderRadius: '8px' }}>+{trip.delayMinutes}'</span>}
                   </div>
                   
-                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--accent)' }}>
+                  <div className="trip-price-block">
+                    <div className="price">
                       {Math.round(trip.basePrice * DISCOUNTS[discountType].multiplier)} Ft
                     </div>
-                    <button className="buy-btn-small" onClick={(e) => { e.stopPropagation(); setPurchaseTrip(trip); }} style={{ background: 'var(--accent)', color: '#000', border: 'none', borderRadius: '20px', padding: '6px 16px', fontWeight: 700, cursor: 'pointer' }}>Jegy</button>
-                    <span style={{ transform: expandedTripId === trip.id ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>⌄</span>
+                    <button className="buy-btn-small" onClick={(e) => { e.stopPropagation(); setPurchaseTrip(trip); }}>Jegyvásárlás</button>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: expandedTripId === trip.id ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s', color: 'var(--text-muted)' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </div>
+
                 </div>
 
                 {/* Expanded Details Section */}
                 {expandedTripId === trip.id && (
-                  <div className="trip-expanded-details" style={{ padding: '20px', borderTop: '1px solid var(--border)', background: 'rgba(0,0,0,0.1)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 200px', gap: '20px' }}>
+                  <div className="trip-expanded-details">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 250px', gap: '30px' }}>
                       
                       {/* Vertical Timeline */}
-                      <div className="timeline-container" style={{ position: 'relative', paddingLeft: '40px', color: '#fff', flex: 1 }}>
-                        <div style={{ position: 'absolute', left: '12px', top: '10px', bottom: '10px', width: '3px', background: '#ffcc00', borderRadius: '2px' }}></div>
-                        
+                      <div className="timeline-container">
                         {(trip.stops && trip.stops.length > 0 ? trip.stops : [
                             { station: trip.fromName, time: formatTime(trip.departureTime) },
                             { station: 'Közbülső megálló', time: '...' },
                             { station: trip.toName, time: formatTime(trip.arrivalTime) }
                         ]).map((stop, sIdx, arr) => (
-                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === arr.length - 1 ? 0 : '35px', minHeight: '24px' }}>
-                            {/* Circle Dot */}
-                            <div style={{ 
-                                position: 'absolute', left: '-33px', top: '4px', 
-                                width: '12px', height: '12px', borderRadius: '50%', 
-                                background: '#fff', border: '3px solid #ffcc00', zIndex: 10 
-                            }}></div>
+                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === arr.length - 1 ? 0 : '32px' }}>
+                            <div className={`timeline-dot ${sIdx === 0 || sIdx === arr.length - 1 ? 'active' : ''}`}></div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontSize: '1rem', fontWeight: (sIdx === 0 || sIdx === arr.length - 1) ? 800 : 500, color: '#fff' }}>
+                              <div style={{ fontSize: '1.05rem', fontWeight: (sIdx === 0 || sIdx === arr.length - 1) ? 700 : 500, color: 'var(--text-primary)' }}>
                                 {stop.station}
                               </div>
-                              <div style={{ fontWeight: 700, opacity: 0.9, color: '#fff' }}>{stop.time}</div>
+                              <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{stop.time}</div>
                             </div>
 
                             {sIdx === 0 && (
-                                <div style={{ marginTop: '15px', background: 'rgba(255,255,255,0.06)', padding: '12px', borderRadius: '12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                <div className="train-info-box">
+                                    <div className="train-info-row">
                                       {renderTrainBadge(trip)}
-                                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{trip.type === 'LOCAL' ? 'személyvonat' : 'gyorsvonat'}</span>
+                                      <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                        {trip.type === 'LOCAL' ? 'Személyvonat' : trip.type === 'IC' ? 'InterCity' : 'Gyorsvonat'}
+                                      </span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '15px', fontSize: '1.2rem', marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
                                       <span title="2. osztály">2</span>
                                       {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
                                       {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
                                       {trip.features?.bicycle && <span title="Kerékpárszállítás">🚲</span>}
                                       {trip.features?.climate && <span title="Klíma">❄️</span>}
-                                      <span title="Elővárosi">E</span>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                        {trip.platform}. vágány · Idő: {getDuration(trip.departureTime, trip.arrivalTime)}
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                                        {trip.platform}. vágányról indul
                                     </div>
                                 </div>
                             )}
@@ -273,17 +264,18 @@ export default function SchedulePage() {
                         ))}
                       </div>
 
-                      {/* Legend / Info */}
-                      <div className="legend-section" style={{ borderLeft: '1px solid var(--border)', paddingLeft: '20px' }}>
-                        <h4 style={{ margin: '0 0 12px 0', fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Jelmagyarázat</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                           <div style={{ display: 'flex', gap: '8px' }}><span>🚲</span><span>Kerékpár a megjelölt helyen szállítható.</span></div>
-                           <div style={{ display: 'flex', gap: '8px' }}><span>2</span><span>A vonat 2. osztályú kocsikkal közlekedik.</span></div>
-                           <div style={{ display: 'flex', gap: '8px' }}><span>♿</span><span>Kerekesszékes utazásra alkalmas.</span></div>
-                           <div style={{ display: 'flex', gap: '8px' }}><span>E</span><span>Elővárosi vonat</span></div>
-                           <div style={{ display: 'flex', gap: '8px' }}><span>📶</span><span>Ingyen WiFi a kijelölt kocsikban.</span></div>
+                      {/* Info / Actions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                           <h4 style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jelmagyarázat</h4>
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                              <div style={{ display: 'flex', gap: '12px' }}><span>🚲</span><span>Kerékpár szállítható</span></div>
+                              <div style={{ display: 'flex', gap: '12px' }}><span>2</span><span>Csak 2. osztály</span></div>
+                              <div style={{ display: 'flex', gap: '12px' }}><span>♿</span><span>Kerekesszékes utazás</span></div>
+                              <div style={{ display: 'flex', gap: '12px' }}><span>📶</span><span>Ingyenes WiFi</span></div>
+                           </div>
                         </div>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setDelayTrip(trip)} style={{ width: '100%', marginTop: '20px', fontSize: '0.7rem' }}>⏱ Késés jelentése</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setDelayTrip(trip)} style={{ width: '100%', marginTop: '24px' }}>⏱ Késés jelentése</button>
                       </div>
                     </div>
                   </div>
