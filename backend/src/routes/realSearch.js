@@ -20,6 +20,18 @@ const STATION_COORDS = {
   "Kisvárda": { lat: 48.2269, lon: 22.0792 }, "Záhony": { lat: 48.4111, lon: 22.1764 }, "Dombóvár": { lat: 46.3761, lon: 18.1364 }
 };
 
+const MAV_PRICES = [
+  { km: 10, price: 400 },
+  { km: 20, price: 500 },
+  { km: 30, price: 740 },
+  { km: 50, price: 1120 },
+  { km: 100, price: 2200 },
+  { km: 150, price: 2950 },
+  { km: 200, price: 3950 },
+  { km: 300, price: 5240 },
+  { km: 400, price: 6800 },
+];
+
 function resolveStationName(name) {
   if (!name) return "Budapest-Keleti";
   if (STATION_COORDS[name]) return name;
@@ -177,51 +189,74 @@ function generateFallbackResults(from, to, date) {
   });
 }
 
-// ─── Map Swiss API response → our standard format ────────────────────────────
-function mapSwissConnections(connections, fromName, toName) {
-  return connections.map((conn) => {
-    const section  = conn.sections?.[0];
-    const journey  = section?.journey;
-    const vehicle  = journey?.name || 'IC';
-    const delay    = conn.from?.delay ?? 0;
-    const platform = conn.from?.platform || String(Math.floor(Math.random() * 10) + 1);
+// ─── Unofficial MAV EMMA API Integration ─────────────────────────────────────────
+async function fetchMavApi(fromName, toName, targetDate) {
+  // We use the new MÁV EMMA PROD API to try and fetch real time data.
+  // Warning: This is an unofficial wrapper and relies on reverse engineered headers.
+  
+  // Note: We need station UIC codes. In a real scenario, we'd map station names to their 0055... codes.
+  // For this demo, we'll try a generic query to the new EMMA endpoint. If it fails, we fall back.
+  
+  const headers = {
+    'Accept': 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+    'Language': 'hu',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  };
 
-    let type = 'IC';
-    let features = FEATURES.IC;
-    if (vehicle.match(/^S\d/))          { type = 'LOCAL'; features = FEATURES.S; }
-    else if (vehicle.match(/^EC/))      { type = 'EC';    features = FEATURES.EC; }
-    else if (vehicle.match(/^RE|^RB|^G/)) { type = 'FAST';  features = FEATURES.G; }
-    else if (vehicle.match(/^RJ/))      { type = 'RAILJET'; features = FEATURES.RJX; }
+  // We are trying to query the new EMMA API (jegy-a.mav.hu)
+  // We'll perform a basic query, but since we lack the exact UIC station codes without a station resolver,
+  // we might get an error. If so, we catch it and use fallback.
+  const payload = {
+    "offersetCriteria": {
+      "travelDateTime": `${targetDate}T08:00:00.000Z`,
+      "departureStation": fromName, // EMMA sometimes accepts text query
+      "arrivalStation": toName,
+      "passengers": [{"passengerType":"HU_107_018-026"}]
+    }
+  };
 
-    const depDate = conn.from?.departure ? new Date(conn.from.departure) : new Date();
-    const arrDate = conn.to?.arrival    ? new Date(conn.to.arrival)    : new Date(depDate.getTime() + 90 * 60000);
-    const durMins = Math.round((arrDate - depDate) / 60000);
-
-    const stops = [
-      { station: fromName, time: depDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
-      { station: 'Kelenföld', time: new Date(depDate.getTime() + (durMins * 0.3) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
-      { station: 'Tatabánya', time: new Date(depDate.getTime() + (durMins * 0.6) * 60000).toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
-      { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
-    ];
-
-    return {
-      id:            uuidv4(),
-      routeName:     vehicle,
-      type:          type,
-      fromName,
-      toName,
-      departureTime: depDate.toISOString(),
-      arrivalTime:   arrDate.toISOString(),
-      delayMinutes:  delay,
-      status:        delay > 0 ? 'DELAYED' : 'ON_TIME',
-      basePrice:     calculateMavPrice(fromName, toName, type),
-      availableSeats: Math.floor(Math.random() * 150) + 20,
-      platform:      typeof platform === 'string' ? parseInt(platform, 10) || 1 : platform,
-      features:      features,
-      stops:         stops,
-      source:        'api',
-    };
-  });
+  try {
+    const apiRes = await axios.post('https://jegy-a.mav.hu/IK_API_PROD/api/OfferRequestApi/GetTravelOffers', payload, {
+      headers,
+      timeout: 5000
+    });
+    
+    // Attempt to map real EMMA results. If the format doesn't match, we error out and fallback.
+    const offers = apiRes.data?.travelOffers;
+    if (!offers || offers.length === 0) throw new Error('No offers returned from MAV EMMA');
+    
+    // Map to our standard format
+    return offers.map((offer, idx) => {
+      const train = offer.trains?.[0] || {};
+      const price = offer.totalPrice || calculateMavPrice(fromName, toName, 'IC');
+      const depDate = offer.departureTime ? new Date(offer.departureTime) : new Date();
+      const arrDate = offer.arrivalTime ? new Date(offer.arrivalTime) : new Date(depDate.getTime() + 90 * 60000);
+      
+      return {
+        id:            uuidv4(),
+        routeName:     train.trainNumber || `Vonat ${idx+1}`,
+        type:          train.trainCategory === 'InterCity' ? 'IC' : 'LOCAL',
+        fromName,
+        toName,
+        departureTime: depDate.toISOString(),
+        arrivalTime:   arrDate.toISOString(),
+        delayMinutes:  offer.delay || 0,
+        status:        offer.delay > 0 ? 'DELAYED' : 'ON_TIME',
+        basePrice:     price,
+        availableSeats: Math.floor(Math.random() * 150) + 20,
+        platform:      train.departurePlatform || Math.floor(Math.random() * 10) + 1,
+        features:      FEATURES.IC,
+        stops:         [
+          { station: fromName, time: depDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) },
+          { station: toName, time: arrDate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'}) }
+        ],
+        source:        'mav-emma-api',
+      };
+    });
+  } catch (err) {
+    throw new Error(`MAV EMMA API failed: ${err.message}`);
+  }
 }
 
 // ─── POST /api/search ─────────────────────────────────────────────────────────
@@ -234,8 +269,17 @@ router.post('/', async (req, res) => {
   const toName = resolveStationName(to);
   const targetDate = date || new Date().toISOString().split('T')[0];
   
-  const results = generateFallbackResults(from, to, date);
-  res.json({ source: 'fallback', fromName, toName, date: targetDate, results });
+  // Try real MÁV EMMA API first, if it fails, use fallback
+  try {
+    console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
+    const results = await fetchMavApi(fromName, toName, targetDate);
+    console.log(`[${ts}] ✅ MÁV EMMA API success → ${results.length} connections`);
+    return res.json({ source: 'mav-emma-api', fromName, toName, date: targetDate, results });
+  } catch (err) {
+    console.error(`[${ts}] ❌ MÁV EMMA API error: ${err.message} → using fallback`);
+    const results = generateFallbackResults(from, to, date);
+    return res.json({ source: 'fallback', fromName, toName, date: targetDate, results });
+  }
 });
 
 // ─── POST /api/ai-analyze ─────────────────────────────────────────────────────
@@ -267,33 +311,12 @@ router.get('/', async (req, res) => {
   const toName     = resolveStationName(to);
   const targetDate = date || new Date().toISOString().split('T')[0];
 
-  // ── Attempt real external API (Swiss Open Transport — free, no key) ──────
   try {
-    console.log(`[${ts}] 🌐 Calling transport.opendata.ch …`);
-
-    const apiRes = await axios.get('https://transport.opendata.ch/v1/connections', {
-      params: {
-        from:  'Zürich HB',
-        to:    'Bern',
-        date:  targetDate,
-        time:  '08:00',
-        limit: 8,
-      },
-      timeout: 6000,
-      headers: { Accept: 'application/json' },
-    });
-
-    const connections = apiRes.data?.connections ?? [];
-    console.log(`[${ts}] ✅ transport.opendata.ch → ${connections.length} connections`);
-
-    if (connections.length === 0) throw new Error('Empty API response');
-
-    const results = mapSwissConnections(connections, fromName, toName);
-    console.log(`[${ts}] 📦 Returning ${results.length} real-API results (HU names applied)`);
-
+    console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
+    const results = await fetchMavApi(fromName, toName, targetDate);
     return res.json({
-      source:      'api',
-      apiProvider: 'transport.opendata.ch',
+      source:      'mav-emma-api',
+      apiProvider: 'MÁV-START EMMA',
       fromName,
       toName,
       date:        targetDate,
@@ -317,3 +340,4 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+
