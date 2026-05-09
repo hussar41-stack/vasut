@@ -126,7 +126,12 @@ body {
   top: 0; left: 0; right: 0; height: 4px;
   background: linear-gradient(90deg, var(--accent), #a855f7);
 }
-.search-card h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+.search-card h2 { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+
+.network-toggle { display: inline-flex; gap: 8px; margin-bottom: 24px; padding: 6px; background: rgba(0,0,0,0.4); border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); }
+.network-toggle .btn { border: none; background: transparent; padding: 10px 24px; border-radius: 10px; font-weight: 600; color: var(--text-secondary); }
+.network-toggle .btn.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+.network-toggle .btn:hover:not(.btn-primary) { color: #fff; background: rgba(255,255,255,0.1); }
 
 .search-grid {
   display: grid;
@@ -139,22 +144,23 @@ body {
 
 /* ─── Form Controls ─── */
 .field { display: flex; flex-direction: column; gap: 8px; }
-.field label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+.field label { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 .field input, .field select {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
+  padding: 16px 20px;
   color: var(--text-primary);
   font-family: 'Outfit', sans-serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 500;
   outline: none;
   transition: var(--transition);
 }
 .field input:focus, .field select:focus {
+  background: rgba(255, 255, 255, 0.08);
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
 }
 
 /* ─── Buttons ─── */

@@ -144,29 +144,29 @@ export default function SchedulePage() {
           Utazástervező
         </h2>
         <form onSubmit={handleSearch}>
-            <div className="network-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <button type="button" className={`btn btn-sm ${form.network === 'mav' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'mav', from: '', to: '' }))}>🚆 MÁV</button>
-              <button type="button" className={`btn btn-sm ${form.network === 'volan' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'volan', from: '', to: '' }))}>🚌 Volán</button>
-              <button type="button" className={`btn btn-sm ${form.network === 'bkk' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'bkk', from: '', to: '' }))}>🚌 BKK</button>
+            <div className="network-toggle">
+              <button type="button" className={`btn ${form.network === 'mav' ? 'btn-primary' : ''}`} onClick={() => setForm(f => ({ ...f, network: 'mav', from: '', to: '' }))}>🚆 MÁV</button>
+              <button type="button" className={`btn ${form.network === 'volan' ? 'btn-primary' : ''}`} onClick={() => setForm(f => ({ ...f, network: 'volan', from: '', to: '' }))}>🚌 Volán</button>
+              <button type="button" className={`btn ${form.network === 'bkk' ? 'btn-primary' : ''}`} onClick={() => setForm(f => ({ ...f, network: 'bkk', from: '', to: '' }))}>🚌 BKK</button>
             </div>
             <div className="search-grid">
               <div className="field">
-                <label>Honnan</label>
+                <label>📍 Honnan</label>
                 <input id="search-from" list="stations-list" placeholder="Indulási állomás" required value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} />
               </div>
               <div className="field">
-                <label>Hová</label>
+                <label>🚩 Hová</label>
                 <input id="search-to" list="stations-list" placeholder="Érkezési állomás" required value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} />
                 <datalist id="stations-list">
                   {(form.network === 'volan' ? VOLAN_STATIONS : form.network === 'mav' ? ALL_STATIONS : []).map(s => <option key={s} value={s} />)}
                 </datalist>
               </div>
               <div className="field">
-                <label>Dátum</label>
+                <label>📅 Dátum</label>
                 <input type="date" required value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
               </div>
               <div className="field">
-                <label>Rendezés</label>
+                <label>🔀 Rendezés</label>
                 <select value={form.sortBy} onChange={e => setForm(f => ({ ...f, sortBy: e.target.value }))}>
                   <option value="departure">Legkorábbi indulás</option>
                   <option value="duration">Leggyorsabb út</option>
@@ -216,7 +216,7 @@ export default function SchedulePage() {
                   </div>
                   
                   <div className="trip-price-block">
-                    {trip.basePrice !== null ? (
+                    {form.network === 'mav' && trip.basePrice !== null ? (
                       <>
                         <div className="price">
                           {Math.round(trip.basePrice * DISCOUNTS[discountType].multiplier)} Ft
