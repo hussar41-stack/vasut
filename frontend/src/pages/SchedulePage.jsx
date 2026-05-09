@@ -212,7 +212,7 @@ export default function SchedulePage() {
                   <div className="trip-time-block">
                     <span className="time">{formatTime(trip.departureTime)} — {formatTime(trip.arrivalTime)}</span>
                     <span className="duration">{getDuration(trip.departureTime, trip.arrivalTime)} • 0 átszállás</span>
-                    {trip.status === 'DELAYED' && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', fontWeight: 700, marginLeft: '8px', background: 'var(--danger-light)', padding: '4px 10px', borderRadius: '8px' }}>+{trip.delayMinutes}'</span>}
+                    {trip.type !== 'VOLAN' && trip.status === 'DELAYED' && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', fontWeight: 700, marginLeft: '8px', background: 'var(--danger-light)', padding: '4px 10px', borderRadius: '8px' }}>+{trip.delayMinutes}'</span>}
                   </div>
                   
                   <div className="trip-price-block">
@@ -234,49 +234,62 @@ export default function SchedulePage() {
                 {/* Expanded Details Section */}
                 {expandedTripId === trip.id && (
                   <div className="trip-expanded-details">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 250px', gap: '30px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: trip.type === 'VOLAN' ? '1fr' : 'minmax(250px, 1fr) 250px', gap: '30px' }}>
                       
                       {/* Vertical Timeline */}
                       <div className="timeline-container">
                         {(trip.stops && trip.stops.length > 0 ? trip.stops : [
                             { station: trip.fromName, time: formatTime(trip.departureTime) },
-                            { station: 'Közbülső megálló', time: '...' },
                             { station: trip.toName, time: formatTime(trip.arrivalTime) }
                         ]).map((stop, sIdx, arr) => (
-                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === arr.length - 1 ? 0 : '32px' }}>
+                          <div key={sIdx} style={{ position: 'relative', marginBottom: sIdx === arr.length - 1 ? 0 : '24px' }}>
                             <div className={`timeline-dot ${sIdx === 0 || sIdx === arr.length - 1 ? 'active' : ''}`}></div>
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontSize: '1.05rem', fontWeight: (sIdx === 0 || sIdx === arr.length - 1) ? 700 : 500, color: 'var(--text-primary)' }}>
+                              <div style={{ fontSize: sIdx === 0 || sIdx === arr.length - 1 ? '1.05rem' : '0.95rem', fontWeight: (sIdx === 0 || sIdx === arr.length - 1) ? 700 : 400, color: sIdx === 0 || sIdx === arr.length - 1 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                                 {stop.station}
                               </div>
-                              <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{stop.time}</div>
+                              <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.95rem', whiteSpace: 'nowrap', marginLeft: '16px' }}>{stop.time}</div>
                             </div>
 
-                            {sIdx === 0 && (
+                            {sIdx === 0 && trip.type === 'VOLAN' && (
+                                <div className="train-info-box" style={{ borderLeft: '3px solid #f59e0b' }}>
+                                    <div className="train-info-row">
+                                      {renderTrainBadge(trip)}
+                                      <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                        Volánbusz járat
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                      <span>🚌 Autóbusz</span>
+                                      <span>•</span>
+                                      <span>{arr.length} megálló</span>
+                                      <span>•</span>
+                                      <span>{getDuration(trip.departureTime, trip.arrivalTime)} menetidő</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                                        Közlekedik a kiírt megállóból · Forrás: GTFS menetrend
+                                    </div>
+                                </div>
+                            )}
+
+                            {sIdx === 0 && trip.type !== 'VOLAN' && (
                                 <div className="train-info-box">
                                     <div className="train-info-row">
                                       {renderTrainBadge(trip)}
                                       <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                                        {trip.type === 'VOLAN' ? 'Volánbusz járat' : trip.type === 'LOCAL' ? 'Személyvonat' : trip.type === 'IC' ? 'InterCity' : 'Gyorsvonat'}
+                                        {trip.type === 'LOCAL' ? 'Személyvonat' : trip.type === 'IC' ? 'InterCity' : 'Gyorsvonat'}
                                       </span>
                                     </div>
-                                    {trip.type !== 'VOLAN' && (
-                                      <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
-                                        <span title="2. osztály">2</span>
-                                        {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
-                                        {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
-                                        {trip.features?.bicycle && <span title="Kerékpárszállítás">🚲</span>}
-                                        {trip.features?.climate && <span title="Klíma">❄️</span>}
-                                      </div>
-                                    )}
-                                    {trip.type === 'VOLAN' && (
-                                      <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
-                                        <span title="Autóbusz">🚌</span>
-                                      </div>
-                                    )}
+                                    <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
+                                      <span title="2. osztály">2</span>
+                                      {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
+                                      {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
+                                      {trip.features?.bicycle && <span title="Kerékpárszállítás">🚲</span>}
+                                      {trip.features?.climate && <span title="Klíma">❄️</span>}
+                                    </div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                                        {trip.type === 'VOLAN' ? 'Közlekedik a kiírt megállóból' : `${trip.platform}. vágányról indul`}
+                                        {trip.platform}. vágányról indul
                                     </div>
                                 </div>
                             )}
@@ -284,19 +297,21 @@ export default function SchedulePage() {
                         ))}
                       </div>
 
-                      {/* Info / Actions */}
-                      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div>
-                           <h4 style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jelmagyarázat</h4>
-                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                              <div style={{ display: 'flex', gap: '12px' }}><span>🚲</span><span>Kerékpár szállítható</span></div>
-                              <div style={{ display: 'flex', gap: '12px' }}><span>2</span><span>Csak 2. osztály</span></div>
-                              <div style={{ display: 'flex', gap: '12px' }}><span>♿</span><span>Kerekesszékes utazás</span></div>
-                              <div style={{ display: 'flex', gap: '12px' }}><span>📶</span><span>Ingyenes WiFi</span></div>
-                           </div>
+                      {/* Info / Actions — only for MÁV */}
+                      {trip.type !== 'VOLAN' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div>
+                             <h4 style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jelmagyarázat</h4>
+                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                <div style={{ display: 'flex', gap: '12px' }}><span>🚲</span><span>Kerékpár szállítható</span></div>
+                                <div style={{ display: 'flex', gap: '12px' }}><span>2</span><span>Csak 2. osztály</span></div>
+                                <div style={{ display: 'flex', gap: '12px' }}><span>♿</span><span>Kerekesszékes utazás</span></div>
+                                <div style={{ display: 'flex', gap: '12px' }}><span>📶</span><span>Ingyenes WiFi</span></div>
+                             </div>
+                          </div>
+                          <button className="btn btn-secondary btn-sm" onClick={() => setDelayTrip(trip)} style={{ width: '100%', marginTop: '24px' }}>⏱ Késés jelentése</button>
                         </div>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setDelayTrip(trip)} style={{ width: '100%', marginTop: '24px' }}>⏱ Késés jelentése</button>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
