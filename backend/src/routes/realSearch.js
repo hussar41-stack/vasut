@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const Database = require('better-sqlite3');
+const path = require('path');
+
+let volanDb = null;
+try {
+  volanDb = new Database(path.join(__dirname, '../../data/volan.db'), { readonly: true });
+  console.log('✅ Volánbusz GTFS adatbázis betöltve (read-only)');
+} catch (e) {
+  console.warn('⚠️ Volánbusz adatbázis nem található, a volán keresés nem fog működni.', e.message);
+}
 
 // ─── Hungarian station name resolver ────────────────────────────────────────
 const STATION_COORDS = {
@@ -189,6 +199,74 @@ function generateFallbackResults(from, to, date) {
   });
 }
 
+// ─── Volánbusz DB Search ───────────────────────────────────────────────────────
+function searchVolanDb(fromName, toName, dateStr) {
+  if (!volanDb) throw new Error("Volánbusz adatbázis nem elérhető.");
+
+  // Keresés pontos egyezésre vagy kezdődő egyezésre, hogy gyorsabb legyen az index miatt
+  const query = `
+    SELECT t.trip_id, r.route_short_name, r.route_long_name,
+           st1.departure_time, st2.arrival_time, 
+           st1.stop_id as from_stop_id, st2.stop_id as to_stop_id,
+           s1.stop_name as from_stop_name, s2.stop_name as to_stop_name
+    FROM stops s1
+    JOIN stop_times st1 ON s1.stop_id = st1.stop_id
+    JOIN stop_times st2 ON st1.trip_id = st2.trip_id
+    JOIN stops s2 ON st2.stop_id = s2.stop_id
+    JOIN trips t ON st1.trip_id = t.trip_id
+    JOIN routes r ON t.route_id = r.route_id
+    WHERE (s1.stop_name LIKE ?) AND (s2.stop_name LIKE ?)
+      AND st1.stop_sequence < st2.stop_sequence
+    ORDER BY st1.departure_time
+    LIMIT 30;
+  `;
+
+  const fromSearch = fromName.includes(',') ? fromName : `${fromName}%`;
+  const toSearch = toName.includes(',') ? toName : `${toName}%`;
+
+  const stmt = volanDb.prepare(query);
+  const rows = stmt.all(fromSearch, toSearch);
+
+  return rows.map((row) => {
+    const parseTime = (timeStr) => {
+       const parts = timeStr.split(':');
+       let h = parseInt(parts[0], 10);
+       const m = parseInt(parts[1], 10);
+       const s = parseInt(parts[2], 10);
+       
+       const d = new Date(dateStr);
+       // Handle 24+ hours (GTFS next day format)
+       if (h >= 24) {
+          d.setDate(d.getDate() + 1);
+          h -= 24;
+       }
+       d.setHours(h, m, s, 0);
+       return d.toISOString();
+    };
+
+    return {
+      id: uuidv4(),
+      routeName: row.route_short_name || 'Volán',
+      type: 'VOLAN',
+      fromName: row.from_stop_name,
+      toName: row.to_stop_name,
+      departureTime: parseTime(row.departure_time),
+      arrivalTime: parseTime(row.arrival_time),
+      delayMinutes: 0,
+      status: 'ON_TIME',
+      basePrice: Math.floor(Math.random() * 1000) + 500, // Placeholder
+      availableSeats: 50,
+      platform: '-',
+      features: { wifi: true, climate: true, wc: false, accessible: false, bicycle: false },
+      stops: [
+        { station: row.from_stop_name, time: row.departure_time.slice(0, 5) },
+        { station: row.to_stop_name, time: row.arrival_time.slice(0, 5) }
+      ],
+      source: 'volan-gtfs',
+    };
+  });
+}
+
 // ─── Unofficial MAV EMMA API Integration ─────────────────────────────────────────
 async function fetchMavApi(fromName, toName, targetDate) {
   // We use the new MÁV EMMA PROD API to try and fetch real time data.
@@ -261,14 +339,26 @@ async function fetchMavApi(fromName, toName, targetDate) {
 
 // ─── POST /api/search ─────────────────────────────────────────────────────────
 router.post('/', async (req, res) => {
-  const { from, to, date } = req.body;
+  const { from, to, date, network } = req.body;
   const ts = new Date().toISOString();
-  console.log(`[${ts}] 🔍 POST search from="${from}" to="${to}"`);
+  console.log(`[${ts}] 🔍 POST search from="${from}" to="${to}" network="${network}"`);
   
   const fromName = resolveStationName(from);
   const toName = resolveStationName(to);
   const targetDate = date || new Date().toISOString().split('T')[0];
   
+  if (network === 'volan') {
+    try {
+      console.log(`[${ts}] 🚌 Searching Volánbusz DB...`);
+      const results = searchVolanDb(from, to, targetDate);
+      console.log(`[${ts}] ✅ Volánbusz success → ${results.length} connections`);
+      return res.json({ source: 'volan-gtfs', fromName, toName, date: targetDate, results });
+    } catch (err) {
+      console.error(`[${ts}] ❌ Volánbusz error: ${err.message}`);
+      return res.status(500).json({ error: 'Volánbusz menetrend nem elérhető.' });
+    }
+  }
+
   // Try real MÁV EMMA API first, if it fails, use fallback
   try {
     console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);

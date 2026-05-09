@@ -73,6 +73,7 @@ export default function SchedulePage() {
     if (trip.type === 'FAST')  { bg = '#0ea5e9'; }
     if (trip.type === 'IC')    { bg = '#c084fc'; }
     if (trip.type === 'EC' || trip.type === 'RAILJET') { bg = '#f43f5e'; }
+    if (trip.type === 'VOLAN') { bg = '#f59e0b'; color = '#000'; } // Sárga Volánbusz
 
     return (
       <span style={{
@@ -143,6 +144,7 @@ export default function SchedulePage() {
         <form onSubmit={handleSearch}>
             <div className="network-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               <button type="button" className={`btn btn-sm ${form.network === 'mav' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'mav', from: '', to: '' }))}>🚆 MÁV</button>
+              <button type="button" className={`btn btn-sm ${form.network === 'volan' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'volan', from: '', to: '' }))}>🚌 Volán</button>
               <button type="button" className={`btn btn-sm ${form.network === 'bkk' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setForm(f => ({ ...f, network: 'bkk', from: '', to: '' }))}>🚌 BKK</button>
             </div>
             <div className="search-grid">
