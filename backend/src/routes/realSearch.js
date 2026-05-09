@@ -203,10 +203,10 @@ function generateFallbackResults(from, to, date) {
 function searchVolanDb(fromName, toName, dateStr) {
   if (!volanDb) throw new Error("Volánbusz adatbázis nem elérhető.");
 
-  // Keresés pontos egyezésre vagy kezdődő egyezésre, hogy gyorsabb legyen az index miatt
   const query = `
     SELECT t.trip_id, r.route_short_name, r.route_long_name,
            st1.departure_time, st2.arrival_time, 
+           st1.stop_sequence as from_seq, st2.stop_sequence as to_seq,
            st1.stop_id as from_stop_id, st2.stop_id as to_stop_id,
            s1.stop_name as from_stop_name, s2.stop_name as to_stop_name
     FROM stops s1
@@ -228,6 +228,14 @@ function searchVolanDb(fromName, toName, dateStr) {
   const stmt = volanDb.prepare(query);
   const rows = stmt.all(fromSearch, toSearch);
 
+  const stopsStmt = volanDb.prepare(`
+    SELECT s.stop_name, st.departure_time
+    FROM stop_times st
+    JOIN stops s ON st.stop_id = s.stop_id
+    WHERE st.trip_id = ? AND st.stop_sequence >= ? AND st.stop_sequence <= ?
+    ORDER BY st.stop_sequence ASC
+  `);
+
   return rows.map((row) => {
     const parseTime = (timeStr) => {
        const parts = timeStr.split(':');
@@ -236,14 +244,22 @@ function searchVolanDb(fromName, toName, dateStr) {
        const s = parseInt(parts[2], 10);
        
        const d = new Date(dateStr);
-       // Handle 24+ hours (GTFS next day format)
-       if (h >= 24) {
-          d.setDate(d.getDate() + 1);
-          h -= 24;
-       }
+       if (h >= 24) { d.setDate(d.getDate() + 1); h -= 24; }
        d.setHours(h, m, s, 0);
        return d.toISOString();
     };
+    
+    const formatTimeOnly = (timeStr) => {
+       const parts = timeStr.split(':');
+       let h = parseInt(parts[0], 10);
+       if (h >= 24) h -= 24;
+       return `${h.toString().padStart(2, '0')}:${parts[1]}`;
+    };
+
+    const intermediateStops = stopsStmt.all(row.trip_id, row.from_seq, row.to_seq).map(st => ({
+       station: st.stop_name,
+       time: formatTimeOnly(st.departure_time)
+    }));
 
     return {
       id: uuidv4(),
@@ -255,13 +271,13 @@ function searchVolanDb(fromName, toName, dateStr) {
       arrivalTime: parseTime(row.arrival_time),
       delayMinutes: 0,
       status: 'ON_TIME',
-      basePrice: null, // Nincs jegyár a Volánbusznál, "Helyi tarifa"
+      basePrice: null,
       availableSeats: null,
       platform: '-',
       features: { wifi: false, climate: true, wc: false, accessible: false, bicycle: false },
-      stops: [
-        { station: row.from_stop_name, time: row.departure_time.slice(0, 5) },
-        { station: row.to_stop_name, time: row.arrival_time.slice(0, 5) }
+      stops: intermediateStops.length > 0 ? intermediateStops : [
+        { station: row.from_stop_name, time: formatTimeOnly(row.departure_time) },
+        { station: row.to_stop_name, time: formatTimeOnly(row.arrival_time) }
       ],
       source: 'volan-gtfs',
     };

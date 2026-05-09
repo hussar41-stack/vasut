@@ -258,18 +258,25 @@ export default function SchedulePage() {
                                     <div className="train-info-row">
                                       {renderTrainBadge(trip)}
                                       <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                                        {trip.type === 'LOCAL' ? 'Személyvonat' : trip.type === 'IC' ? 'InterCity' : 'Gyorsvonat'}
+                                        {trip.type === 'VOLAN' ? 'Volánbusz járat' : trip.type === 'LOCAL' ? 'Személyvonat' : trip.type === 'IC' ? 'InterCity' : 'Gyorsvonat'}
                                       </span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
-                                      <span title="2. osztály">2</span>
-                                      {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
-                                      {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
-                                      {trip.features?.bicycle && <span title="Kerékpárszállítás">🚲</span>}
-                                      {trip.features?.climate && <span title="Klíma">❄️</span>}
-                                    </div>
+                                    {trip.type !== 'VOLAN' && (
+                                      <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
+                                        <span title="2. osztály">2</span>
+                                        {trip.features?.accessible && <span title="Akadálymentes">♿</span>}
+                                        {trip.features?.wifi && <span title="Ingyen WiFi">📶</span>}
+                                        {trip.features?.bicycle && <span title="Kerékpárszállítás">🚲</span>}
+                                        {trip.features?.climate && <span title="Klíma">❄️</span>}
+                                      </div>
+                                    )}
+                                    {trip.type === 'VOLAN' && (
+                                      <div style={{ display: 'flex', gap: '16px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>
+                                        <span title="Autóbusz">🚌</span>
+                                      </div>
+                                    )}
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                                        {trip.platform}. vágányról indul
+                                        {trip.type === 'VOLAN' ? 'Közlekedik a kiírt megállóból' : `${trip.platform}. vágányról indul`}
                                     </div>
                                 </div>
                             )}
