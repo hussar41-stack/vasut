@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { version } from '../version';
 
 import { ALL_HUNGARY_STATIONS } from '../data/allStations';
+import { VOLAN_STATIONS } from '../data/volanStations';
 
 export default function SchedulePage() {
   const ALL_STATIONS = ALL_HUNGARY_STATIONS;
@@ -95,11 +96,12 @@ export default function SchedulePage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (form.network === 'mav') {
-      const fromValid = ALL_STATIONS.includes(form.from);
-      const toValid   = ALL_STATIONS.includes(form.to);
+    if (form.network === 'mav' || form.network === 'volan') {
+      const currentStations = form.network === 'volan' ? VOLAN_STATIONS : ALL_STATIONS;
+      const fromValid = currentStations.includes(form.from);
+      const toValid   = currentStations.includes(form.to);
       if (!fromValid || !toValid) {
-        setError(`Kérjük válasszon a listában szereplő érvényes vasútállomások közül! (${!fromValid ? form.from : form.to} nem található)`);
+        setError(`Kérjük válasszon a listában szereplő érvényes állomások közül! (${!fromValid ? form.from : form.to} nem található)`);
         return;
       }
     }
@@ -155,7 +157,9 @@ export default function SchedulePage() {
               <div className="field">
                 <label>Hová</label>
                 <input id="search-to" list="stations-list" placeholder="Érkezési állomás" required value={form.to} onChange={e => setForm(f => ({ ...f, to: e.target.value }))} />
-                <datalist id="stations-list">{ALL_STATIONS.map(s => <option key={s} value={s} />)}</datalist>
+                <datalist id="stations-list">
+                  {(form.network === 'volan' ? VOLAN_STATIONS : form.network === 'mav' ? ALL_STATIONS : []).map(s => <option key={s} value={s} />)}
+                </datalist>
               </div>
               <div className="field">
                 <label>Dátum</label>
