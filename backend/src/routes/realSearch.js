@@ -4,10 +4,28 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
+const zlib = require('zlib');
+
+// Auto-decompress volan.db.gz → volan.db if needed
+const dbPath = path.join(__dirname, '../../data/volan.db');
+const gzPath = path.join(__dirname, '../../data/volan.db.gz');
+if (!fs.existsSync(dbPath) && fs.existsSync(gzPath)) {
+  console.log('📦 Decompressing volan.db.gz → volan.db ...');
+  try {
+    const compressed = fs.readFileSync(gzPath);
+    const decompressed = zlib.gunzipSync(compressed);
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    fs.writeFileSync(dbPath, decompressed);
+    console.log('✅ volan.db decompressed successfully');
+  } catch (e) {
+    console.error('❌ Failed to decompress volan.db.gz:', e.message);
+  }
+}
 
 let volanDb = null;
 try {
-  volanDb = new Database(path.join(__dirname, '../../data/volan.db'), { readonly: true });
+  volanDb = new Database(dbPath, { readonly: true });
   console.log('✅ Volánbusz GTFS adatbázis betöltve (read-only)');
 } catch (e) {
   console.warn('⚠️ Volánbusz adatbázis nem található, a volán keresés nem fog működni.', e.message);
