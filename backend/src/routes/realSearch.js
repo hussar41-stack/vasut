@@ -217,8 +217,9 @@ function searchVolanDb(fromName, toName, dateStr) {
     JOIN routes r ON t.route_id = r.route_id
     WHERE (s1.stop_name LIKE ?) AND (s2.stop_name LIKE ?)
       AND st1.stop_sequence < st2.stop_sequence
+    GROUP BY st1.departure_time, r.route_short_name, s1.stop_name
     ORDER BY st1.departure_time
-    LIMIT 30;
+    LIMIT 20;
   `;
 
   const fromSearch = fromName.includes(',') ? fromName : `${fromName}%`;
@@ -254,10 +255,10 @@ function searchVolanDb(fromName, toName, dateStr) {
       arrivalTime: parseTime(row.arrival_time),
       delayMinutes: 0,
       status: 'ON_TIME',
-      basePrice: Math.floor(Math.random() * 1000) + 500, // Placeholder
-      availableSeats: 50,
+      basePrice: null, // Nincs jegyár a Volánbusznál, "Helyi tarifa"
+      availableSeats: null,
       platform: '-',
-      features: { wifi: true, climate: true, wc: false, accessible: false, bicycle: false },
+      features: { wifi: false, climate: true, wc: false, accessible: false, bicycle: false },
       stops: [
         { station: row.from_stop_name, time: row.departure_time.slice(0, 5) },
         { station: row.to_stop_name, time: row.arrival_time.slice(0, 5) }

@@ -212,10 +212,16 @@ export default function SchedulePage() {
                   </div>
                   
                   <div className="trip-price-block">
-                    <div className="price">
-                      {Math.round(trip.basePrice * DISCOUNTS[discountType].multiplier)} Ft
-                    </div>
-                    <button className="buy-btn-small" onClick={(e) => { e.stopPropagation(); setPurchaseTrip(trip); }}>Jegyvásárlás</button>
+                    {trip.basePrice !== null ? (
+                      <>
+                        <div className="price">
+                          {Math.round(trip.basePrice * DISCOUNTS[discountType].multiplier)} Ft
+                        </div>
+                        <button className="buy-btn-small" onClick={(e) => { e.stopPropagation(); setPurchaseTrip(trip); }}>Jegyvásárlás</button>
+                      </>
+                    ) : (
+                      <div className="price" style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 500 }}>Helyi tarifa</div>
+                    )}
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: expandedTripId === trip.id ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s', color: 'var(--text-muted)' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </div>
 
