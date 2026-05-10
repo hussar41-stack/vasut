@@ -4,3 +4,4 @@ node_modules/
 *.db
 data/*
 !data/volan.db.gz
+!data/mav.db.gz

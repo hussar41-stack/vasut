@@ -23,12 +23,37 @@ if (!fs.existsSync(dbPath) && fs.existsSync(gzPath)) {
   }
 }
 
+// Auto-decompress mav.db.gz → mav.db if needed
+const mavDbPathCheck = path.join(__dirname, '../../data/mav.db');
+const mavGzPath = path.join(__dirname, '../../data/mav.db.gz');
+if (!fs.existsSync(mavDbPathCheck) && fs.existsSync(mavGzPath)) {
+  console.log('📦 Decompressing mav.db.gz → mav.db ...');
+  try {
+    const compressed = fs.readFileSync(mavGzPath);
+    const decompressed = zlib.gunzipSync(compressed);
+    fs.mkdirSync(path.dirname(mavDbPathCheck), { recursive: true });
+    fs.writeFileSync(mavDbPathCheck, decompressed);
+    console.log('✅ mav.db decompressed successfully');
+  } catch (e) {
+    console.error('❌ Failed to decompress mav.db.gz:', e.message);
+  }
+}
+
 let volanDb = null;
 try {
   volanDb = new Database(dbPath, { readonly: true });
   console.log('✅ Volánbusz GTFS adatbázis betöltve (read-only)');
 } catch (e) {
   console.warn('⚠️ Volánbusz adatbázis nem található, a volán keresés nem fog működni.', e.message);
+}
+
+const mavDbPath = path.join(__dirname, '../../data/mav.db');
+let mavDb = null;
+try {
+  mavDb = new Database(mavDbPath, { readonly: true });
+  console.log('✅ MÁV GTFS adatbázis betöltve (read-only)');
+} catch (e) {
+  console.warn('⚠️ MÁV adatbázis nem található, a máv keresés nem fog működni.', e.message);
 }
 
 // ─── Hungarian station name resolver ────────────────────────────────────────
@@ -302,6 +327,104 @@ function searchVolanDb(fromName, toName, dateStr) {
   });
 }
 
+// ─── MÁV DB Search ─────────────────────────────────────────────────────────────
+function searchMavDb(fromName, toName, dateStr) {
+  if (!mavDb) throw new Error("MÁV adatbázis nem elérhető.");
+
+  const query = `
+    SELECT t.trip_id, r.route_short_name, r.route_long_name,
+           st1.departure_time, st2.arrival_time, 
+           st1.stop_sequence as from_seq, st2.stop_sequence as to_seq,
+           st1.stop_id as from_stop_id, st2.stop_id as to_stop_id,
+           s1.stop_name as from_stop_name, s2.stop_name as to_stop_name
+    FROM stops s1
+    JOIN stop_times st1 ON s1.stop_id = st1.stop_id
+    JOIN stop_times st2 ON st1.trip_id = st2.trip_id
+    JOIN stops s2 ON st2.stop_id = s2.stop_id
+    JOIN trips t ON st1.trip_id = t.trip_id
+    JOIN routes r ON t.route_id = r.route_id
+    WHERE (s1.stop_name LIKE ?) AND (s2.stop_name LIKE ?)
+      AND st1.stop_sequence < st2.stop_sequence
+    GROUP BY st1.departure_time, r.route_short_name, s1.stop_name
+    ORDER BY st1.departure_time
+    LIMIT 20;
+  `;
+
+  const fromSearch = fromName.includes(',') ? fromName : `%${fromName}%`;
+  const toSearch = toName.includes(',') ? toName : `%${toName}%`;
+
+  const stmt = mavDb.prepare(query);
+  const rows = stmt.all(fromSearch, toSearch);
+
+  const stopsStmt = mavDb.prepare(`
+    SELECT s.stop_name, st.departure_time
+    FROM stop_times st
+    JOIN stops s ON st.stop_id = s.stop_id
+    WHERE st.trip_id = ? AND st.stop_sequence >= ? AND st.stop_sequence <= ?
+    ORDER BY st.stop_sequence ASC
+  `);
+
+  return rows.map((row) => {
+    const parseTime = (timeStr) => {
+       const parts = timeStr.split(':');
+       let h = parseInt(parts[0], 10);
+       const m = parseInt(parts[1], 10);
+       const s = parseInt(parts[2], 10);
+       
+       const d = new Date(dateStr);
+       if (h >= 24) { d.setDate(d.getDate() + 1); h -= 24; }
+       d.setHours(h, m, s, 0);
+       return d.toISOString();
+    };
+    
+    const formatTimeOnly = (timeStr) => {
+       const parts = timeStr.split(':');
+       let h = parseInt(parts[0], 10);
+       if (h >= 24) h -= 24;
+       return `${h.toString().padStart(2, '0')}:${parts[1]}`;
+    };
+
+    const intermediateStops = stopsStmt.all(row.trip_id, row.from_seq, row.to_seq).map(st => ({
+       station: st.stop_name,
+       time: formatTimeOnly(st.departure_time)
+    }));
+    
+    let trainType = 'LOCAL';
+    const rName = (row.route_short_name || row.route_long_name || '').toUpperCase();
+    if (rName.includes('IC')) trainType = 'IC';
+    else if (rName.includes('EC')) trainType = 'EC';
+    else if (rName.includes('RJX')) trainType = 'RAILJET';
+    else if (rName.includes(' G') || rName.includes(' Z') || rName.startsWith('G') || rName.startsWith('Z')) trainType = 'FAST';
+
+    let finalFeatures = FEATURES.S;
+    if (trainType === 'IC')      finalFeatures = FEATURES.IC;
+    else if (trainType === 'FAST') finalFeatures = FEATURES.G;
+    else if (trainType === 'RAILJET') finalFeatures = FEATURES.RJX;
+    else if (trainType === 'EC') finalFeatures = FEATURES.EC;
+
+    return {
+      id: uuidv4(),
+      routeName: row.route_short_name || row.route_long_name || 'Vonat',
+      type: trainType,
+      fromName: row.from_stop_name,
+      toName: row.to_stop_name,
+      departureTime: parseTime(row.departure_time),
+      arrivalTime: parseTime(row.arrival_time),
+      delayMinutes: 0,
+      status: 'ON_TIME',
+      basePrice: calculateMavPrice(row.from_stop_name, row.to_stop_name, trainType),
+      availableSeats: Math.floor(Math.random() * 150) + 10,
+      platform: Math.floor(Math.random() * 12) + 1,
+      features: finalFeatures,
+      stops: intermediateStops.length > 0 ? intermediateStops : [
+        { station: row.from_stop_name, time: formatTimeOnly(row.departure_time) },
+        { station: row.to_stop_name, time: formatTimeOnly(row.arrival_time) }
+      ],
+      source: 'mav-gtfs',
+    };
+  });
+}
+
 // ─── Unofficial MAV EMMA API Integration ─────────────────────────────────────────
 async function fetchMavApi(fromName, toName, targetDate) {
   // We use the new MÁV EMMA PROD API to try and fetch real time data.
@@ -394,16 +517,28 @@ router.post('/', async (req, res) => {
     }
   }
 
-  // Try real MÁV EMMA API first, if it fails, use fallback
+  // Try GTFS first, fallback to EMMA, fallback to generated
   try {
-    console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
-    const results = await fetchMavApi(fromName, toName, targetDate);
-    console.log(`[${ts}] ✅ MÁV EMMA API success → ${results.length} connections`);
-    return res.json({ source: 'mav-emma-api', fromName, toName, date: targetDate, results });
+    console.log(`[${ts}] 🚆 Searching MÁV GTFS DB...`);
+    const results = searchMavDb(fromName, toName, targetDate);
+    if (results.length > 0) {
+      console.log(`[${ts}] ✅ MÁV GTFS success → ${results.length} connections`);
+      return res.json({ source: 'mav-gtfs', fromName, toName, date: targetDate, results });
+    } else {
+      throw new Error("No GTFS results");
+    }
   } catch (err) {
-    console.error(`[${ts}] ❌ MÁV EMMA API error: ${err.message} → using fallback`);
-    const results = generateFallbackResults(from, to, date);
-    return res.json({ source: 'fallback', fromName, toName, date: targetDate, results });
+    console.error(`[${ts}] ❌ MÁV GTFS error: ${err.message} → using EMMA API`);
+    try {
+      console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
+      const results = await fetchMavApi(fromName, toName, targetDate);
+      console.log(`[${ts}] ✅ MÁV EMMA API success → ${results.length} connections`);
+      return res.json({ source: 'mav-emma-api', fromName, toName, date: targetDate, results });
+    } catch (err2) {
+      console.error(`[${ts}] ❌ MÁV EMMA API error: ${err2.message} → using fallback`);
+      const results = generateFallbackResults(from, to, date);
+      return res.json({ source: 'fallback', fromName, toName, date: targetDate, results });
+    }
   }
 });
 
@@ -437,32 +572,40 @@ router.get('/', async (req, res) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
 
   try {
-    console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
-    const results = await fetchMavApi(fromName, toName, targetDate);
-    return res.json({
-      source:      'mav-emma-api',
-      apiProvider: 'MÁV-START EMMA',
-      fromName,
-      toName,
-      date:        targetDate,
-      results,
-    });
+    console.log(`[${ts}] 🚆 Searching MÁV GTFS DB...`);
+    const results = searchMavDb(fromName, toName, targetDate);
+    if (results.length > 0) {
+      console.log(`[${ts}] ✅ MÁV GTFS success → ${results.length} connections`);
+      return res.json({ source: 'mav-gtfs', apiProvider: 'MÁV GTFS', fromName, toName, date: targetDate, results });
+    } else {
+      throw new Error("No GTFS results");
+    }
   } catch (err) {
-    console.error(`[${ts}] ❌ Real API error: ${err.message} → using fallback`);
+    console.error(`[${ts}] ❌ MÁV GTFS error: ${err.message} → using EMMA API`);
+    try {
+      console.log(`[${ts}] 🌐 Calling MÁV EMMA API...`);
+      const results = await fetchMavApi(fromName, toName, targetDate);
+      return res.json({
+        source:      'mav-emma-api',
+        apiProvider: 'MÁV-START EMMA',
+        fromName,
+        toName,
+        date:        targetDate,
+        results,
+      });
+    } catch (err2) {
+      console.error(`[${ts}] ❌ Real API error: ${err2.message} → using fallback`);
+      const results = generateFallbackResults(from, to, date);
+      console.log(`[${ts}] 📦 Returning ${results.length} fallback results`);
+      return res.json({
+        source:   'fallback',
+        fromName,
+        toName,
+        date:     targetDate,
+        results,
+      });
+    }
   }
-
-  // ── Fallback: generated realistic Hungarian schedule ─────────────────────
-  const results = generateFallbackResults(from, to, date);
-  console.log(`[${ts}] 📦 Returning ${results.length} fallback results`);
-
-  return res.json({
-    source:   'fallback',
-    fromName,
-    toName,
-    date:     targetDate,
-    results,
-  });
 });
 
 module.exports = router;
-
